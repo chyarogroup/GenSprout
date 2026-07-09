@@ -1,0 +1,138 @@
+package com.github.gensprout.player;
+
+import java.util.UUID;
+
+public class PlayerData {
+
+    private final UUID uuid;
+    private int level = 1;
+    private double farmingXp = 0.0;
+    private int prestige = 0;
+    private int prestigePoints = 0;
+    
+    // Multiplier levels purchased in the Prestige Shop
+    private int xpMultiplierLevel = 0;
+    private int moneyMultiplierLevel = 0;
+    private int essenceMultiplierLevel = 0;
+
+    private int essence = 0;
+    private int purchasedSlots = 0;
+
+    public PlayerData(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public double getFarmingXp() {
+        return farmingXp;
+    }
+
+    public void setFarmingXp(double farmingXp) {
+        this.farmingXp = farmingXp;
+    }
+
+    public int getPrestige() {
+        return prestige;
+    }
+
+    public void setPrestige(int prestige) {
+        this.prestige = prestige;
+    }
+
+    public int getPrestigePoints() {
+        return prestigePoints;
+    }
+
+    public void setPrestigePoints(int prestigePoints) {
+        this.prestigePoints = prestigePoints;
+    }
+
+    public int getXpMultiplierLevel() {
+        return xpMultiplierLevel;
+    }
+
+    public void setXpMultiplierLevel(int xpMultiplierLevel) {
+        this.xpMultiplierLevel = xpMultiplierLevel;
+    }
+
+    public int getMoneyMultiplierLevel() {
+        return moneyMultiplierLevel;
+    }
+
+    public void setMoneyMultiplierLevel(int moneyMultiplierLevel) {
+        this.moneyMultiplierLevel = moneyMultiplierLevel;
+    }
+
+    public int getEssenceMultiplierLevel() {
+        return essenceMultiplierLevel;
+    }
+
+    public void setEssenceMultiplierLevel(int essenceMultiplierLevel) {
+        this.essenceMultiplierLevel = essenceMultiplierLevel;
+    }
+
+    public int getEssence() {
+        return essence;
+    }
+
+    public void setEssence(int essence) {
+        this.essence = essence;
+    }
+
+    public void addEssence(int amount) {
+        this.essence += amount;
+    }
+
+    public boolean removeEssence(int amount) {
+        if (this.essence >= amount) {
+            this.essence -= amount;
+            return true;
+        }
+        return false;
+    }
+
+    public int getPurchasedSlots() {
+        return purchasedSlots;
+    }
+
+    public void setPurchasedSlots(int purchasedSlots) {
+        this.purchasedSlots = purchasedSlots;
+    }
+
+    public void addPurchasedSlot() {
+        this.purchasedSlots++;
+    }
+
+    /**
+     * Total slot limit: default slots (starts at 20) + 1 per prestige + purchased slots
+     */
+    public int getMaxSlots(int defaultSlots) {
+        return defaultSlots + prestige + purchasedSlots;
+    }
+
+    /**
+     * Compute multiplier value based on level (1.0x baseline + 0.05x per shop upgrade)
+     */
+    public double getXpMultiplier() {
+        return 1.0 + (xpMultiplierLevel * 0.05);
+    }
+
+    public double getMoneyMultiplier() {
+        return 1.0 + (moneyMultiplierLevel * 0.05);
+    }
+
+    public double getEssenceMultiplier() {
+        return 1.0 + (essenceMultiplierLevel * 0.05);
+    }
+}

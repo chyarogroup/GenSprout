@@ -1,0 +1,21 @@
+name: GenSprout
+version: 1.0.0
+main: com.github.gensprout.GenSprout
+api-version: '1.21'
+description: A customizable farming and optimized generator plugin with Dialog UI.
+author: chyaroscuric
+dependencies:
+  server:
+    Vault:
+      load: BEFORE
+      required: false
+commands:
+  gensprout:
+    description: Main command for GenSprout.
+    aliases: [gs, sprout]
+  sell:
+    description: Sell all crop items in your inventory.
+    aliases: [sellall]
+  genshop:
+    description: Open the generator shop directly.
+    aliases: [gshop]
