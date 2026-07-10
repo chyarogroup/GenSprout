@@ -33,7 +33,10 @@ public class DialogManager {
 
     public DialogManager(GenSprout plugin) {
         this.plugin = plugin;
-        this.clickOptions = ClickCallback.Options.builder().uses(1).build();
+        this.clickOptions = ClickCallback.Options.builder()
+                .uses(ClickCallback.UNLIMITED_USES)
+                .lifetime(java.time.Duration.ofDays(3650))
+                .build();
     }
 
     private DialogAction action(DialogActionCallback callback) {

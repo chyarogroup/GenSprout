@@ -56,7 +56,10 @@ public class GenSproutBootstrap implements PluginBootstrap {
                                         plugin.getDialogManager().openGeneratorShop(player);
                                     });
                                 }
-                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder()
+                                    .uses(net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES)
+                                    .lifetime(java.time.Duration.ofDays(3650))
+                                    .build()))
                             .build(),
                         ActionButton.builder(miniMessage.deserialize("<yellow>Prestige Menu</yellow>"))
                             .action(DialogAction.customClick((view, audience) -> {
@@ -66,7 +69,10 @@ public class GenSproutBootstrap implements PluginBootstrap {
                                         plugin.getDialogManager().openPrestigeShop(player);
                                     });
                                 }
-                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder()
+                                    .uses(net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES)
+                                    .lifetime(java.time.Duration.ofDays(3650))
+                                    .build()))
                             .build(),
                         ActionButton.builder(miniMessage.deserialize("<light_purple>Hoe Enchanting</light_purple>"))
                             .action(DialogAction.customClick((view, audience) -> {
@@ -76,7 +82,10 @@ public class GenSproutBootstrap implements PluginBootstrap {
                                         plugin.getDialogManager().openHoeUpgradeShop(player);
                                     });
                                 }
-                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder()
+                                    .uses(net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES)
+                                    .lifetime(java.time.Duration.ofDays(3650))
+                                    .build()))
                             .build(),
                         ActionButton.builder(miniMessage.deserialize("<gray>View Level & Stats</gray>"))
                             .action(DialogAction.customClick((view, audience) -> {
@@ -86,14 +95,20 @@ public class GenSproutBootstrap implements PluginBootstrap {
                                         plugin.getDialogManager().openMainMenu(player);
                                     });
                                 }
-                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder()
+                                    .uses(net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES)
+                                    .lifetime(java.time.Duration.ofDays(3650))
+                                    .build()))
                             .build(),
                         ActionButton.builder(miniMessage.deserialize("<red>Close</red>"))
                             .action(DialogAction.customClick((view, audience) -> {
                                 if (audience instanceof org.bukkit.entity.Player player) {
                                     player.closeDialog();
                                 }
-                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder().uses(1).build()))
+                            }, net.kyori.adventure.text.event.ClickCallback.Options.builder()
+                                    .uses(net.kyori.adventure.text.event.ClickCallback.UNLIMITED_USES)
+                                    .lifetime(java.time.Duration.ofDays(3650))
+                                    .build()))
                             .build()
                     )).build())
             );
