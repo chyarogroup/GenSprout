@@ -73,9 +73,11 @@ public class GenSprout extends JavaPlugin implements Listener {
         // Register commands dynamically in CommandMap (supports both plugin.yml and paper-plugin.yml loaders)
         GenSproutCommand cmd = new GenSproutCommand(this);
         org.bukkit.command.CommandMap commandMap = Bukkit.getCommandMap();
-        commandMap.register("gensprout", new DynamicCommand("gensprout", "Main command for GenSprout", "/gensprout", java.util.List.of("gs", "sprout"), cmd, cmd));
+        String mainCmd = getConfig().getString("commands.gensprout", "gensprout");
+        commandMap.register(mainCmd, new DynamicCommand(mainCmd, "Main command for GenSprout", "/" + mainCmd, java.util.List.of("gs", "sprout"), cmd, cmd));
         commandMap.register("sell", new DynamicCommand("sell", "Sell all crop items in your inventory", "/sell", java.util.List.of("sellall"), cmd, cmd));
         commandMap.register("genshop", new DynamicCommand("genshop", "Open the generator shop directly", "/genshop", java.util.List.of("gshop"), cmd, cmd));
+        commandMap.register("prestige", new DynamicCommand("prestige", "Open the Prestige Menu", "/prestige", java.util.List.of(), cmd, cmd));
 
         getLogger().info("GenSprout has been enabled successfully!");
     }

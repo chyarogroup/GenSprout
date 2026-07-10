@@ -140,7 +140,8 @@ public class FarmManager {
             lore.add(plugin.getMiniMessage().deserialize("<gray>Use to select cuboid farm boundaries.</gray>"));
             lore.add(plugin.getMiniMessage().deserialize("<gray>Left Click: <yellow>Set Pos 1</yellow></gray>"));
             lore.add(plugin.getMiniMessage().deserialize("<gray>Right Click: <yellow>Set Pos 2</yellow></gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Run <gold>/gensprout savefarm</gold> to define.</gray>"));
+            String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+            lore.add(plugin.getMiniMessage().deserialize("<gray>Run <gold>/" + mainCmd + " savefarm</gold> to define.</gray>"));
             meta.lore(lore);
 
             PersistentDataContainer pdc = meta.getPersistentDataContainer();

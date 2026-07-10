@@ -55,12 +55,19 @@ public class GeneratorManager {
                     int tier = Integer.parseInt(key);
                     String name = sec.getString(key + ".display-name");
                     Material blockType = Material.valueOf(sec.getString(key + ".block-type").toUpperCase());
+                    String dropMatStr = sec.getString(key + ".drop-material");
+                    Material dropMaterial;
+                    if (dropMatStr != null && !dropMatStr.isEmpty()) {
+                        dropMaterial = Material.valueOf(dropMatStr.toUpperCase());
+                    } else {
+                        dropMaterial = blockType;
+                    }
                     double buyPrice = sec.getDouble(key + ".buy-price");
                     double upgradePrice = sec.getDouble(key + ".upgrade-price");
                     double dropValue = sec.getDouble(key + ".drop-value");
                     String dropName = sec.getString(key + ".drop-name");
 
-                    GeneratorType type = new GeneratorType(tier, name, blockType, buyPrice, upgradePrice, dropValue, dropName);
+                    GeneratorType type = new GeneratorType(tier, name, blockType, dropMaterial, buyPrice, upgradePrice, dropValue, dropName);
                     generatorTiers.put(tier, type);
                 } catch (Exception e) {
                     plugin.getLogger().log(Level.SEVERE, "Could not load generator tier " + key + " in config.yml!", e);
@@ -190,42 +197,11 @@ public class GeneratorManager {
         }
     }
 
-    private Material getDropMaterial(Material blockType) {
-        return switch (blockType) {
-            case HAY_BLOCK -> Material.WHEAT;
-            case POTATOES -> Material.POTATO;
-            case CARROTS -> Material.CARROT;
-            case BEETROOTS -> Material.BEETROOT;
-            case MELON -> Material.MELON_SLICE;
-            case PUMPKIN -> Material.PUMPKIN_SEEDS;
-            case COCOA -> Material.COCOA_BEANS;
-            case SUGAR_CANE -> Material.SUGAR_CANE;
-            case NETHER_WART -> Material.NETHER_WART;
-            case STONE -> Material.FLINT;
-            case COAL_BLOCK -> Material.COAL;
-            case IRON_BLOCK -> Material.IRON_INGOT;
-            case LAPIS_BLOCK -> Material.LAPIS_LAZULI;
-            case REDSTONE_BLOCK -> Material.REDSTONE;
-            case GOLD_BLOCK -> Material.GOLD_INGOT;
-            case EMERALD_BLOCK -> Material.EMERALD;
-            case DIAMOND_BLOCK -> Material.DIAMOND;
-            case OBSIDIAN -> Material.AMETHYST_SHARD;
-            case NETHERITE_BLOCK -> Material.NETHERITE_INGOT;
-            case PRISMARINE -> Material.PRISMARINE_CRYSTALS;
-            case AMETHYST_BLOCK -> Material.AMETHYST_SHARD;
-            case GILDED_BLACKSTONE -> Material.GOLD_NUGGET;
-            case CRYING_OBSIDIAN -> Material.GHAST_TEAR;
-            case PURPUR_BLOCK -> Material.ENDER_PEARL;
-            case BEACON -> Material.NETHER_STAR;
-            default -> blockType;
-        };
-    }
-
     public ItemStack createDropItem(int tier) {
         GeneratorType type = getTierConfig(tier);
         if (type == null) return null;
 
-        Material mat = getDropMaterial(type.getBlockType());
+        Material mat = type.getDropMaterial();
         ItemStack item = new ItemStack(mat, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {

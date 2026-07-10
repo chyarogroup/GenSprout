@@ -1,6 +1,7 @@
 name: GenSprout
-version: 1.0.0
+version: 1.0.1
 main: com.github.gensprout.GenSprout
+bootstrapper: com.github.gensprout.GenSproutBootstrap
 api-version: '1.21'
 description: A customizable farming and optimized generator plugin with Dialog UI.
 author: chyaroscuric
@@ -19,3 +20,10 @@ commands:
   genshop:
     description: Open the generator shop directly.
     aliases: [gshop]
+  prestige:
+    description: Open the Prestige Menu.
+
+permissions:
+  gensprout.admin:
+    description: Allows players to use admin features of GenSprout.
+    default: op

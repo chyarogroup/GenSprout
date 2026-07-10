@@ -29,6 +29,12 @@ public class FarmSelectorListener implements Listener {
             return;
         }
 
+        if (!player.hasPermission("gensprout.admin")) {
+            event.setCancelled(true);
+            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You do not have permission to use the Farm Selector Stick!</red>"));
+            return;
+        }
+
         // Cancel default interact actions
         event.setCancelled(true);
 

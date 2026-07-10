@@ -28,13 +28,18 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (command.getName().equalsIgnoreCase("prestige")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Only players can open the Prestige Menu!");
+                return true;
+            }
+            plugin.getDialogManager().openPrestigeShop(player);
+            return true;
+        }
+
         if (command.getName().equalsIgnoreCase("genshop")) {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage("Only players can use the generator shop!");
-                return true;
-            }
-            if (!player.hasPermission("gensprout.use")) {
-                player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission!</red>"));
                 return true;
             }
             plugin.getDialogManager().openGeneratorShop(player);
@@ -46,45 +51,41 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("Only players can sell crops!");
                 return true;
             }
-            if (!player.hasPermission("gensprout.use")) {
-                player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission!</red>"));
-                return true;
-            }
             handleSellAll(player);
             return true;
         }
 
-        // Handle /gensprout commands
-        if (!(sender instanceof Player player)) {
-            // Console admin commands
-            if (args.length > 0) {
-                handleAdminCommands(sender, args);
-            } else {
-                sender.sendMessage("Use /gensprout <givegen|addxp|addessence|reload>");
-            }
-            return true;
-        }
-
-        // Player commands
-        if (!player.hasPermission("gensprout.use")) {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission!</red>"));
-            return true;
-        }
-
-        if (args.length > 0) {
-            String sub = args[0].toLowerCase();
-            if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("reload") || sub.equals("definefarm") || sub.equals("savefarm")) {
-                if (!player.hasPermission("gensprout.admin")) {
-                    player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission for admin commands!</red>"));
-                    return true;
+        // Handle main command
+        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+        if (command.getName().equalsIgnoreCase(mainCmd)) {
+            if (!(sender instanceof Player player)) {
+                // Console admin commands
+                if (args.length > 0) {
+                    handleAdminCommands(sender, args);
+                } else {
+                    sender.sendMessage("Use /" + mainCmd + " <givegen|addxp|addessence|reload>");
                 }
-                handleAdminCommands(player, args);
                 return true;
             }
+
+            // Player commands
+            if (args.length > 0) {
+                String sub = args[0].toLowerCase();
+                if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("reload") || sub.equals("definefarm") || sub.equals("savefarm")) {
+                    if (!player.hasPermission("gensprout.admin")) {
+                        player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission for admin commands!</red>"));
+                        return true;
+                    }
+                    handleAdminCommands(player, args);
+                    return true;
+                }
+            }
+
+            // Open main menu if no args or unrecognized player args
+            plugin.getDialogManager().openMainMenu(player);
+            return true;
         }
 
-        // Open main menu if no args or unrecognized player args
-        plugin.getDialogManager().openMainMenu(player);
         return true;
     }
 
@@ -165,7 +166,8 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             plugin.reloadConfig();
             plugin.getGeneratorManager().reload();
             plugin.getScoreboardManager().reload();
-            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>GenSprout configuration reloaded!</green>"));
+            String serverName = plugin.getConfig().getString("server.name", "GenSprout");
+            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>" + serverName + " configuration reloaded!</green>"));
             return;
         }
 
@@ -177,7 +179,8 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             org.bukkit.inventory.ItemStack stick = plugin.getFarmManager().createSelectorStick();
             player.getInventory().addItem(stick).forEach((index, item) -> player.getWorld().dropItemNaturally(player.getLocation(), item));
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.2f);
-            player.sendMessage(plugin.getMiniMessage().deserialize("<green>Received the Farm Selector Stick. Left-click a block to set Pos 1, and Right-click to set Pos 2. Run <gold>/gensprout savefarm</gold> to define the region.</green>"));
+            String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+            player.sendMessage(plugin.getMiniMessage().deserialize("<green>Received the Farm Selector Stick. Left-click a block to set Pos 1, and Right-click to set Pos 2. Run <gold>/" + mainCmd + " savefarm</gold> to define the region.</green>"));
             return;
         }
 
@@ -206,8 +209,9 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
+        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
         if (args.length < 3) {
-            sender.sendMessage("Usage: /gensprout <givegen|addxp|addessence> <player> <amount/tier> [amount]");
+            sender.sendMessage("Usage: /" + mainCmd + " <givegen|addxp|addessence> <player> <amount/tier> [amount]");
             return;
         }
 
@@ -276,7 +280,8 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         List<String> list = new ArrayList<>();
-        if (command.getName().equalsIgnoreCase("gensprout")) {
+        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+        if (command.getName().equalsIgnoreCase(mainCmd)) {
             if (args.length == 1) {
                 if (sender.hasPermission("gensprout.admin")) {
                     list.addAll(Arrays.asList("givegen", "addxp", "addessence", "reload", "definefarm", "savefarm"));

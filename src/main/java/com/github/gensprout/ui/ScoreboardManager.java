@@ -66,13 +66,6 @@ public class ScoreboardManager {
     }
 
     public void updateScoreboard(Player player) {
-        if (!plugin.getConfig().getBoolean("scoreboard.enabled", true)) {
-            if (player.getScoreboard() != Bukkit.getScoreboardManager().getMainScoreboard()) {
-                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-            }
-            return;
-        }
-
         PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
@@ -81,6 +74,13 @@ public class ScoreboardManager {
         if (board == Bukkit.getScoreboardManager().getMainScoreboard()) {
             board = Bukkit.getScoreboardManager().getNewScoreboard();
             player.setScoreboard(board);
+        }
+
+        if (!plugin.getConfig().getBoolean("scoreboard.enabled", true)) {
+            if (player.getScoreboard() != Bukkit.getScoreboardManager().getMainScoreboard()) {
+                player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            }
+            return;
         }
 
         String titleRaw = plugin.getConfig().getString("scoreboard.title", "<gradient:green:aqua><bold>GENSPROUT</bold></gradient>");

@@ -55,10 +55,12 @@ public class DialogManager {
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
 
-        DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize("<gradient:green:aqua><bold>GenSprout Main Menu</bold></gradient>"))
+        String serverName = plugin.getConfig().getString("server.name", "GenSprout");
+        String titleRaw = plugin.getConfig().getString("menus.main-menu-title", "<gradient:green:aqua><bold>" + serverName + " Menu</bold></gradient>");
+        DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize(titleRaw))
                 .body(List.of(
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Farming Level: <gold>" + data.getLevel() + "</gold></gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Farming XP: <gold>" + String.format("%.1f", data.getFarmingXp()) + "</gold></gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Level: <gold>" + data.getLevel() + "</gold></gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>XP: <gold>" + String.format("%.1f", data.getFarmingXp()) + "</gold></gray>")),
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Prestige: <gold>" + data.getPrestige() + "</gold> (<yellow>" + data.getPrestigePoints() + " Points</yellow>)</gray>")),
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Generator Slots: <gold>" + activeGens + "/" + maxSlots + "</gold></gray>")),
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Farming Essence: <light_purple>" + data.getEssence() + "</light_purple></gray>")),
@@ -72,7 +74,7 @@ public class DialogManager {
                         ActionButton.builder(plugin.getMiniMessage().deserialize("<green>Generator Shop</green>"))
                                 .action(action((view, p) -> openGeneratorShop(p)))
                                 .build(),
-                        ActionButton.builder(plugin.getMiniMessage().deserialize("<yellow>Prestige Shop</yellow>"))
+                        ActionButton.builder(plugin.getMiniMessage().deserialize("<yellow>Prestige Menu</yellow>"))
                                 .action(action((view, p) -> openPrestigeShop(p)))
                                 .build(),
                         ActionButton.builder(plugin.getMiniMessage().deserialize("<light_purple>Hoe Enchanting</light_purple>"))
@@ -87,25 +89,33 @@ public class DialogManager {
     }
 
     public void openGeneratorShop(Player player) {
+        openGeneratorShop(player, null, 1, 1);
+    }
+
+    public void openGeneratorShop(Player player, String priceMessage, int initialTier, int initialQty) {
         PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
 
+        List<DialogBody> bodyList = new java.util.ArrayList<>();
+        bodyList.add(DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Slots: <gold>" + activeGens + "/" + maxSlots + "</gold></gray>")));
+        bodyList.add(DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Balance: <green>" + EconomyHook.format(EconomyHook.getBalance(player)) + "</green></gray>")));
+        if (priceMessage != null) {
+            bodyList.add(DialogBody.plainMessage(plugin.getMiniMessage().deserialize(priceMessage)));
+        }
+
         DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize("<gradient:#2ecc71:#00b894><bold>Generator Shop</bold></gradient>"))
-                .body(List.of(
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Slots: <gold>" + activeGens + "/" + maxSlots + "</gold></gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Balance: <green>" + EconomyHook.format(EconomyHook.getBalance(player)) + "</green></gray>"))
-                ))
+                .body(bodyList)
                 .inputs(List.of(
                         // Slider to select tier (1-25)
                         DialogInput.numberRange("tier", plugin.getMiniMessage().deserialize("Select Tier (1-25)"), 1f, 25f)
                                 .step(1f)
-                                .initial(1f)
+                                .initial((float) initialTier)
                                 .build(),
                         // Slider to select quantity
                         DialogInput.numberRange("qty", plugin.getMiniMessage().deserialize("Quantity (1-64)"), 1f, 64f)
                                 .step(1f)
-                                .initial(1f)
+                                .initial((float) initialQty)
                                 .build()
                 ))
                 .build();
@@ -120,7 +130,7 @@ public class DialogManager {
                                     GeneratorType type = plugin.getGeneratorManager().getTierConfig(tier);
                                     if (type == null) {
                                         p.sendMessage(plugin.getMiniMessage().deserialize("<red>Invalid generator tier selected!</red>"));
-                                        openGeneratorShop(p);
+                                        openGeneratorShop(p, null, tier, qty);
                                         return;
                                     }
                                     double totalCost = type.getBuyPrice() * qty;
@@ -129,10 +139,11 @@ public class DialogManager {
                                         plugin.getGeneratorManager().giveGenerator(p, tier, qty);
                                         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
                                         p.sendMessage(plugin.getMiniMessage().deserialize("<green>Successfully bought " + qty + "x Tier " + tier + " Generator(s) for <gold>" + EconomyHook.format(totalCost) + "</gold>!</green>"));
+                                        openGeneratorShop(p, null, tier, qty);
                                     } else {
                                         p.sendMessage(plugin.getMiniMessage().deserialize("<red>Insufficient funds! You need " + EconomyHook.format(totalCost) + ".</red>"));
+                                        openGeneratorShop(p, "<red>Insufficient funds! Need " + EconomyHook.format(totalCost) + "</red>", tier, qty);
                                     }
-                                    openGeneratorShop(p);
                                 }))
                                 .build(),
                         ActionButton.builder(plugin.getMiniMessage().deserialize("<aqua>Check Price</aqua>"))
@@ -142,14 +153,13 @@ public class DialogManager {
                                     GeneratorType type = plugin.getGeneratorManager().getTierConfig(tier);
                                     if (type == null) {
                                         p.sendMessage(plugin.getMiniMessage().deserialize("<red>Invalid generator tier selected!</red>"));
+                                        openGeneratorShop(p, null, tier, qty);
                                     } else {
                                         double totalCost = type.getBuyPrice() * qty;
-                                        p.sendMessage(plugin.getMiniMessage().deserialize(
-                                                "<gray>Cost for <gold>" + qty + "x</gold> Tier <gold>" + tier + "</gold> Generator: <green>" + EconomyHook.format(totalCost) + "</green></gray>"
-                                        ));
+                                        String msg = "<yellow>Price for " + qty + "x Tier " + tier + " Gen: </yellow><green>" + EconomyHook.format(totalCost) + "</green>";
+                                        openGeneratorShop(p, msg, tier, qty);
                                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, 1.0f);
                                     }
-                                    openGeneratorShop(p);
                                 }))
                                 .build(),
                         ActionButton.builder(plugin.getMiniMessage().deserialize("<gray>Back</gray>"))
@@ -166,7 +176,7 @@ public class DialogManager {
         int levelIncrement = plugin.getConfig().getInt("leveling.prestige.levels-per-prestige", 10);
         int requiredLevel = basePrestigeLevel + (data.getPrestige() * levelIncrement);
 
-        DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize("<gradient:yellow:gold><bold>Prestige Shop</bold></gradient>"))
+        DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize("<gradient:yellow:gold><bold>Prestige Menu</bold></gradient>"))
                 .body(List.of(
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Prestige Level: <gold>" + data.getPrestige() + "</gold></gray>")),
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Level required for next prestige: <gold>" + data.getLevel() + "/" + requiredLevel + "</gold></gray>")),

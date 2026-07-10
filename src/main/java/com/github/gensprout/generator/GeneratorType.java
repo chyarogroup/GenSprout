@@ -7,15 +7,17 @@ public class GeneratorType {
     private final int tier;
     private final String displayName;
     private final Material blockType;
+    private final Material dropMaterial;
     private final double buyPrice;
     private final double upgradePrice;
     private final double dropValue;
     private final String dropName;
 
-    public GeneratorType(int tier, String displayName, Material blockType, double buyPrice, double upgradePrice, double dropValue, String dropName) {
+    public GeneratorType(int tier, String displayName, Material blockType, Material dropMaterial, double buyPrice, double upgradePrice, double dropValue, String dropName) {
         this.tier = tier;
         this.displayName = displayName;
         this.blockType = blockType;
+        this.dropMaterial = dropMaterial;
         this.buyPrice = buyPrice;
         this.upgradePrice = upgradePrice;
         this.dropValue = dropValue;
@@ -32,6 +34,10 @@ public class GeneratorType {
 
     public Material getBlockType() {
         return blockType;
+    }
+
+    public Material getDropMaterial() {
+        return dropMaterial;
     }
 
     public double getBuyPrice() {
