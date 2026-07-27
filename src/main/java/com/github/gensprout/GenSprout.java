@@ -33,14 +33,15 @@ public class GenSprout extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
-        // Ensure running on Paper or Purpur (checking for Paper-exclusive class)
+        // Check for Paper 1.21.7+ Paper Dialog API compatibility
         try {
             Class.forName("io.papermc.paper.dialog.Dialog");
-        } catch (ClassNotFoundException e) {
+            Class.forName("io.papermc.paper.registry.data.dialog.action.DialogAction");
+        } catch (Throwable t) {
             getLogger().severe("==================================================");
-            getLogger().severe("GenSprout is ONLY compatible with Paper or Purpur!");
-            getLogger().severe("This plugin cannot run on Spigot or CraftBukkit.");
-            getLogger().severe("Please switch to Paper/Purpur: https://papermc.io");
+            getLogger().severe("GenSprout: This version of Paper is unsupported!");
+            getLogger().severe("Paper Dialog UIs require Paper 1.21.7 or higher.");
+            getLogger().severe("Please update your Paper server JAR to 1.21.7+: https://papermc.io/downloads/paper");
             getLogger().severe("==================================================");
             Bukkit.getPluginManager().disablePlugin(this);
             return;

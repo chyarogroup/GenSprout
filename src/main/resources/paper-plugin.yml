@@ -1,7 +1,6 @@
 name: GenSprout
-version: 1.1.0
+version: 1.1.1
 main: com.github.gensprout.GenSprout
-bootstrapper: com.github.gensprout.GenSproutBootstrap
 api-version: '1.21'
 description: Optimized generator & farming plugin with custom block gens, crop region harvesting, Vault economy, prestige, hoe enchants & Paper Dialog UIs.
 author: chyaroscuric
