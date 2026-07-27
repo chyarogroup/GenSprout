@@ -4,13 +4,14 @@ import com.github.gensprout.GenSprout;
 import com.github.gensprout.economy.EconomyHook;
 import com.github.gensprout.player.PlayerData;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,6 @@ public class ScoreboardManager {
 
     private final GenSprout plugin;
     private BukkitTask task;
-    private final LegacyComponentSerializer legacySerializer = LegacyComponentSerializer.legacySection();
 
     public ScoreboardManager(GenSprout plugin) {
         this.plugin = plugin;
@@ -43,7 +43,6 @@ public class ScoreboardManager {
         if (task != null) {
             task.cancel();
         }
-        // Restore main scoreboard on players to clean up sidebars
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
@@ -70,12 +69,6 @@ public class ScoreboardManager {
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
 
-        Scoreboard board = player.getScoreboard();
-        if (board == Bukkit.getScoreboardManager().getMainScoreboard()) {
-            board = Bukkit.getScoreboardManager().getNewScoreboard();
-            player.setScoreboard(board);
-        }
-
         if (!plugin.getConfig().getBoolean("scoreboard.enabled", true)) {
             if (player.getScoreboard() != Bukkit.getScoreboardManager().getMainScoreboard()) {
                 player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
@@ -83,18 +76,28 @@ public class ScoreboardManager {
             return;
         }
 
-        String titleRaw = plugin.getConfig().getString("scoreboard.title", "<gradient:green:aqua><bold>GENSPROUT</bold></gradient>");
-        Objective obj = board.getObjective("gensprout");
-        if (obj == null) {
-            obj = board.registerNewObjective("gensprout", "dummy", plugin.getMiniMessage().deserialize(titleRaw));
-            obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-        } else {
-            obj.displayName(plugin.getMiniMessage().deserialize(titleRaw));
+        Scoreboard board = player.getScoreboard();
+        if (board == Bukkit.getScoreboardManager().getMainScoreboard()) {
+            board = Bukkit.getScoreboardManager().getNewScoreboard();
+            player.setScoreboard(board);
         }
 
-        // Reset old scores
-        for (String entry : board.getEntries()) {
-            board.resetScores(entry);
+        String serverIp = plugin.getConfig().getString("server.ip", "play.gensprout.net");
+        String serverName = plugin.getConfig().getString("server.name", "<gradient:green:aqua><bold>GenSprout</bold></gradient>");
+
+        String titleRaw = plugin.getConfig().getString("scoreboard.title", "{servername}");
+        String titleProcessed = titleRaw
+            .replace("{player}", player.getName())
+            .replace("{servername}", serverName)
+            .replace("{server_name}", serverName)
+            .replace("{server_ip}", serverIp);
+
+        Objective obj = board.getObjective("gensprout");
+        if (obj == null) {
+            obj = board.registerNewObjective("gensprout", "dummy", plugin.getMiniMessage().deserialize(titleProcessed));
+            obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+        } else {
+            obj.displayName(plugin.getMiniMessage().deserialize(titleProcessed));
         }
 
         List<String> rawLines = plugin.getConfig().getStringList("scoreboard.lines");
@@ -114,9 +117,6 @@ public class ScoreboardManager {
         }
 
         List<Component> lines = new ArrayList<>();
-        String serverIp = plugin.getConfig().getString("server.ip", "play.gensprout.net");
-        String serverName = plugin.getConfig().getString("server.name", "<gradient:green:aqua><bold>GENSPROUT MC</bold></gradient>");
-
         for (String rawLine : rawLines) {
             String processed = rawLine
                 .replace("{player}", player.getName())
@@ -128,20 +128,39 @@ public class ScoreboardManager {
                 .replace("{max_gens}", String.valueOf(maxSlots))
                 .replace("{balance}", EconomyHook.format(EconomyHook.getBalance(player)))
                 .replace("{server_ip}", serverIp)
+                .replace("{servername}", serverName)
                 .replace("{server_name}", serverName)
                 .replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()))
                 .replace("{ping}", String.valueOf(player.getPing()));
             lines.add(plugin.getMiniMessage().deserialize(processed));
         }
 
-        int score = lines.size();
-        for (Component line : lines) {
-            String legacyLine = legacySerializer.serialize(line);
-            if (legacyLine.isEmpty()) {
-                legacyLine = " ".repeat(score);
+        ChatColor[] colorCodes = ChatColor.values();
+        int totalLines = lines.size();
+
+        // Clean up excess teams if line count decreased
+        for (int i = totalLines; i < 16; i++) {
+            String entryKey = colorCodes[i % colorCodes.length] + "§r";
+            board.resetScores(entryKey);
+            Team team = board.getTeam("gs_line_" + i);
+            if (team != null) {
+                team.unregister();
             }
-            obj.getScore(legacyLine).setScore(score);
-            score--;
+        }
+
+        for (int i = 0; i < totalLines; i++) {
+            int score = totalLines - i;
+            String teamName = "gs_line_" + i;
+            String entryKey = colorCodes[i % colorCodes.length] + "§r";
+
+            Team team = board.getTeam(teamName);
+            if (team == null) {
+                team = board.registerNewTeam(teamName);
+                team.addEntry(entryKey);
+            }
+
+            team.prefix(lines.get(i));
+            obj.getScore(entryKey).setScore(score);
         }
     }
 
@@ -155,10 +174,11 @@ public class ScoreboardManager {
         String rawFooter = plugin.getConfig().getString("tablist.footer", "\n<gray>Online Players: <gold>{online}</gold> | Ping: <gold>{ping}ms</gold></gray>\n{server_ip}\n");
 
         String serverIp = plugin.getConfig().getString("server.ip", "play.gensprout.net");
-        String serverName = plugin.getConfig().getString("server.name", "<gradient:green:aqua><bold>GENSPROUT MC</bold></gradient>");
-        String tagline = plugin.getConfig().getString("server.tagline", "<gray>The ultimate optimized farming server</gray>");
+        String serverName = plugin.getConfig().getString("server.name", "GenSprout MC");
+        String tagline = plugin.getConfig().getString("server.tagline", "<gray>The ultimate farming server</gray>");
 
         String headerProcessed = rawHeader
+            .replace("{servername}", serverName)
             .replace("{server_name}", serverName)
             .replace("{server_ip}", serverIp)
             .replace("{tagline}", tagline)
@@ -166,6 +186,7 @@ public class ScoreboardManager {
             .replace("{ping}", String.valueOf(player.getPing()));
 
         String footerProcessed = rawFooter
+            .replace("{servername}", serverName)
             .replace("{server_name}", serverName)
             .replace("{server_ip}", serverIp)
             .replace("{tagline}", tagline)

@@ -1,0 +1,115 @@
+package com.github.gensprout.economy;
+
+import com.github.gensprout.GenSprout;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Sell Wand item: right-click to instantly sell every sellable item in your inventory,
+ * with a configurable bonus multiplier. Only a single 1x tier ships by default, but the
+ * system reads all tiers from config.yml under 'sellwand.multipliers' so more can be added
+ * later without any code changes.
+ */
+public class SellWand {
+
+    private SellWand() {
+    }
+
+    public static NamespacedKey tierKey(GenSprout plugin) {
+        return new NamespacedKey(plugin, "sellwand_tier");
+    }
+
+    public static NamespacedKey multiplierKey(GenSprout plugin) {
+        return new NamespacedKey(plugin, "sellwand_multiplier");
+    }
+
+    public static boolean isSellWand(ItemStack item, GenSprout plugin) {
+        if (item == null || !item.hasItemMeta()) return false;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(tierKey(plugin), PersistentDataType.INTEGER);
+    }
+
+    public static double getMultiplier(ItemStack item, GenSprout plugin) {
+        if (item == null || !item.hasItemMeta()) return 1.0;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.getOrDefault(multiplierKey(plugin), PersistentDataType.DOUBLE, 1.0);
+    }
+
+    /**
+     * Returns all Sell Wand tiers currently defined in config.yml (sorted ascending).
+     * For now this will just return [1], but scales automatically if more tiers are added.
+     */
+    public static List<Integer> getAvailableTiers(GenSprout plugin) {
+        List<Integer> tiers = new ArrayList<>();
+        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("sellwand.multipliers");
+        if (sec != null) {
+            for (String key : sec.getKeys(false)) {
+                try {
+                    tiers.add(Integer.parseInt(key));
+                } catch (NumberFormatException ignored) {
+                    // Skip malformed tier keys
+                }
+            }
+        }
+        tiers.sort(Integer::compareTo);
+        return tiers;
+    }
+
+    public static double getMultiplierForTier(GenSprout plugin, int tier) {
+        return plugin.getConfig().getDouble("sellwand.multipliers." + tier + ".multiplier", 1.0);
+    }
+
+    public static double getPriceForTier(GenSprout plugin, int tier) {
+        return plugin.getConfig().getDouble("sellwand.multipliers." + tier + ".price", 2500.0);
+    }
+
+    public static String getDisplayNameForTier(GenSprout plugin, int tier) {
+        return plugin.getConfig().getString("sellwand.multipliers." + tier + ".display-name", "<green>Sell Wand</green>");
+    }
+
+    public static ItemStack createSellWand(GenSprout plugin, int tier) {
+        double multiplier = getMultiplierForTier(plugin, tier);
+        String rawName = getDisplayNameForTier(plugin, tier);
+
+        ItemStack item = new ItemStack(Material.BLAZE_ROD);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.displayName(plugin.getMiniMessage().deserialize(rawName).decoration(TextDecoration.ITALIC, false));
+
+            List<Component> lore = new ArrayList<>();
+            lore.add(plainLore(plugin, "<gray>Right-click to instantly sell all</gray>"));
+            lore.add(plainLore(plugin, "<gray>sellable items in your inventory.</gray>"));
+            lore.add(Component.empty());
+            lore.add(plainLore(plugin, "<gray>Right-click a chest, barrel, or</gray>"));
+            lore.add(plainLore(plugin, "<gray>other container to instead sell</gray>"));
+            lore.add(plainLore(plugin, "<gray>everything sellable inside it!</gray>"));
+            lore.add(Component.empty());
+            lore.add(plainLore(plugin, "<gray>Sell Multiplier: <gold>" + String.format("%.1f", multiplier) + "x</gold></gray>"));
+            meta.lore(lore);
+
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            pdc.set(tierKey(plugin), PersistentDataType.INTEGER, tier);
+            pdc.set(multiplierKey(plugin), PersistentDataType.DOUBLE, multiplier);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    /**
+     * Deserializes a lore line with italics explicitly disabled (Minecraft otherwise renders
+     * custom item names/lore in italics by default).
+     */
+    private static Component plainLore(GenSprout plugin, String raw) {
+        return plugin.getMiniMessage().deserialize(raw).decoration(TextDecoration.ITALIC, false);
+    }
+}

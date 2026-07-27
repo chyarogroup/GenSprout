@@ -102,8 +102,17 @@ public class GeneratorPlaceListener implements Listener {
         player.sendMessage(plugin.getMiniMessage().deserialize("<green>Picked up your Tier " + gen.getTier() + " Generator.</green>"));
     }
 
+    private final java.util.Map<UUID, Long> shiftUpgradeCooldown = new java.util.HashMap<>();
+    private static final java.util.Map<UUID, Long> controlMenuCooldown = new java.util.HashMap<>();
+
+    public static void setCloseCooldown(UUID uuid) {
+        controlMenuCooldown.put(uuid, System.currentTimeMillis());
+    }
+
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
+
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
@@ -139,6 +148,12 @@ public class GeneratorPlaceListener implements Listener {
 
             event.setCancelled(true);
 
+            long now = System.currentTimeMillis();
+            Long lastMenuTime = controlMenuCooldown.get(player.getUniqueId());
+            if (lastMenuTime != null && (now - lastMenuTime) < 500L) {
+                return;
+            }
+
             if (!gen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("gensprout.admin")) {
                 UUID ownerUuid = gen.getOwnerUuid();
                 String ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
@@ -149,6 +164,13 @@ public class GeneratorPlaceListener implements Listener {
             }
 
             if (player.isSneaking()) {
+                // Prevent duplicate click execution (EquipmentSlot check + 250ms debouncing)
+                Long lastClick = shiftUpgradeCooldown.get(player.getUniqueId());
+                if (lastClick != null && (now - lastClick) < 250L) {
+                    return;
+                }
+                shiftUpgradeCooldown.put(player.getUniqueId(), now);
+
                 // Direct Shift + Right Click Upgrade
                 GeneratorType type = plugin.getGeneratorManager().getTierConfig(gen.getTier());
                 if (type == null) return;
@@ -174,6 +196,7 @@ public class GeneratorPlaceListener implements Listener {
                     ));
                 }
             } else {
+                controlMenuCooldown.put(player.getUniqueId(), now);
                 // Open GUI panel
                 plugin.getDialogManager().openGeneratorBlockControl(player, gen);
             }

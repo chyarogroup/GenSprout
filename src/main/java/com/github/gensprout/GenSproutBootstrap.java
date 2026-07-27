@@ -29,15 +29,17 @@ public class GenSproutBootstrap implements PluginBootstrap {
         context.getLifecycleManager().registerEventHandler(RegistryEvents.DIALOG.compose(), event -> {
             net.kyori.adventure.text.minimessage.MiniMessage miniMessage = net.kyori.adventure.text.minimessage.MiniMessage.miniMessage();
             
-            java.io.File configFile = new java.io.File("plugins/GenSprout/config.yml");
+            java.io.File configFile = context.getDataDirectory().resolve("config.yml").toFile();
             org.bukkit.configuration.file.YamlConfiguration config;
             if (configFile.exists()) {
                 config = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
             } else {
                 config = new org.bukkit.configuration.file.YamlConfiguration();
             }
-            String serverName = config.getString("server.name", "GenSprout");
-            String titleRaw = config.getString("menus.main-menu-title", "<gradient:green:aqua><bold>" + serverName + " Menu</bold></gradient>");
+            String serverName = config.getString("server.name", "GenSprout MC");
+            String titleRaw = config.getString("menus.main-menu-title", "<gradient:green:aqua><bold>{servername} Menu</bold></gradient>")
+                .replace("{servername}", serverName)
+                .replace("{server_name}", serverName);
 
             event.registry().register(
                 DialogKeys.create(dialogKey),

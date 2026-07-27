@@ -2,6 +2,7 @@ package com.github.gensprout.farming;
 
 import com.github.gensprout.GenSprout;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -123,6 +124,15 @@ public enum HoeEnchant {
 
         meta.lore(lore);
         item.setItemMeta(meta);
+    }
+
+    /**
+     * Creates a fresh Sprout Hoe item (used for the starter kit and the in-shop purchase).
+     */
+    public static ItemStack createBaseHoe(GenSprout plugin) {
+        ItemStack hoe = new ItemStack(Material.NETHERITE_HOE);
+        rebuildLore(hoe, plugin);
+        return hoe;
     }
 
     /**

@@ -6,11 +6,11 @@
 
     <groupId>com.github.gensprout</groupId>
     <artifactId>GenSprout</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <name>GenSprout</name>
-    <description>A highly optimized, dialogue-driven Minecraft generator and farming plugin.</description>
+    <description>Optimized generator &amp; farming plugin with custom block gens, crop region harvesting, Vault economy, prestige, hoe enchants &amp; Paper Dialog UIs.</description>
 
     <properties>
         <java.version>21</java.version>

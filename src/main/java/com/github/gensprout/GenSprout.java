@@ -6,6 +6,7 @@ import com.github.gensprout.farming.FarmingListener;
 import com.github.gensprout.generator.GeneratorManager;
 import com.github.gensprout.listener.GeneratorPlaceListener;
 import com.github.gensprout.player.PlayerManager;
+import com.github.gensprout.player.PlayerData;
 import com.github.gensprout.farming.FarmManager;
 import com.github.gensprout.ui.ScoreboardManager;
 import com.github.gensprout.listener.FarmSelectorListener;
@@ -28,6 +29,7 @@ public class GenSprout extends JavaPlugin implements Listener {
     private MiniMessage miniMessage;
     private FarmManager farmManager;
     private ScoreboardManager scoreboardManager;
+    private FarmingListener farmingListener;
 
     @Override
     public void onEnable() {
@@ -50,34 +52,36 @@ public class GenSprout extends JavaPlugin implements Listener {
         // Initialize MiniMessage
         this.miniMessage = MiniMessage.miniMessage();
 
-        // Hook Vault Economy
-        if (!EconomyHook.setupEconomy()) {
-            getLogger().log(Level.WARNING, "Vault and/or a compatible economy plugin (like EssentialsX) not found. Economy operations will be unavailable!");
-        } else {
-            getLogger().info("Successfully hooked into Vault Economy!");
-        }
-
         // Initialize Managers
         this.playerManager = new PlayerManager(this);
         this.generatorManager = new GeneratorManager(this);
+
+        // Hook Vault Economy (only requires Vault)
+        EconomyHook.setupEconomy(this);
+
         this.dialogManager = new DialogManager(this);
         this.farmManager = new FarmManager(this);
         this.scoreboardManager = new ScoreboardManager(this);
+        this.farmingListener = new FarmingListener(this);
 
         // Register core event listener
         Bukkit.getPluginManager().registerEvents(this, this);
-        Bukkit.getPluginManager().registerEvents(new FarmingListener(this), this);
+        Bukkit.getPluginManager().registerEvents(farmingListener, this);
         Bukkit.getPluginManager().registerEvents(new GeneratorPlaceListener(this), this);
         Bukkit.getPluginManager().registerEvents(new FarmSelectorListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.SellWandListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.AutoSellListener(this), this);
 
         // Register commands dynamically in CommandMap (supports both plugin.yml and paper-plugin.yml loaders)
         GenSproutCommand cmd = new GenSproutCommand(this);
         org.bukkit.command.CommandMap commandMap = Bukkit.getCommandMap();
         String mainCmd = getConfig().getString("commands.gensprout", "gensprout");
         commandMap.register(mainCmd, new DynamicCommand(mainCmd, "Main command for GenSprout", "/" + mainCmd, java.util.List.of("gs", "sprout"), cmd, cmd));
-        commandMap.register("sell", new DynamicCommand("sell", "Sell all crop items in your inventory", "/sell", java.util.List.of("sellall"), cmd, cmd));
-        commandMap.register("genshop", new DynamicCommand("genshop", "Open the generator shop directly", "/genshop", java.util.List.of("gshop"), cmd, cmd));
-        commandMap.register("prestige", new DynamicCommand("prestige", "Open the Prestige Menu", "/prestige", java.util.List.of(), cmd, cmd));
+        commandMap.register(mainCmd, new DynamicCommand("sell", "Sell all crop items in your inventory", "/sell", java.util.List.of("sellall"), cmd, cmd));
+        commandMap.register(mainCmd, new DynamicCommand("genshop", "Open the generator shop directly", "/genshop", java.util.List.of("gshop"), cmd, cmd));
+        commandMap.register(mainCmd, new DynamicCommand("prestige", "Open the Prestige Menu", "/prestige", java.util.List.of(), cmd, cmd));
+        commandMap.register(mainCmd, new DynamicCommand("shop", "Open the Generator Building Supplies Shop", "/shop", java.util.List.of("supplies", "bshop", "buildshop"), cmd, cmd));
+        commandMap.register(mainCmd, new DynamicCommand("start", "Start the GenSprout tutorial and receive starter items", "/start", java.util.List.of("sproutstart", "tutorial"), cmd, cmd));
 
         getLogger().info("GenSprout has been enabled successfully!");
     }
@@ -96,7 +100,7 @@ public class GenSprout extends JavaPlugin implements Listener {
 
         // Save placed generators
         if (generatorManager != null) {
-            generatorManager.saveGenerators();
+            generatorManager.saveGeneratorsSync();
         }
 
         getLogger().info("GenSprout has been disabled.");
@@ -106,10 +110,71 @@ public class GenSprout extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         // Pre-load data into memory cache
         playerManager.getPlayerData(event.getPlayer().getUniqueId());
+
+        boolean isFirstJoin = !event.getPlayer().hasPlayedBefore();
+
+        // Send configurable MOTD on join
+        if (getConfig().getBoolean("motd.enabled", true)) {
+            long delay = getConfig().getLong("motd.delay-ticks", 15L);
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                if (event.getPlayer().isOnline()) {
+                    String serverName = getConfig().getString("server.name", "GenSprout");
+                    java.util.List<String> motdLines = getConfig().getStringList("motd.messages");
+                    for (String line : motdLines) {
+                        String formatted = line.replace("{servername}", serverName)
+                                               .replace("{server_name}", serverName)
+                                               .replace("{player}", event.getPlayer().getName());
+                        event.getPlayer().sendMessage(miniMessage.deserialize(formatted));
+                    }
+                }
+            }, delay);
+        }
+
+        // Send/show configurable First Join Tutorial
+        if (isFirstJoin && getConfig().getBoolean("first-join-tutorial.enabled", true)) {
+            long delay = getConfig().getLong("first-join-tutorial.delay-ticks", 30L);
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                if (event.getPlayer().isOnline()) {
+                    if (getConfig().getBoolean("first-join-tutorial.use-dialog", true)) {
+                        dialogManager.openFirstJoinTutorialDialog(event.getPlayer());
+                    } else {
+                        String serverName = getConfig().getString("server.name", "GenSprout");
+                        java.util.List<String> tutorialLines = getConfig().getStringList("first-join-tutorial.messages");
+                        for (String line : tutorialLines) {
+                            String formatted = line.replace("{servername}", serverName)
+                                                   .replace("{server_name}", serverName)
+                                                   .replace("{player}", event.getPlayer().getName());
+                            event.getPlayer().sendMessage(miniMessage.deserialize(formatted));
+                        }
+                    }
+                }
+            }, delay);
+        }
+
+        // Pay out offline generation earnings shortly after join (once economy/data is settled)
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (event.getPlayer().isOnline()) {
+                playerManager.processOfflineEarnings(event.getPlayer());
+            }
+        }, 20L);
+
+        // Sync their personalized view of the shared farm's crop (based on their own Prestige)
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (event.getPlayer().isOnline()) {
+                com.github.gensprout.farming.FarmCropView.refreshRegionForPlayer(this, event.getPlayer(), farmManager.getActiveRegion());
+            }
+        }, 40L);
     }
+
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        // Record the moment they went offline (used to calculate offline-generation earnings)
+        PlayerData data = playerManager.getCachedData(event.getPlayer().getUniqueId());
+        if (data != null) {
+            data.setLastSeen(System.currentTimeMillis());
+        }
+
         // Save and unload from memory
         playerManager.unloadPlayer(event.getPlayer().getUniqueId());
     }
@@ -132,6 +197,10 @@ public class GenSprout extends JavaPlugin implements Listener {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
+    }
+
+    public FarmingListener getFarmingListener() {
+        return farmingListener;
     }
 
     public MiniMessage getMiniMessage() {

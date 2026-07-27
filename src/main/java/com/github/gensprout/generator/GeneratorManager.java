@@ -1,6 +1,7 @@
 package com.github.gensprout.generator;
 
 import com.github.gensprout.GenSprout;
+import com.github.gensprout.util.BlockPos;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -26,8 +27,8 @@ import java.util.logging.Level;
 public class GeneratorManager {
 
     private final GenSprout plugin;
-    private final Map<Location, GeneratorBlock> placedGenerators = new ConcurrentHashMap<>();
-    private final Map<Integer, GeneratorType> generatorTiers = new HashMap<>();
+    private final Map<BlockPos, GeneratorBlock> placedGenerators = new ConcurrentHashMap<>();
+    private final Map<Integer, GeneratorType> generatorTiers = new ConcurrentHashMap<>();
     private final NamespacedKey tierKey;
     private final NamespacedKey dropValueKey;
     private final File dataFile;
@@ -35,6 +36,7 @@ public class GeneratorManager {
 
     private int tickIntervalSeconds;
     private int defaultSlots;
+    private boolean isDirty = false;
 
     public GeneratorManager(GenSprout plugin) {
         this.plugin = plugin;
@@ -45,6 +47,7 @@ public class GeneratorManager {
         loadConfigTiers();
         loadGenerators();
         startTicking();
+        startAutoSaveTask();
     }
 
     private void loadConfigTiers() {
@@ -62,9 +65,9 @@ public class GeneratorManager {
                     } else {
                         dropMaterial = blockType;
                     }
-                    double buyPrice = sec.getDouble(key + ".buy-price");
-                    double upgradePrice = sec.getDouble(key + ".upgrade-price");
-                    double dropValue = sec.getDouble(key + ".drop-value");
+                    double buyPrice = computeTierBuyPrice(tier);
+                    double upgradePrice = buyPrice * plugin.getConfig().getDouble("generators.tier-economy.upgrade-price-ratio", 0.72);
+                    double dropValue = computeTierDropValue(tier);
                     String dropName = sec.getString(key + ".drop-name");
 
                     GeneratorType type = new GeneratorType(tier, name, blockType, dropMaterial, buyPrice, upgradePrice, dropValue, dropName);
@@ -76,6 +79,53 @@ public class GeneratorManager {
         }
         this.tickIntervalSeconds = plugin.getConfig().getInt("generators.tick-interval-seconds", 10);
         this.defaultSlots = plugin.getConfig().getInt("generators.default-slots", 20);
+    }
+
+    private double computeTierBuyPrice(int tier) {
+        FileConfiguration config = plugin.getConfig();
+        double base = config.getDouble("generators.tier-economy.base-buy-price", 250.0);
+        int earlyTiers = Math.max(1, config.getInt("generators.tier-economy.early-tiers", 5));
+        double earlyStep = config.getDouble("generators.tier-economy.early-step", 250.0);
+        int midThreshold = Math.max(earlyTiers, config.getInt("generators.tier-economy.mid-tier-threshold", 18));
+        double midGrowth = config.getDouble("generators.tier-economy.mid-growth-rate", 1.75);
+        double lateGrowth = config.getDouble("generators.tier-economy.late-growth-rate", 1.45);
+
+        if (tier <= earlyTiers) {
+            return base + ((tier - 1) * earlyStep);
+        }
+
+        double priceAtEarly = base + ((earlyTiers - 1) * earlyStep);
+        if (tier <= midThreshold) {
+            return priceAtEarly * Math.pow(midGrowth, tier - earlyTiers);
+        }
+
+        double priceAtMid = priceAtEarly * Math.pow(midGrowth, midThreshold - earlyTiers);
+        return priceAtMid * Math.pow(lateGrowth, tier - midThreshold);
+    }
+
+    private double computeTierDropValue(int tier) {
+        FileConfiguration config = plugin.getConfig();
+        double base = config.getDouble("generators.drop-value-economy.base-drop-value", 2.0);
+        int earlyTiers = Math.max(1, config.getInt("generators.drop-value-economy.early-tiers", 5));
+        double earlyStep = config.getDouble("generators.drop-value-economy.early-step", 2.0);
+        int midThreshold = Math.max(earlyTiers, config.getInt("generators.drop-value-economy.mid-tier-threshold", 20));
+        double midGrowth = config.getDouble("generators.drop-value-economy.mid-growth-rate", 1.5);
+        double lateGrowth = config.getDouble("generators.drop-value-economy.late-growth-rate", 1.18);
+        double cap = config.getDouble("generators.drop-value-economy.max-drop-value-cap", 10000.0);
+
+        double value;
+        if (tier <= earlyTiers) {
+            value = base + ((tier - 1) * earlyStep);
+        } else {
+            double valueAtEarly = base + ((earlyTiers - 1) * earlyStep);
+            if (tier <= midThreshold) {
+                value = valueAtEarly * Math.pow(midGrowth, tier - earlyTiers);
+            } else {
+                double valueAtMid = valueAtEarly * Math.pow(midGrowth, midThreshold - earlyTiers);
+                value = valueAtMid * Math.pow(lateGrowth, tier - midThreshold);
+            }
+        }
+        return Math.min(value, cap);
     }
 
     private void loadGenerators() {
@@ -101,6 +151,7 @@ public class GeneratorManager {
                     double y = sec.getDouble(key + ".y");
                     double z = sec.getDouble(key + ".z");
                     Location loc = new Location(world, x, y, z);
+                    BlockPos pos = BlockPos.fromLocation(loc);
 
                     UUID owner = UUID.fromString(sec.getString(key + ".owner"));
                     int tier = sec.getInt(key + ".tier");
@@ -108,7 +159,7 @@ public class GeneratorManager {
                     int drops = sec.getInt(key + ".drops");
 
                     GeneratorBlock gen = new GeneratorBlock(loc, owner, tier, lastHarvest, drops);
-                    placedGenerators.put(loc, gen);
+                    placedGenerators.put(pos, gen);
                 } catch (Exception e) {
                     plugin.getLogger().log(Level.SEVERE, "Could not load placed generator " + key + "!", e);
                 }
@@ -116,37 +167,48 @@ public class GeneratorManager {
         }
     }
 
-    public void saveGenerators() {
-        dataConfig.set("placed", null); // Clear existing
-        int index = 0;
-        long now = System.currentTimeMillis();
-        for (Map.Entry<Location, GeneratorBlock> entry : placedGenerators.entrySet()) {
-            Location loc = entry.getKey();
-            GeneratorBlock gen = entry.getValue();
+    private void startAutoSaveTask() {
+        // Auto-save generators data asynchronously every 5 minutes (6000 ticks)
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::saveGeneratorsToFile, 6000L, 6000L);
+    }
 
-            // Lazy catch-up to ensure values are updated before serialization
-            int offlineDrops = gen.calculateCatchUp(now, tickIntervalSeconds);
-            if (offlineDrops > 0) {
-                spawnPhysicalDrops(loc, gen.getTier(), offlineDrops);
+    public void saveGenerators() {
+        isDirty = true;
+    }
+
+    public synchronized void saveGeneratorsToFile() {
+        if (!isDirty) return;
+        
+        synchronized (dataFile) {
+            dataConfig.set("placed", null); // Clear existing
+            int index = 0;
+            for (Map.Entry<BlockPos, GeneratorBlock> entry : placedGenerators.entrySet()) {
+                BlockPos pos = entry.getKey();
+                GeneratorBlock gen = entry.getValue();
+
+                String path = "placed.gen_" + index;
+                dataConfig.set(path + ".world", pos.world());
+                dataConfig.set(path + ".x", pos.x());
+                dataConfig.set(path + ".y", pos.y());
+                dataConfig.set(path + ".z", pos.z());
+                dataConfig.set(path + ".owner", gen.getOwnerUuid().toString());
+                dataConfig.set(path + ".tier", gen.getTier());
+                dataConfig.set(path + ".last-harvest", gen.getLastHarvestTime());
+                dataConfig.set(path + ".drops", 0);
+                index++;
             }
 
-            String path = "placed.gen_" + index;
-            dataConfig.set(path + ".world", loc.getWorld().getName());
-            dataConfig.set(path + ".x", loc.getX());
-            dataConfig.set(path + ".y", loc.getY());
-            dataConfig.set(path + ".z", loc.getZ());
-            dataConfig.set(path + ".owner", gen.getOwnerUuid().toString());
-            dataConfig.set(path + ".tier", gen.getTier());
-            dataConfig.set(path + ".last-harvest", gen.getLastHarvestTime());
-            dataConfig.set(path + ".drops", 0);
-            index++;
+            try {
+                dataConfig.save(dataFile);
+                isDirty = false;
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not save generators.yml!", e);
+            }
         }
+    }
 
-        try {
-            dataConfig.save(dataFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save generators.yml!", e);
-        }
+    public void saveGeneratorsSync() {
+        saveGeneratorsToFile();
     }
 
     public void reload() {
@@ -158,28 +220,47 @@ public class GeneratorManager {
     private void startTicking() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             long now = System.currentTimeMillis();
-            for (GeneratorBlock gen : placedGenerators.values()) {
+            Iterator<Map.Entry<BlockPos, GeneratorBlock>> iterator = placedGenerators.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<BlockPos, GeneratorBlock> entry = iterator.next();
+                BlockPos pos = entry.getKey();
+                GeneratorBlock gen = entry.getValue();
                 Location loc = gen.getLocation();
                 World world = loc.getWorld();
                 if (world == null) continue;
 
-                // Optimization: Paper-specific O(1) chunk loaded check (doesn't load chunks)
-                int chunkX = loc.getBlockX() >> 4;
-                int chunkZ = loc.getBlockZ() >> 4;
-                if (world.isChunkLoaded(chunkX, chunkZ)) {
-                    // Update drops and last active timestamp
-                    int catchUp = gen.calculateCatchUp(now, tickIntervalSeconds);
-                    if (catchUp > 0) {
-                        spawnPhysicalDrops(loc, gen.getTier(), catchUp);
-                    }
-                    spawnPhysicalDrops(loc, gen.getTier(), 1);
-                    gen.setLastHarvestTime(now);
-
-                    // Premium particle effect
-                    world.spawnParticle(Particle.HAPPY_VILLAGER, loc.clone().add(0.5, 1.2, 0.5), 3, 0.2, 0.1, 0.2, 0.02);
+                int chunkX = pos.x() >> 4;
+                int chunkZ = pos.z() >> 4;
+                if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                    continue;
                 }
+
+                GeneratorType type = getTierConfig(gen.getTier());
+                if (type == null || loc.getBlock().getType() != type.getBlockType()) {
+                    iterator.remove();
+                    saveGenerators();
+                    continue;
+                }
+
+                if (!isBelowItemCap(world, loc)) {
+                    continue;
+                }
+
+                spawnPhysicalDrops(loc, gen.getTier(), 1);
+                gen.setLastHarvestTime(now);
+
+                world.spawnParticle(Particle.HAPPY_VILLAGER, loc.clone().add(0.5, 1.2, 0.5), 3, 0.2, 0.1, 0.2, 0.02);
             }
-        }, 200L, tickIntervalSeconds * 20L); // Run every X seconds
+        }, 200L, tickIntervalSeconds * 20L);
+    }
+
+    private boolean isBelowItemCap(World world, Location loc) {
+        int maxItems = plugin.getConfig().getInt("generators.max-nearby-items", 100);
+        if (maxItems <= 0) return true;
+
+        double radius = plugin.getConfig().getDouble("generators.item-check-radius", 12);
+        Collection<org.bukkit.entity.Entity> nearbyItems = world.getNearbyEntities(loc, radius, radius, radius, e -> e instanceof org.bukkit.entity.Item);
+        return nearbyItems.size() < maxItems;
     }
 
     public void spawnPhysicalDrops(Location loc, int tier, int amount) {
@@ -205,11 +286,17 @@ public class GeneratorManager {
         ItemStack item = new ItemStack(mat, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(plugin.getMiniMessage().deserialize(type.getDropName()));
+            String priceLabel = com.github.gensprout.economy.EconomyHook.format(type.getDropValue());
+            Component name = plugin.getMiniMessage().deserialize("<white>" + type.getDropName() + "</white> <green>" + priceLabel + "</green>")
+                    .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false);
+            meta.displayName(name);
+
             List<Component> lore = new ArrayList<>();
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Generator Drop</gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Sell Value: <green>" + plugin.getEconomyHook().format(type.getDropValue()) + "</green></gray>"));
+            lore.add(plugin.getMiniMessage().deserialize("<gray>Generator Drop</gray>").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+            lore.add(plugin.getMiniMessage().deserialize("<gray>Sell Value: <green>" + priceLabel + "</green></gray>").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
             meta.lore(lore);
+
+            meta.setEnchantmentGlintOverride(true);
 
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(dropValueKey, PersistentDataType.DOUBLE, type.getDropValue());
@@ -231,21 +318,33 @@ public class GeneratorManager {
         return generatorTiers.get(tier);
     }
 
+    public int getMaxTier() {
+        if (generatorTiers.isEmpty()) return 25;
+        return Collections.max(generatorTiers.keySet());
+    }
+
     public GeneratorBlock getGenerator(Location loc) {
-        GeneratorBlock gen = placedGenerators.get(loc);
-        if (gen != null) {
-            // Lazy catch-up: spawn physical drops for offline duration
-            long now = System.currentTimeMillis();
-            int offlineDrops = gen.calculateCatchUp(now, tickIntervalSeconds);
-            if (offlineDrops > 0) {
-                spawnPhysicalDrops(loc, gen.getTier(), offlineDrops);
-            }
-            gen.setLastHarvestTime(now);
-        }
-        return gen;
+        if (loc == null) return null;
+        return placedGenerators.get(BlockPos.fromLocation(loc));
+    }
+
+    public GeneratorBlock getGenerator(BlockPos pos) {
+        if (pos == null) return null;
+        return placedGenerators.get(pos);
     }
 
     public Map<Location, GeneratorBlock> getPlacedGenerators() {
+        Map<Location, GeneratorBlock> map = new HashMap<>();
+        for (Map.Entry<BlockPos, GeneratorBlock> entry : placedGenerators.entrySet()) {
+            Location loc = entry.getKey().toLocation();
+            if (loc != null) {
+                map.put(loc, entry.getValue());
+            }
+        }
+        return map;
+    }
+
+    public Map<BlockPos, GeneratorBlock> getPlacedGeneratorBlocks() {
         return placedGenerators;
     }
 
@@ -264,16 +363,17 @@ public class GeneratorManager {
         if (type == null) return false;
 
         GeneratorBlock gen = new GeneratorBlock(loc, ownerUuid, tier);
-        placedGenerators.put(loc, gen);
+        placedGenerators.put(BlockPos.fromLocation(loc), gen);
+        saveGenerators();
         
-        // Change block in the world
         loc.getBlock().setType(type.getBlockType());
         return true;
     }
 
     public boolean removeGenerator(Location loc) {
-        GeneratorBlock gen = placedGenerators.remove(loc);
+        GeneratorBlock gen = placedGenerators.remove(BlockPos.fromLocation(loc));
         if (gen != null) {
+            saveGenerators();
             loc.getBlock().setType(Material.AIR);
             return true;
         }
@@ -283,7 +383,6 @@ public class GeneratorManager {
     public void giveGenerator(Player player, int tier, int amount) {
         ItemStack genItem = createGeneratorItem(tier, amount);
         player.getInventory().addItem(genItem).forEach((index, item) -> {
-            // Drop on floor if inventory full
             player.getWorld().dropItemNaturally(player.getLocation(), item);
         });
     }
@@ -300,10 +399,9 @@ public class GeneratorManager {
             List<Component> lore = new ArrayList<>();
             lore.add(plugin.getMiniMessage().deserialize("<gray>Place this generator block to earn income.</gray>"));
             lore.add(plugin.getMiniMessage().deserialize("<gray>Tier: <gold>" + tier + "</gold></gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Income per drop: <green>" + plugin.getEconomyHook().format(type.getDropValue()) + "</green></gray>"));
+            lore.add(plugin.getMiniMessage().deserialize("<gray>Income per drop: <green>" + com.github.gensprout.economy.EconomyHook.format(type.getDropValue()) + "</green></gray>"));
             meta.lore(lore);
 
-            // Save the tier metadata inside PDC
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(tierKey, PersistentDataType.INTEGER, tier);
             

@@ -62,24 +62,4 @@ public class GeneratorBlock {
     public void addAccumulatedDrops(int amount) {
         this.accumulatedDrops += amount;
     }
-
-    /**
-     * Compute offline catch-up drops based on current time and tick interval (in seconds).
-     * Returns the count of newly accrued drops.
-     */
-    public int calculateCatchUp(long currentTime, int tickIntervalSeconds) {
-        long elapsedMs = currentTime - lastHarvestTime;
-        long intervalMs = tickIntervalSeconds * 1000L;
-        if (elapsedMs >= intervalMs) {
-            int newDrops = (int) (elapsedMs / intervalMs);
-            // Cap it at a reasonable limit to prevent database/economy inflation (e.g. max 10,000 drops accumulated)
-            if (accumulatedDrops + newDrops > 10000) {
-                newDrops = Math.max(0, 10000 - accumulatedDrops);
-            }
-            this.accumulatedDrops += newDrops;
-            this.lastHarvestTime += newDrops * intervalMs;
-            return newDrops;
-        }
-        return 0;
-    }
 }

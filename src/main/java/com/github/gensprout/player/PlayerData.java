@@ -16,10 +16,21 @@ public class PlayerData {
     private int essenceMultiplierLevel = 0;
 
     private int essence = 0;
+    private double balance = 0.0;
     private int purchasedSlots = 0;
+    private long lastSeen = System.currentTimeMillis();
+    private boolean completedTutorial = false;
 
     public PlayerData(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 
     public UUID getUuid() {
@@ -114,6 +125,14 @@ public class PlayerData {
         this.purchasedSlots++;
     }
 
+    public long getLastSeen() {
+        return lastSeen;
+    }
+
+    public void setLastSeen(long lastSeen) {
+        this.lastSeen = lastSeen;
+    }
+
     /**
      * Total slot limit: default slots (starts at 20) + 1 per prestige + purchased slots
      */
@@ -130,6 +149,30 @@ public class PlayerData {
 
     public double getMoneyMultiplier() {
         return 1.0 + (moneyMultiplierLevel * 0.05);
+    }
+
+    public boolean hasCompletedTutorial() {
+        return completedTutorial;
+    }
+
+    public void setCompletedTutorial(boolean completedTutorial) {
+        this.completedTutorial = completedTutorial;
+    }
+
+    /**
+     * Clears all stats about a player (level, xp, prestige, prestige points, multipliers, essence, money).
+     */
+    public void clearStats() {
+        this.level = 1;
+        this.farmingXp = 0.0;
+        this.prestige = 0;
+        this.prestigePoints = 0;
+        this.xpMultiplierLevel = 0;
+        this.moneyMultiplierLevel = 0;
+        this.essenceMultiplierLevel = 0;
+        this.essence = 0;
+        this.balance = 0.0;
+        this.completedTutorial = false;
     }
 
     public double getEssenceMultiplier() {

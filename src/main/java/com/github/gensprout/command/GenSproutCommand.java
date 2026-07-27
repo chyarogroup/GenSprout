@@ -55,6 +55,24 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (command.getName().equalsIgnoreCase("shop") || command.getName().equalsIgnoreCase("supplies") || command.getName().equalsIgnoreCase("bshop") || command.getName().equalsIgnoreCase("buildshop")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Only players can open the Generator Building Supplies Shop!");
+                return true;
+            }
+            plugin.getDialogManager().openSuppliesShopCategoryMenu(player);
+            return true;
+        }
+
+        if (command.getName().equalsIgnoreCase("start") || command.getName().equalsIgnoreCase("sproutstart") || command.getName().equalsIgnoreCase("tutorial")) {
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("Only players can start the tutorial!");
+                return true;
+            }
+            handleStartCommand(player);
+            return true;
+        }
+
         // Handle main command
         String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
         if (command.getName().equalsIgnoreCase(mainCmd)) {
@@ -63,7 +81,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 if (args.length > 0) {
                     handleAdminCommands(sender, args);
                 } else {
-                    sender.sendMessage("Use /" + mainCmd + " <givegen|addxp|addessence|reload>");
+                    sender.sendMessage("Use /" + mainCmd + " <start|givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige|givehoe|givesellwand|clearstats|reload>");
                 }
                 return true;
             }
@@ -71,7 +89,16 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             // Player commands
             if (args.length > 0) {
                 String sub = args[0].toLowerCase();
-                if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("reload") || sub.equals("definefarm") || sub.equals("savefarm")) {
+                if (sub.equals("start") || sub.equals("tutorial")) {
+                    handleStartCommand(player);
+                    return true;
+                }
+                if (sub.equals("shop") || sub.equals("supplies") || sub.equals("bshop") || sub.equals("buildshop")) {
+                    plugin.getDialogManager().openSuppliesShopCategoryMenu(player);
+                    return true;
+                }
+                if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("removeessence") || sub.equals("setessence") || sub.equals("reload") || sub.equals("definefarm") || sub.equals("savefarm")
+                        || sub.equals("givegenslots") || sub.equals("setlevel") || sub.equals("setprestige") || sub.equals("addmoney") || sub.equals("givehoe") || sub.equals("givesellwand") || sub.equals("clearstats")) {
                     if (!player.hasPermission("gensprout.admin")) {
                         player.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission for admin commands!</red>"));
                         return true;
@@ -86,77 +113,12 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+
         return true;
     }
 
     private void handleSellAll(Player player) {
-        PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
-        double mult = data.getMoneyMultiplier();
-        double totalEarnings = 0.0;
-        int totalItemsSold = 0;
-        double totalXpEarned = 0.0;
-
-        ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack item = contents[i];
-            if (item == null || item.getType() == Material.AIR) continue;
-
-            double unitPrice = 0.0;
-            Double dropVal = plugin.getGeneratorManager().getDropValueFromItem(item);
-            if (dropVal != null) {
-                unitPrice = dropVal;
-                // Award a small amount of XP for selling generator drops: 0.5% of the base drop value
-                double baseItemXp = dropVal * 0.005;
-                totalXpEarned += baseItemXp * item.getAmount() * data.getXpMultiplier();
-            } else {
-                String configKey = getCropConfigName(item.getType());
-                if (configKey != null) {
-                    unitPrice = plugin.getConfig().getDouble("farming.crops." + configKey + ".sell-price", 0.0);
-                }
-            }
-
-            if (unitPrice <= 0.0) continue;
-
-            int amount = item.getAmount();
-            double earnings = unitPrice * amount * mult;
-
-            totalEarnings += earnings;
-            totalItemsSold += amount;
-
-            player.getInventory().setItem(i, null); // Clear the slot
-        }
-
-        if (totalItemsSold > 0) {
-            EconomyHook.deposit(player, totalEarnings);
-            player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f);
-            
-            String xpMsg = "";
-            if (totalXpEarned > 0.0) {
-                plugin.getPlayerManager().addXp(player, totalXpEarned);
-                xpMsg = " <gray>(+" + String.format("%.2f", totalXpEarned) + " XP)</gray>";
-            }
-
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Successfully sold <gold>" + totalItemsSold + "</gold> item(s) for <gold>" + EconomyHook.format(totalEarnings) + "</gold> (Multiplier: " + String.format("%.2f", mult) + "x)!" + xpMsg + "</green>"
-            ));
-        } else {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You do not have any crops or generator drops to sell in your inventory!</red>"));
-        }
-    }
-
-    private String getCropConfigName(Material mat) {
-        return switch (mat) {
-            case WHEAT -> "WHEAT";
-            case POTATO -> "POTATOES";
-            case CARROT -> "CARROTS";
-            case BEETROOT -> "BEETROOTS";
-            case MELON_SLICE -> "MELON";
-            case PUMPKIN -> "PUMPKIN";
-            case COCOA_BEANS -> "COCOA";
-            case SUGAR_CANE -> "SUGAR_CANE";
-            case NETHER_WART -> "NETHER_WART";
-            default -> null;
-        };
+        com.github.gensprout.economy.SellManager.sellAllInInventory(plugin, player, 1.0);
     }
 
     private void handleAdminCommands(CommandSender sender, String[] args) {
@@ -210,8 +172,87 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         }
 
         String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+
+        if (sub.equals("givehoe")) {
+            if (args.length < 2) {
+                sender.sendMessage("Usage: /" + mainCmd + " givehoe <player>");
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage("Player not found!");
+                return;
+            }
+            ItemStack hoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin);
+            target.getInventory().addItem(hoe).forEach((index, item) -> target.getWorld().dropItemNaturally(target.getLocation(), item));
+            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Gave a Sprout Hoe to " + target.getName() + ".</green>"));
+            target.sendMessage(plugin.getMiniMessage().deserialize("<green>You received a Sprout Hoe from an admin.</green>"));
+            return;
+        }
+
+        if (sub.equals("givesellwand")) {
+            if (args.length < 2) {
+                sender.sendMessage("Usage: /" + mainCmd + " givesellwand <player> [tier]");
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage("Player not found!");
+                return;
+            }
+            int tier = 1;
+            if (args.length >= 3) {
+                try {
+                    tier = Integer.parseInt(args[2]);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Tier must be a number!");
+                    return;
+                }
+            }
+            ItemStack wand = com.github.gensprout.economy.SellWand.createSellWand(plugin, tier);
+            target.getInventory().addItem(wand).forEach((index, item) -> target.getWorld().dropItemNaturally(target.getLocation(), item));
+            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Gave a Sell Wand (Tier " + tier + ") to " + target.getName() + ".</green>"));
+            target.sendMessage(plugin.getMiniMessage().deserialize("<green>You received a Sell Wand from an admin.</green>"));
+            return;
+        }
+
+        if (sub.equals("clearstats")) {
+            if (args.length < 2) {
+                sender.sendMessage("Usage: /" + mainCmd + " clearstats <player>");
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target != null && target.isOnline()) {
+                PlayerData data = plugin.getPlayerManager().getPlayerData(target.getUniqueId());
+                double currentBal = EconomyHook.getBalance(target);
+                if (currentBal > 0) {
+                    EconomyHook.withdraw(target, currentBal);
+                }
+                data.clearStats();
+                plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                com.github.gensprout.farming.FarmCropView.refreshRegionForPlayer(plugin, target, plugin.getFarmManager().getActiveRegion());
+                sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Cleared all stats (Level, XP, Prestige, Essence, Money) for " + target.getName() + ".</green>"));
+                target.sendMessage(plugin.getMiniMessage().deserialize("<red>All your stats (Level, XP, Prestige, Essence, Money) have been cleared by an admin.</red>"));
+            } else {
+                org.bukkit.OfflinePlayer offlineTarget = Bukkit.getOfflinePlayer(args[1]);
+                if (offlineTarget.hasPlayedBefore() || offlineTarget.isOnline()) {
+                    PlayerData data = plugin.getPlayerManager().getPlayerData(offlineTarget.getUniqueId());
+                    double currentBal = EconomyHook.getBalance(offlineTarget);
+                    if (currentBal > 0) {
+                        EconomyHook.withdraw(offlineTarget, currentBal);
+                    }
+                    data.clearStats();
+                    plugin.getPlayerManager().savePlayer(offlineTarget.getUniqueId());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Cleared all stats (Level, XP, Prestige, Essence, Money) for offline player " + (offlineTarget.getName() != null ? offlineTarget.getName() : args[1]) + ".</green>"));
+                } else {
+                    sender.sendMessage("Player not found!");
+                }
+            }
+            return;
+        }
+
         if (args.length < 3) {
-            sender.sendMessage("Usage: /" + mainCmd + " <givegen|addxp|addessence> <player> <amount/tier> [amount]");
+            sender.sendMessage("Usage: /" + mainCmd + " <givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige> <player> <amount/tier> [amount]");
             return;
         }
 
@@ -246,8 +287,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             case "addxp" -> {
                 try {
                     double xp = Double.parseDouble(args[2]);
-                    data.setFarmingXp(data.getFarmingXp() + xp);
-                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    plugin.getPlayerManager().addXp(target, xp);
                     sender.sendMessage(plugin.getMiniMessage().deserialize(
                             "<green>Added " + xp + " Farming XP to " + target.getName() + ".</green>"
                     ));
@@ -273,8 +313,127 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("Essence amount must be a number!");
                 }
             }
+            case "removeessence" -> {
+                try {
+                    int essence = Math.max(0, Integer.parseInt(args[2]));
+                    int newEssence = Math.max(0, data.getEssence() - essence);
+                    data.setEssence(newEssence);
+                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Removed " + essence + " Essence from " + target.getName() + " (New Total: " + newEssence + ").</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<red>An admin removed " + essence + " Essence from your balance.</red>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Essence amount must be a number!");
+                }
+            }
+            case "setessence" -> {
+                try {
+                    int essence = Math.max(0, Integer.parseInt(args[2]));
+                    data.setEssence(essence);
+                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Set " + target.getName() + "'s Essence balance to " + essence + ".</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Your Essence balance was set to " + essence + " by an admin.</green>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Essence amount must be a number!");
+                }
+            }
+            case "givegenslots" -> {
+                try {
+                    int amount = Integer.parseInt(args[2]);
+                    for (int i = 0; i < amount; i++) {
+                        data.addPurchasedSlot();
+                    }
+                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Gave " + amount + " extra generator slot(s) to " + target.getName() + ".</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Received " + amount + " extra generator slot(s) from admin.</green>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Slot amount must be a number!");
+                }
+            }
+            case "setlevel" -> {
+                try {
+                    int level = Math.max(1, Integer.parseInt(args[2]));
+                    data.setLevel(level);
+                    data.setFarmingXp(0.0);
+                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Set " + target.getName() + "'s Farming Level to " + level + ".</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Your Farming Level was set to " + level + " by an admin.</green>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Level must be a number!");
+                }
+            }
+            case "setprestige" -> {
+                try {
+                    int prestige = Math.max(0, Integer.parseInt(args[2]));
+                    data.setPrestige(prestige);
+                    plugin.getPlayerManager().savePlayer(target.getUniqueId());
+                    com.github.gensprout.farming.FarmCropView.refreshRegionForPlayer(plugin, target, plugin.getFarmManager().getActiveRegion());
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Set " + target.getName() + "'s Prestige to " + prestige + ".</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Your Prestige was set to " + prestige + " by an admin.</green>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Prestige must be a number!");
+                }
+            }
+            case "addmoney" -> {
+                try {
+                    double amount = Double.parseDouble(args[2]);
+                    com.github.gensprout.economy.EconomyHook.deposit(target, amount);
+                    sender.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Gave " + EconomyHook.format(amount) + " to " + target.getName() + ".</green>"
+                    ));
+                    target.sendMessage(plugin.getMiniMessage().deserialize(
+                            "<green>Received " + EconomyHook.format(amount) + " from admin.</green>"
+                    ));
+                } catch (NumberFormatException e) {
+                    sender.sendMessage("Amount must be a number!");
+                }
+            }
             default -> sender.sendMessage("Unknown admin command.");
         }
+    }
+
+    private void handleStartCommand(Player player) {
+        PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
+        boolean isTester = player.hasPermission("gensprout.tester");
+        if (!isTester && data.hasCompletedTutorial()) {
+            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You have already completed the tutorial and claimed your starter items!</red>"));
+            return;
+        }
+
+        data.setCompletedTutorial(true);
+        plugin.getPlayerManager().savePlayer(player.getUniqueId());
+
+        // Starter items: 1x Sprout Hoe + default max generators (20)
+        ItemStack sproutHoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin);
+        player.getInventory().addItem(sproutHoe).forEach((index, item) -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+
+        int defaultSlots = plugin.getGeneratorManager().getDefaultSlots();
+        plugin.getGeneratorManager().giveGenerator(player, 1, defaultSlots);
+
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+        player.sendMessage(plugin.getMiniMessage().deserialize("<green>Tutorial started! You've received a <gradient:green:aqua>Sprout Hoe</gradient> and " + defaultSlots + " Tier 1 Generators to get started!</green>"));
+
+        // Open Tutorial Dialog
+        plugin.getDialogManager().openFirstJoinTutorialDialog(player);
     }
 
     @Override
@@ -283,19 +442,23 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
         if (command.getName().equalsIgnoreCase(mainCmd)) {
             if (args.length == 1) {
+                list.add("start");
+                list.add("tutorial");
+                list.add("shop");
                 if (sender.hasPermission("gensprout.admin")) {
-                    list.addAll(Arrays.asList("givegen", "addxp", "addessence", "reload", "definefarm", "savefarm"));
+                    list.addAll(Arrays.asList("givegen", "givegenslots", "addxp", "addessence", "removeessence", "setessence", "addmoney", "setlevel", "setprestige", "givehoe", "givesellwand", "clearstats", "reload", "definefarm", "savefarm"));
                 }
             } else if (args.length == 2 && sender.hasPermission("gensprout.admin")) {
                 String sub = args[0].toLowerCase();
-                if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence")) {
+                if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("removeessence") || sub.equals("setessence") || sub.equals("givegenslots")
+                        || sub.equals("setlevel") || sub.equals("setprestige") || sub.equals("addmoney") || sub.equals("givehoe") || sub.equals("givesellwand") || sub.equals("clearstats")) {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         list.add(player.getName());
                     }
                 }
             } else if (args.length == 3 && sender.hasPermission("gensprout.admin")) {
                 String sub = args[0].toLowerCase();
-                if (sub.equals("givegen")) {
+                if (sub.equals("givegen") || sub.equals("givesellwand")) {
                     for (int i = 1; i <= 25; i++) {
                         list.add(String.valueOf(i));
                     }

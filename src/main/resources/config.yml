@@ -10,226 +10,201 @@ generators:
     base-price: 5000.0
     scaling-factor: 2500.0
   
-  # Generator tick interval in seconds (optimized catch-up runs for unloaded generators)
+  # Generator tick interval in seconds
   tick-interval-seconds: 10
 
+  # Generators only produce drops while their chunk is loaded, and pause entirely while
+  # unloaded (no "catch-up" dumping of missed drops when the chunk loads back in - see
+  # offline-generation below for how missed time offline is instead compensated).
+  #
+  # To prevent lag/exploits from unattended AFK farms, each generator also stops producing
+  # new drops once too many uncollected item entities are sitting nearby (within
+  # item-check-radius blocks). Set max-nearby-items to 0 to disable this cap entirely.
+  max-nearby-items: 100
+  item-check-radius: 12
+
+  # Generator tier cost curve
+  # Same "fast start, steady middle, tapered end" economy philosophy used for leveling and hoe
+  # enchants: tiers 1..early-tiers are cheap flat increments (quick to grab early on and get
+  # hooked), tiers up to mid-tier-threshold grow at a steady compounding rate (mid-growth-rate),
+  # and tiers beyond that taper to a gentler compounding rate (late-growth-rate) so the top tier
+  # stays a reachable long-term goal instead of spiraling into an ever-worse cost.
+  # upgrade-price is always buy-price * upgrade-price-ratio.
+  tier-economy:
+    base-buy-price: 250.0
+    early-tiers: 10
+    early-step: 250.0
+    mid-tier-threshold: 20
+    mid-growth-rate: 1.75
+    late-growth-rate: 1.45
+    upgrade-price-ratio: 0.72
+
+  # Generator drop value curve
+  # Same "fast start, steady middle, tapered end" economy philosophy applied to how much each
+  # generator drop actually sells for: tiers 1..early-tiers are cheap flat increments, tiers up to
+  # mid-tier-threshold scale at a steady compounding rate, and tiers beyond that taper to a
+  # gentler compounding rate, hard-capped at max-drop-value-cap.
+  drop-value-economy:
+    base-drop-value: 2.0
+    early-tiers: 5
+    early-step: 2.0
+    mid-tier-threshold: 20
+    mid-growth-rate: 1.5
+    late-growth-rate: 1.18
+    max-drop-value-cap: 10000.0
+
   # Generator Tiers definition
-  # max-tier (25) must drop items/value worth $10000.0
+  # max-tier (25) must drop items/value worth $10000.0 (enforced by max-drop-value-cap above)
   tiers:
     1:
       display-name: "<gray>Wheat Generator (Tier 1)</gray>"
       block-type: HAY_BLOCK
       drop-material: WHEAT
-      buy-price: 250.0
-      upgrade-price: 150.0
-      drop-value: 2.0
       drop-name: "<gray>Wheat Grain</gray>"
     2:
       display-name: "<green>Potato Generator (Tier 2)</green>"
       block-type: MUD
       drop-material: POTATO
-      buy-price: 600.0
-      upgrade-price: 450.0
-      drop-value: 5.0
       drop-name: "<green>Starchy Potato</green>"
     3:
       display-name: "<green>Carrot Generator (Tier 3)</green>"
       block-type: ORANGE_CONCRETE
       drop-material: CARROT
-      buy-price: 1200.0
-      upgrade-price: 900.0
-      drop-value: 10.0
       drop-name: "<green>Organic Carrot</green>"
     4:
       display-name: "<green>Beetroot Generator (Tier 4)</green>"
       block-type: RED_MUSHROOM_BLOCK
       drop-material: BEETROOT
-      buy-price: 2500.0
-      upgrade-price: 1800.0
-      drop-value: 18.0
       drop-name: "<green>Juicy Beetroot</green>"
     5:
       display-name: "<yellow>Melon Generator (Tier 5)</yellow>"
       block-type: MELON
       drop-material: MELON_SLICE
-      buy-price: 5000.0
-      upgrade-price: 3500.0
-      drop-value: 30.0
       drop-name: "<yellow>Melon Slice</yellow>"
     6:
       display-name: "<yellow>Pumpkin Generator (Tier 6)</yellow>"
       block-type: PUMPKIN
       drop-material: PUMPKIN_SEEDS
-      buy-price: 10000.0
-      upgrade-price: 7500.0
-      drop-value: 50.0
       drop-name: "<yellow>Carved Pumpkin Seed</yellow>"
     7:
       display-name: "<yellow>Cocoa Generator (Tier 7)</yellow>"
       block-type: BROWN_MUSHROOM_BLOCK
       drop-material: COCOA_BEANS
-      buy-price: 18000.0
-      upgrade-price: 14000.0
-      drop-value: 80.0
       drop-name: "<yellow>Rich Cocoa Bean</yellow>"
     8:
       display-name: "<yellow>Sugar Cane Generator (Tier 8)</yellow>"
       block-type: MOSS_BLOCK
       drop-material: SUGAR_CANE
-      buy-price: 30000.0
-      upgrade-price: 22000.0
-      drop-value: 120.0
       drop-name: "<yellow>Refined Sugar Cane</yellow>"
     9:
       display-name: "<red>Nether Wart Generator (Tier 9)</red>"
       block-type: NETHER_WART_BLOCK
       drop-material: NETHER_WART
-      buy-price: 50000.0
-      upgrade-price: 38000.0
-      drop-value: 180.0
       drop-name: "<red>Crimson Nether Wart</red>"
     10:
       display-name: "<gray>Stone Generator (Tier 10)</gray>"
       block-type: STONE
       drop-material: FLINT
-      buy-price: 80.0
-      upgrade-price: 60.0
-      drop-value: 260.0
       drop-name: "<gray>Polished Pebble</gray>"
     11:
       display-name: "<gray>Coal Generator (Tier 11)</gray>"
       block-type: COAL_BLOCK
       drop-material: COAL
-      buy-price: 120000.0
-      upgrade-price: 90000.0
-      drop-value: 380.0
       drop-name: "<gray>Pressed Coal Chunk</gray>"
     12:
       display-name: "<gray>Iron Generator (Tier 12)</gray>"
       block-type: IRON_BLOCK
       drop-material: IRON_INGOT
-      buy-price: 180000.0
-      upgrade-price: 140000.0
-      drop-value: 550.0
       drop-name: "<gray>Pure Iron Ingot</gray>"
     13:
       display-name: "<aqua>Lapis Generator (Tier 13)</aqua>"
       block-type: LAPIS_BLOCK
       drop-material: LAPIS_LAZULI
-      buy-price: 280000.0
-      upgrade-price: 200000.0
-      drop-value: 750.0
       drop-name: "<aqua>Indigo Lapis Chunk</aqua>"
     14:
       display-name: "<red>Redstone Generator (Tier 14)</red>"
       block-type: REDSTONE_BLOCK
       drop-material: REDSTONE
-      buy-price: 400000.0
-      upgrade-price: 300000.0
-      drop-value: 1000.0
       drop-name: "<red>Charged Redstone Ingot</red>"
     15:
       display-name: "<gold>Gold Generator (Tier 15)</gold>"
       block-type: GOLD_BLOCK
       drop-material: GOLD_INGOT
-      buy-price: 600000.0
-      upgrade-price: 450000.0
-      drop-value: 1350.0
       drop-name: "<gold>Refined Gold Nugget</gold>"
     16:
       display-name: "<green>Emerald Generator (Tier 16)</green>"
       block-type: EMERALD_BLOCK
       drop-material: EMERALD
-      buy-price: 900000.0
-      upgrade-price: 700000.0
-      drop-value: 1800.0
       drop-name: "<green>Glimmering Emerald Gem</green>"
     17:
       display-name: "<aqua>Diamond Generator (Tier 17)</aqua>"
       block-type: DIAMOND_BLOCK
       drop-material: DIAMOND
-      buy-price: 1350000.0
-      upgrade-price: 1000000.0
-      drop-value: 2400.0
       drop-name: "<aqua>Flawless Diamond shard</aqua>"
     18:
       display-name: "<dark_purple>Obsidian Generator (Tier 18)</dark_purple>"
       block-type: OBSIDIAN
       drop-material: AMETHYST_SHARD
-      buy-price: 2000000.0
-      upgrade-price: 1500000.0
-      drop-value: 3200.0
       drop-name: "<dark_purple>Crystalline Obsidian</dark_purple>"
     19:
       display-name: "<dark_red>Netherite Generator (Tier 19)</dark_red>"
       block-type: NETHERITE_BLOCK
       drop-material: NETHERITE_INGOT
-      buy-price: 3000000.0
-      upgrade-price: 2200000.0
-      drop-value: 4200.0
       drop-name: "<dark_red>Reinforced Netherite Ingot</dark_red>"
     20:
       display-name: "<dark_aqua>Prismarine Generator (Tier 20)</dark_aqua>"
       block-type: PRISMARINE
       drop-material: PRISMARINE_CRYSTALS
-      buy-price: 4500000.0
-      upgrade-price: 3200000.0
-      drop-value: 5300.0
       drop-name: "<dark_aqua>Ocean Crystal</dark_aqua>"
     21:
       display-name: "<light_purple>Amethyst Generator (Tier 21)</light_purple>"
       block-type: AMETHYST_BLOCK
       drop-material: AMETHYST_SHARD
-      buy-price: 6500000.0
-      upgrade-price: 4800000.0
-      drop-value: 6500.0
       drop-name: "<light_purple>Amethyst Cluster</light_purple>"
     22:
       display-name: "<gold>Gilded Generator (Tier 22)</gold>"
       block-type: GILDED_BLACKSTONE
       drop-material: GOLD_NUGGET
-      buy-price: 9000000.0
-      upgrade-price: 7000000.0
-      drop-value: 7800.0
       drop-name: "<gold>Gilded Blackstone Pebble</gold>"
     23:
       display-name: "<dark_purple>Crying Generator (Tier 23)</dark_purple>"
       block-type: CRYING_OBSIDIAN
       drop-material: GHAST_TEAR
-      buy-price: 13000000.0
-      upgrade-price: 10000000.0
-      drop-value: 9200.0
       drop-name: "<dark_purple>Weeping Tear</dark_purple>"
     24:
       display-name: "<light_purple>End Generator (Tier 24)</light_purple>"
       block-type: PURPUR_BLOCK
       drop-material: ENDER_PEARL
-      buy-price: 20000000.0
-      upgrade-price: 15000000.0
-      drop-value: 10000.0 # This matches the $10000 drop value requirement!
       drop-name: "<light_purple>Ender Crystal Core</light_purple>"
     25:
       display-name: "<dark_purple><bold>SPROUT MASTER GENERATOR (Tier 25)</bold></dark_purple>"
       block-type: BEACON
       drop-material: NETHER_STAR
-      buy-price: 50000000.0
-      upgrade-price: 35000000.0
-      drop-value: 10000.0 # Max tier drops exactly $10000
       drop-name: "<dark_purple><bold>Eternal Sprout Core</bold></dark_purple>"
 
 # Level & Prestige Settings
 leveling:
-  # Internal farming leveling calculations
-  # XP required = base-xp + (current_level * multiplier)
+  # Internal farming leveling calculations.
+  # Progression is split into 3 phases so early levels come quickly (to hook new players),
+  # mid-game levels ramp up steadily, and late-game levels taper off with sqrt-based growth
+  # so the grind never becomes excessively slow.
+  #
+  # Levels 1 to early-levels:                        required = base-xp + (level * early-multiplier)
+  # Levels (early-levels+1) to late-level-threshold:  continues linearly using 'multiplier'
+  # Levels above late-level-threshold:                growth tapers off using sqrt(level) * late-multiplier
   formula:
-    base-xp: 100
-    multiplier: 50
+    base-xp: 60
+    early-levels: 15
+    early-multiplier: 15
+    multiplier: 40
+    late-level-threshold: 40
+    late-multiplier: 25
   
   # Prestige Settings
   # Level required to prestige = base-level + (current_prestige * levels-per-prestige)
   prestige:
-    base-level: 50
-    levels-per-prestige: 10
+    base-level: 20
+    levels-per-prestige: 5
 
 # Farming Settings
 farming:
@@ -280,26 +255,53 @@ farming:
       essence-amount: 2
       sell-price: 5.0
 
+# ==========================================
+# Crop Progression (tied to Prestige)
+# ==========================================
+# Every `prestiges-per-crop` prestige levels, the next crop in this list "unlocks". Harvesting a
+# crop that isn't unlocked yet still breaks/drops the raw item normally (nothing is destroyed),
+# but it won't grant Farming XP, Essence, or the auto-sell bonus until it's unlocked - giving
+# players a concrete reason to prestige as they grow their farm's variety. The first crop in the
+# list is always unlocked for everyone.
+#
+# Only the 4 "real" farmland crops are gated here (Wheat, Potatoes, Carrots, Beetroot). Melon,
+# Pumpkin, Cocoa, Sugar Cane, and Nether Wart are not farmland crops in the traditional sense
+# (they grow from stems/vines/soul sand rather than tilled farmland) and are intentionally left
+# out of this list - any crop not in this list is always treated as unlocked.
+crop-progression:
+  prestiges-per-crop: 10
+  order:
+    - WHEAT
+    - POTATOES
+    - CARROTS
+    - BEETROOTS
+
 # Hoe Enchantment Settings
 hoe-enchants:
-  # Enchantment prices (in essence): base-cost + (current_level * cost-multiplier)
+  # Enchantment prices (in essence): base-cost + ((next_level ^ cost-exponent) * cost-multiplier)
+  # Same "fast start, tapered growth" economy philosophy as the leveling system: level 1 is cheap
+  # to get people using enchants quickly, and cost-exponent gently ramps up the price for higher
+  # levels without letting it explode.
   xp_booster:
     display-name: "<yellow>XP Booster</yellow>"
     max-level: 5
-    base-cost: 100
-    cost-multiplier: 50
+    base-cost: 60
+    cost-multiplier: 35
+    cost-exponent: 1.3
     effect-per-level: 0.20 # +20% farming XP per level
   essence_finder:
     display-name: "<light_purple>Essence Finder</light_purple>"
     max-level: 5
-    base-cost: 150
-    cost-multiplier: 75
+    base-cost: 90
+    cost-multiplier: 55
+    cost-exponent: 1.3
     effect-per-level: 0.25 # +25% essence chance/amount per level
   crop_doubler:
     display-name: "<green>Crop Doubler</green>"
     max-level: 5
-    base-cost: 200
-    cost-multiplier: 100
+    base-cost: 120
+    cost-multiplier: 75
+    cost-exponent: 1.3
     effect-per-level: 0.10 # +10% chance to double crop drops per level
   replenish:
     display-name: "<aqua>Replenish</aqua>"
@@ -313,15 +315,56 @@ hoe-enchants:
     cost-multiplier: 0
 
 # ==========================================
+# Offline Generation Settings
+# ==========================================
+# When a player rejoins, GenSprout estimates how much money their generators would have
+# earned had they been online the whole time they were away, and pays out a percentage of
+# that as a welcome-back bonus. This does NOT spawn any physical items - it's a pure balance
+# deposit, so it has no interaction with the item entity cap above.
+offline-generation:
+  enabled: true
+  # Percentage of the estimated earnings to actually pay out (0.20 = 20%)
+  percentage: 0.20
+  # Safety cap: only this many hours of absence are ever considered, so a player who was gone
+  # for weeks/months doesn't return to an absurd payout.
+  max-offline-hours: 72
+
+# ==========================================
+# Auto-Sell Settings
+# ==========================================
+auto-sell:
+  # When enabled, sellable crops and generator drops are sold instantly the moment they are
+  # obtained (harvested or picked up), skipping the inventory entirely and depositing straight
+  # into the player's balance. Enabled by default. Set to false to let players hoard raw items
+  # to sell manually with /sell or a Sell Wand instead.
+  enabled: true
+
+# ==========================================
+# Sell Wand Settings
+# ==========================================
+# Sell Wands are items purchasable from the Sprout Menu (Sell Wand shop) and directly from the
+# Generator Shop (/genshop) via the "Buy Sell Wand" button. When right-clicked they instantly
+# sell every sellable item in the holder's inventory (same as /sell), or - if right-clicked on
+# a chest/barrel/shulker box/other container - every sellable item inside that container instead.
+# Currently only a single 1x tier exists, but additional tiers can be added below in the future
+# by simply adding new numbered entries (e.g. "2") with a higher multiplier and price.
+sellwand:
+  multipliers:
+    1:
+      display-name: "<green>Sell Wand (1x)</green>"
+      multiplier: 1.0
+      price: 10000.0
+
+# ==========================================
 # Server Customization Settings (IP, Name, etc.)
 # ==========================================
 server:
   # The IP address displayed on the scoreboard and tab list footer
   ip: "play.gensprout.net"
   # The display name of the server (supports MiniMessage color formatting)
-  name: "<gradient:green:aqua><bold>GENSPROUT MC</bold></gradient>"
+  name: "<gradient:green:aqua><bold>GenSprout</bold></gradient>"
   # A short description tagline for the server
-  tagline: "<gray>The ultimate optimized farming server</gray>"
+  tagline: "<gray>The ultimate farming server</gray>"
 
 # ==========================================
 # Scoreboard Customization
@@ -332,7 +375,7 @@ scoreboard:
   # How often the scoreboard updates (20 ticks = 1 second)
   update-interval-ticks: 20
   # Objective title at the top of the scoreboard (supports MiniMessage color formatting)
-  title: "<gradient:green:aqua><bold>GENSPROUT</bold></gradient>"
+  title: "{servername}"
   # Configurable lines shown in the scoreboard sidebar
   # Available dynamic placeholders:
   #   {player}       - Current player's name
@@ -375,7 +418,7 @@ tablist:
 # ==========================================
 menus:
   # Title for the dynamic main menu (/gensprout menu)
-  main-menu-title: "<gradient:green:aqua><bold>GenSprout Menu</bold></gradient>"
+  main-menu-title: "{servername} Menu"
 
 # ==========================================
 # Command Customization
@@ -383,3 +426,259 @@ menus:
 commands:
   # The main command name for GenSprout (default: gensprout)
   gensprout: "gensprout"
+
+# ==========================================
+# Generator Building Supplies Shop Customization
+# ==========================================
+generator-supplies-shop:
+  enabled: true
+  categories:
+    stone_structural:
+      display-name: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Stone & Structural</bold></gradient>"
+      items:
+        cobblestone:
+          display-name: "<sprite:block/cobblestone> <gray>Cobblestone</gray>"
+          material: COBBLESTONE
+          price: 1.0
+        smooth_stone:
+          display-name: "<sprite:block/smooth_stone> <gray>Smooth Stone</gray>"
+          material: SMOOTH_STONE
+          price: 2.0
+        stone_bricks:
+          display-name: "<sprite:block/stone_bricks> <gray>Stone Bricks</gray>"
+          material: STONE_BRICKS
+          price: 2.5
+        mossy_stone_bricks:
+          display-name: "<sprite:block/mossy_stone_bricks> <dark_green>Mossy Stone Bricks</dark_green>"
+          material: MOSSY_STONE_BRICKS
+          price: 3.0
+        polished_andesite:
+          display-name: "<sprite:block/polished_andesite> <gray>Polished Andesite</gray>"
+          material: POLISHED_ANDESITE
+          price: 2.5
+        polished_diorite:
+          display-name: "<sprite:block/polished_diorite> <white>Polished Diorite</white>"
+          material: POLISHED_DIORITE
+          price: 2.5
+        polished_granite:
+          display-name: "<sprite:block/polished_granite> <red>Polished Granite</red>"
+          material: POLISHED_GRANITE
+          price: 2.5
+        polished_deepslate:
+          display-name: "<sprite:block/polished_deepslate> <dark_gray>Polished Deepslate</dark_gray>"
+          material: POLISHED_DEEPSLATE
+          price: 3.5
+        deepslate_bricks:
+          display-name: "<sprite:block/deepslate_bricks> <dark_gray>Deepslate Bricks</dark_gray>"
+          material: DEEPSLATE_BRICKS
+          price: 4.0
+        deepslate_tiles:
+          display-name: "<sprite:block/deepslate_tiles> <dark_gray>Deepslate Tiles</dark_gray>"
+          material: DEEPSLATE_TILES
+          price: 4.0
+    concrete_colors:
+      display-name: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Concrete & Colors</bold></gradient>"
+      items:
+        white_concrete:
+          display-name: "<sprite:block/white_concrete> <white>White Concrete</white>"
+          material: WHITE_CONCRETE
+          price: 3.0
+        gray_concrete:
+          display-name: "<sprite:block/gray_concrete> <gray>Gray Concrete</gray>"
+          material: GRAY_CONCRETE
+          price: 3.0
+        black_concrete:
+          display-name: "<sprite:block/black_concrete> <dark_gray>Black Concrete</dark_gray>"
+          material: BLACK_CONCRETE
+          price: 3.0
+        cyan_concrete:
+          display-name: "<sprite:block/cyan_concrete> <dark_aqua>Cyan Concrete</dark_aqua>"
+          material: CYAN_CONCRETE
+          price: 3.0
+        blue_concrete:
+          display-name: "<sprite:block/blue_concrete> <blue>Blue Concrete</blue>"
+          material: BLUE_CONCRETE
+          price: 3.0
+        red_concrete:
+          display-name: "<sprite:block/red_concrete> <red>Red Concrete</red>"
+          material: RED_CONCRETE
+          price: 3.0
+        green_concrete:
+          display-name: "<sprite:block/green_concrete> <green>Green Concrete</green>"
+          material: GREEN_CONCRETE
+          price: 3.0
+        yellow_concrete:
+          display-name: "<sprite:block/yellow_concrete> <yellow>Yellow Concrete</yellow>"
+          material: YELLOW_CONCRETE
+          price: 3.0
+        purple_concrete:
+          display-name: "<sprite:block/purple_concrete> <dark_purple>Purple Concrete</dark_purple>"
+          material: PURPLE_CONCRETE
+          price: 3.0
+        terracotta:
+          display-name: "<sprite:block/terracotta> <gold>Terracotta</gold>"
+          material: TERRACOTTA
+          price: 3.0
+    quartz_nether_end:
+      display-name: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Quartz, Nether & End</bold></gradient>"
+      items:
+        quartz_block:
+          display-name: "<sprite:block/quartz_block_side> <white>Block of Quartz</white>"
+          material: QUARTZ_BLOCK
+          price: 5.0
+        smooth_quartz:
+          display-name: "<sprite:block/quartz_block_bottom> <white>Smooth Quartz</white>"
+          material: SMOOTH_QUARTZ
+          price: 6.0
+        quartz_bricks:
+          display-name: "<sprite:block/quartz_bricks> <white>Quartz Bricks</white>"
+          material: QUARTZ_BRICKS
+          price: 6.0
+        nether_bricks:
+          display-name: "<sprite:block/nether_bricks> <red>Nether Bricks</red>"
+          material: NETHER_BRICKS
+          price: 4.0
+        red_nether_bricks:
+          display-name: "<sprite:block/red_nether_bricks> <dark_red>Red Nether Bricks</dark_red>"
+          material: RED_NETHER_BRICKS
+          price: 5.0
+        end_stone_bricks:
+          display-name: "<sprite:block/end_stone_bricks> <yellow>End Stone Bricks</yellow>"
+          material: END_STONE_BRICKS
+          price: 8.0
+        purpur_block:
+          display-name: "<sprite:block/purpur_block> <light_purple>Purpur Block</light_purple>"
+          material: PURPUR_BLOCK
+          price: 8.0
+        prismarine_bricks:
+          display-name: "<sprite:block/prismarine_bricks> <dark_aqua>Prismarine Bricks</dark_aqua>"
+          material: PRISMARINE_BRICKS
+          price: 10.0
+    wood_planks:
+      display-name: "<sprite:block/oak_planks> <gradient:gold:yellow><bold>Wood & Planks</bold></gradient>"
+      items:
+        oak_planks:
+          display-name: "<sprite:block/oak_planks> <gold>Oak Planks</gold>"
+          material: OAK_PLANKS
+          price: 2.0
+        spruce_planks:
+          display-name: "<sprite:block/spruce_planks> <gold>Spruce Planks</gold>"
+          material: SPRUCE_PLANKS
+          price: 2.0
+        birch_planks:
+          display-name: "<sprite:block/birch_planks> <yellow>Birch Planks</yellow>"
+          material: BIRCH_PLANKS
+          price: 2.0
+        dark_oak_planks:
+          display-name: "<sprite:block/dark_oak_planks> <dark_gray>Dark Oak Planks</dark_gray>"
+          material: DARK_OAK_PLANKS
+          price: 2.0
+        mangrove_planks:
+          display-name: "<sprite:block/mangrove_planks> <red>Mangrove Planks</red>"
+          material: MANGROVE_PLANKS
+          price: 2.5
+        cherry_planks:
+          display-name: "<sprite:block/cherry_planks> <light_purple>Cherry Planks</light_purple>"
+          material: CHERRY_PLANKS
+          price: 2.5
+    glass_lighting:
+      display-name: "<sprite:block/glass> <gradient:aqua:white><bold>Glass & Lighting</bold></gradient>"
+      items:
+        glass:
+          display-name: "<sprite:block/glass> <white>Glass</white>"
+          material: GLASS
+          price: 2.5
+        tinted_glass:
+          display-name: "<sprite:block/tinted_glass> <dark_gray>Tinted Glass</dark_gray>"
+          material: TINTED_GLASS
+          price: 5.0
+        sea_lantern:
+          display-name: "<sprite:block/sea_lantern> <aqua>Sea Lantern</aqua>"
+          material: SEA_LANTERN
+          price: 15.0
+        glowstone:
+          display-name: "<sprite:block/glowstone> <yellow>Glowstone</yellow>"
+          material: GLOWSTONE
+          price: 10.0
+        ochre_froglight:
+          display-name: "<sprite:block/ochre_froglight_side> <gold>Ochre Froglight</gold>"
+          material: OCHRE_FROGLIGHT
+          price: 25.0
+    storage_liquids:
+      display-name: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Storage & Utilities</bold></gradient>'
+      items:
+        chest:
+          display-name: "<sprite:block/barrel_top> <gold>Chest</gold>"
+          material: CHEST
+          price: 15.0
+        barrel:
+          display-name: "<sprite:block/barrel_side> <gold>Barrel</gold>"
+          material: BARREL
+          price: 15.0
+        hopper:
+          display-name: '<sprite:"minecraft:items":item/hopper> <gray>Hopper</gray>'
+          material: HOPPER
+          price: 150.0
+        water_bucket:
+          display-name: '<sprite:"minecraft:items":item/water_bucket> <blue>Water Bucket</blue>'
+          material: WATER_BUCKET
+          price: 50.0
+        lava_bucket:
+          display-name: '<sprite:"minecraft:items":item/lava_bucket> <red>Lava Bucket</red>'
+          material: LAVA_BUCKET
+          price: 100.0
+
+
+
+
+
+
+
+
+
+
+
+# ==========================================
+# Join MOTD Customization
+# ==========================================
+# Message displayed in chat every time a player logs onto the server.
+motd:
+  enabled: true
+  # Delay in ticks before sending MOTD after join (default: 15 ticks)
+  delay-ticks: 15
+  messages:
+    - "<gradient:green:aqua><bold>Welcome to {servername}!</bold></gradient>"
+
+# ==========================================
+# First Join Tutorial Customization
+# ==========================================
+# Tutorial presented on /start and on a player's very first join.
+first-join-tutorial:
+  enabled: true
+  # Open as an interactive Paper Dialog UI (true) or send as chat messages (false)
+  use-dialog: true
+  # Delay in ticks before presenting tutorial to new players (default: 30 ticks)
+  delay-ticks: 30
+  dialog-title: "<white><bold>{servername} Starter Guide</bold></white>"
+  messages:
+    - "<white><bold>Getting Started on {servername}</bold></white>"
+    - ""
+    - "<white>1. Claim Starter Items</white>"
+    - "<gray>Run <yellow>/start</yellow> to receive your starter Sprout Hoe and 20 Tier 1 Generators to kickstart your farm.</gray>"
+    - ""
+    - "<white>2. Place & Upgrade Generators</white>"
+    - "<gray>Place generator blocks on your base. Over time, they spawn valuable drop items. Use <yellow>/genshop</yellow> to buy or upgrade generators.</gray>"
+    - ""
+    - "<white>3. Base & Building Supplies</white>"
+    - "<gray>Visit the Building Shop via <blue>/shop</blue> to purchase building blocks, hoppers, chests, and buckets to expand your setup.</gray>"
+    - ""
+    - "<white>4. Farm Crops & Level Up</white>"
+    - "<gray>Harvest crops in the shared farming zone to gain Farming XP, Essence, and money. Farm crops are 100% instanced per player!</gray>"
+    - ""
+    - "<white>5. Hoe Upgrades & Sell Wands</white>"
+    - "<gray>Use your earned Essence to upgrade your Sprout Hoe with custom enchants (XP Booster, Crop Doubler, Replenish, 3x3 Harvest). Sell items quickly with <yellow>/sell</yellow> or Sell Wands.</gray>"
+    - ""
+    - "<white>6. Prestige Progression</white>"
+    - "<gray>Once you reach the required farming level, use <yellow>/prestige</yellow> to unlock higher tier crop varieties and permanent stat multipliers!</gray>"
+
+
