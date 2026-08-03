@@ -116,12 +116,16 @@ public class GeneratorPlaceListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        // 1. Sprout Hoe Shift + Right-Click actions (opens upgrade dialog)
+        // 1. Sprout Hoe Right-Click actions (opens upgrade dialog without requiring sneaking)
         if (item != null && (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)) {
-            if (HoeEnchant.isSproutHoe(item, plugin) && player.isSneaking()) {
-                event.setCancelled(true);
-                plugin.getDialogManager().openHoeUpgradeShop(player);
-                return;
+            if (HoeEnchant.isSproutHoe(item, plugin)) {
+                Block block = event.getClickedBlock();
+                boolean isGeneratorBlock = (block != null && plugin.getGeneratorManager().getGenerator(block.getLocation()) != null);
+                if (!isGeneratorBlock) {
+                    event.setCancelled(true);
+                    plugin.getDialogManager().openHoeUpgradeShop(player);
+                    return;
+                }
             }
         }
 

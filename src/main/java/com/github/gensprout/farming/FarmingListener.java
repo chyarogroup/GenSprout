@@ -17,6 +17,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.block.BlockFertilizeEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import io.papermc.paper.event.packet.PlayerChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -26,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles per-player instanced crop harvesting within defined farm regions.
- * Each player has an independent farm state and regrowth timer—harvesting a crop
+ * Each player has an independent farm state and regrowth timer. Harvesting a crop
  * puts it into regrowth ONLY for that specific player, keeping it fully visible and
  * harvestable for other players.
  */
@@ -97,19 +99,21 @@ public class FarmingListener implements Listener {
                 }
 
                 List<BlockPos> toRemove = new ArrayList<>();
+                Map<Location, Integer> batchUpdates = new HashMap<>();
                 for (Map.Entry<BlockPos, RegrowthBlock> entry : pMap.entrySet()) {
                     BlockPos pos = entry.getKey();
                     RegrowthBlock reg = entry.getValue();
                     long elapsed = now - reg.harvestTime;
                     double progress = Math.min(1.0, (double) elapsed / 5000.0);
 
-                    if (progress < 1.0) {
-                        int currentAge = (int) Math.round(progress * reg.maxAge);
-                        FarmCropView.sendFakeCrop(plugin, player, reg.location, currentAge, reg.maxAge);
-                    } else {
-                        FarmCropView.sendFakeCrop(plugin, player, reg.location, reg.maxAge, reg.maxAge);
+                    int currentAge = (int) Math.round(progress * reg.maxAge);
+                    batchUpdates.put(reg.location, currentAge);
+                    if (progress >= 1.0) {
                         toRemove.add(pos);
                     }
+                }
+                if (!batchUpdates.isEmpty()) {
+                    FarmCropView.sendFakeCropsBatch(plugin, player, batchUpdates, 7);
                 }
                 for (BlockPos pos : toRemove) {
                     pMap.remove(pos);
@@ -128,6 +132,51 @@ public class FarmingListener implements Listener {
         if (mat == Material.MELON || mat == Material.PUMPKIN) {
             block.setMetadata("placed_crop", new FixedMetadataValue(plugin, true));
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onLeftClickCrop(PlayerInteractEvent event) {
+        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+
+        Material material = block.getType();
+        if (!isCrop(material)) return;
+
+        Player player = event.getPlayer();
+        FarmRegion region = plugin.getFarmManager().getActiveRegion();
+        boolean insideFarm = (region != null && region.contains(block.getLocation()));
+        if (!insideFarm) return;
+
+        ItemStack hoe = player.getInventory().getItemInMainHand();
+
+        if (!isMature(player, block)) {
+            return;
+        }
+
+        if (!HoeEnchant.isSproutHoe(hoe, plugin)) {
+            player.sendActionBar(plugin.getMiniMessage().deserialize("<red>Sprout Hoe required!</red>"));
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, 0.5f);
+            return;
+        }
+
+        event.setCancelled(true);
+
+        List<Block> targetBlocks = new ArrayList<>();
+        targetBlocks.add(block);
+
+        int areaLvl = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
+        if (areaLvl > 0) {
+            List<Block> areaBlocks = getHarvestAreaBlocks(player, block, areaLvl);
+            for (Block adjBlock : areaBlocks) {
+                if (isCrop(adjBlock.getType()) && isMature(player, adjBlock) && region.contains(adjBlock.getLocation())) {
+                    targetBlocks.add(adjBlock);
+                }
+            }
+        }
+
+        harvestBlocksBatch(player, targetBlocks, hoe, true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -179,29 +228,20 @@ public class FarmingListener implements Listener {
 
             event.setCancelled(true);
 
-            player.playSound(block.getLocation(), block.getBlockData().getSoundGroup().getBreakSound(), 1.0f, 1.0f);
-            player.spawnParticle(org.bukkit.Particle.BLOCK, block.getLocation().add(0.5, 0.3, 0.5), 12, 0.25, 0.25, 0.25, 0.05, block.getBlockData());
+            List<Block> targetBlocks = new ArrayList<>();
+            targetBlocks.add(block);
 
-            isAreaHarvesting.set(true);
-            try {
-                harvestBlock(player, block, hoe);
-
-                int areaLvl = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
-                if (areaLvl > 0) {
-                    Location center = block.getLocation();
-                    for (int dx = -1; dx <= 1; dx++) {
-                        for (int dz = -1; dz <= 1; dz++) {
-                            if (dx == 0 && dz == 0) continue;
-                            Block adjBlock = center.clone().add(dx, 0, dz).getBlock();
-                            if (isCrop(adjBlock.getType()) && isMature(player, adjBlock) && region.contains(adjBlock.getLocation())) {
-                                harvestBlock(player, adjBlock, hoe);
-                            }
-                        }
+            int areaLvl = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
+            if (areaLvl > 0) {
+                List<Block> areaBlocks = getHarvestAreaBlocks(player, block, areaLvl);
+                for (Block adjBlock : areaBlocks) {
+                    if (isCrop(adjBlock.getType()) && isMature(player, adjBlock) && region.contains(adjBlock.getLocation())) {
+                        targetBlocks.add(adjBlock);
                     }
                 }
-            } finally {
-                isAreaHarvesting.set(false);
             }
+
+            harvestBlocksBatch(player, targetBlocks, hoe, true);
         } else {
             if (region != null) {
                 return;
@@ -212,112 +252,214 @@ public class FarmingListener implements Listener {
             }
 
             event.setCancelled(true);
-            isAreaHarvesting.set(true);
-            try {
-                harvestBlock(player, block, hoe);
 
-                int areaLvl = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
-                if (areaLvl > 0) {
-                    Location center = block.getLocation();
-                    for (int dx = -1; dx <= 1; dx++) {
-                        for (int dz = -1; dz <= 1; dz++) {
-                            if (dx == 0 && dz == 0) continue;
-                            Block adjBlock = center.clone().add(dx, 0, dz).getBlock();
-                            if (isCrop(adjBlock.getType()) && isMature(player, adjBlock)) {
-                                harvestBlock(player, adjBlock, hoe);
-                            }
-                        }
+            List<Block> targetBlocks = new ArrayList<>();
+            targetBlocks.add(block);
+
+            int areaLvl = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
+            if (areaLvl > 0) {
+                List<Block> areaBlocks = getHarvestAreaBlocks(player, block, areaLvl);
+                for (Block adjBlock : areaBlocks) {
+                    if (isCrop(adjBlock.getType()) && isMature(player, adjBlock)) {
+                        targetBlocks.add(adjBlock);
                     }
                 }
-            } finally {
-                isAreaHarvesting.set(false);
             }
+
+            harvestBlocksBatch(player, targetBlocks, hoe, false);
         }
     }
 
-    private void harvestBlock(Player player, Block block, ItemStack hoe) {
-        Material material = block.getType();
-        PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
+    private List<Block> getHarvestAreaBlocks(Player player, Block centerBlock, int level) {
+        List<Block> blocks = new ArrayList<>();
+        Location centerLoc = centerBlock.getLocation();
+        org.bukkit.block.BlockFace facing = player.getFacing();
 
-        FarmRegion region = plugin.getFarmManager().getActiveRegion();
-        boolean insideFarm = (region != null && region.contains(block.getLocation()));
-
-        String cropName = insideFarm ? CropProgression.getCurrentCropKey(plugin, data) : material.name();
-        if (cropName.equals("POTATOES")) cropName = "POTATOES";
-        if (cropName.equals("BEETROOTS")) cropName = "BEETROOTS";
-
-        boolean cropUnlocked = CropProgression.isUnlocked(plugin, data, cropName);
-        if (!cropUnlocked) {
-            int requiredPrestige = CropProgression.getRequiredPrestigeForCrop(plugin, cropName);
-            player.sendActionBar(plugin.getMiniMessage().deserialize("<red>\uD83D\uDD12 This crop unlocks at Prestige " + requiredPrestige + "!</red>"));
-        }
-
-        int baseXp = plugin.getConfig().getInt("farming.crops." + cropName + ".xp", 5);
-        double essenceChance = plugin.getConfig().getDouble("farming.crops." + cropName + ".essence-chance", 0.10);
-        int baseEssence = plugin.getConfig().getInt("farming.crops." + cropName + ".essence-amount", 1);
-
-        int xpLvl = HoeEnchant.XP_BOOSTER.getLevel(hoe, plugin);
-        int essenceLvl = HoeEnchant.ESSENCE_FINDER.getLevel(hoe, plugin);
-        int doubleLvl = HoeEnchant.CROP_DOUBLER.getLevel(hoe, plugin);
-        int replenishLvl = HoeEnchant.REPLENISH.getLevel(hoe, plugin);
-
-        if (cropUnlocked) {
-            double xpMultiplier = data.getXpMultiplier();
-            double enchantXpMultiplier = 1.0 + (xpLvl * 0.20);
-            double netXpGained = baseXp * xpMultiplier * enchantXpMultiplier;
-            addFarmingXp(player, data, netXpGained);
-
-            double enchantEssenceChance = essenceChance * (1.0 + (essenceLvl * 0.25));
-            if (random.nextDouble() < enchantEssenceChance) {
-                int netEssence = baseEssence + (essenceLvl / 2);
-                double essenceMultiplier = data.getEssenceMultiplier();
-                int finalEssence = (int) Math.round(netEssence * essenceMultiplier);
-                data.addEssence(finalEssence);
-                player.sendMessage(plugin.getMiniMessage().deserialize("<light_purple>+ " + finalEssence + " Essence</light_purple>"));
+        switch (level) {
+            case 1 -> {
+                int fX = facing.getModX();
+                int fZ = facing.getModZ();
+                if (fX == 0 && fZ == 0) fZ = 1;
+                blocks.add(centerLoc.clone().add(fX, 0, fZ).getBlock());
+            }
+            case 2 -> {
+                int fX = facing.getModX();
+                int fZ = facing.getModZ();
+                int rX = -fZ;
+                int rZ = fX;
+                blocks.add(centerLoc.clone().add(fX, 0, fZ).getBlock());
+                blocks.add(centerLoc.clone().add(rX, 0, rZ).getBlock());
+                blocks.add(centerLoc.clone().add(fX + rX, 0, fZ + rZ).getBlock());
+            }
+            case 3 -> {
+                int fX = facing.getModX();
+                int fZ = facing.getModZ();
+                int rX = -fZ;
+                int rZ = fX;
+                for (int depth = 0; depth <= 1; depth++) {
+                    for (int side = -1; side <= 1; side++) {
+                        if (depth == 0 && side == 0) continue;
+                        Location loc = centerLoc.clone().add(fX * depth + rX * side, 0, fZ * depth + rZ * side);
+                        blocks.add(loc.getBlock());
+                    }
+                }
+            }
+            default -> {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        if (dx == 0 && dz == 0) continue;
+                        blocks.add(centerLoc.clone().add(dx, 0, dz).getBlock());
+                    }
+                }
             }
         }
+        return blocks;
+    }
 
-        Collection<ItemStack> drops;
-        if (insideFarm) {
-            FarmCropType cropType = FarmCropType.byConfigKey(cropName);
-            List<ItemStack> synthDrops = new ArrayList<>();
-            synthDrops.add(new ItemStack(cropType.getHarvestItem(), 1 + random.nextInt(3)));
-            if (cropType.getSeedItem() != null && random.nextDouble() < 0.5) {
-                synthDrops.add(new ItemStack(cropType.getSeedItem(), 1));
-            }
-            drops = synthDrops;
-        } else {
-            drops = block.getDrops(hoe);
-        }
-        double doubleChance = doubleLvl * 0.10;
-        boolean doubleDrops = random.nextDouble() < doubleChance;
+    private void harvestBlocksBatch(Player player, List<Block> blocks, ItemStack hoe, boolean insideFarm) {
+        if (blocks == null || blocks.isEmpty()) return;
 
-        for (ItemStack drop : drops) {
-            if (insideFarm && isSeed(drop.getType())) continue;
-            if (doubleDrops) {
-                drop.setAmount(drop.getAmount() * 2);
-            }
-            if (cropUnlocked && com.github.gensprout.economy.SellManager.tryAutoSell(plugin, player, drop)) {
-                continue;
-            }
-            player.getInventory().addItem(drop).forEach((index, item) -> {
-                player.getWorld().dropItemNaturally(player.getLocation(), item);
-            });
-        }
-        if (doubleDrops) {
-            player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.5f);
-        }
+        isAreaHarvesting.set(true);
+        try {
+            PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
 
-        if (insideFarm) {
-            startRegrowth(player, block, material);
-        } else {
-            if (replenishLvl > 0 && isReplantable(material)) {
-                Ageable ageable = (Ageable) block.getBlockData();
-                ageable.setAge(0);
-                block.setBlockData(ageable);
-            } else {
-                block.setType(Material.AIR);
+            int xpLvl = HoeEnchant.XP_BOOSTER.getLevel(hoe, plugin);
+            int essenceLvl = HoeEnchant.ESSENCE_FINDER.getLevel(hoe, plugin);
+            int doubleLvl = HoeEnchant.CROP_DOUBLER.getLevel(hoe, plugin);
+            int replenishLvl = HoeEnchant.REPLENISH.getLevel(hoe, plugin);
+            int autoSellLvl = HoeEnchant.AUTO_SELL.getLevel(hoe, plugin);
+
+            boolean globalAutoSell = plugin.getConfig().getBoolean("auto-sell.enabled", true);
+
+            double totalXpGained = 0.0;
+            int totalEssenceGained = 0;
+            boolean anyDoubleDrops = false;
+            List<ItemStack> allDrops = new ArrayList<>();
+
+            Map<Location, Integer> ageZeroUpdates = new HashMap<>();
+            Map<BlockPos, RegrowthBlock> pMap = playerRegrowingBlocks.computeIfAbsent(player.getUniqueId(), k -> new ConcurrentHashMap<>());
+
+            for (Block b : blocks) {
+                Material material = b.getType();
+                String cropName = insideFarm ? CropProgression.getCurrentCropKey(plugin, data) : material.name();
+                if (cropName.equals("POTATOES")) cropName = "POTATOES";
+                if (cropName.equals("BEETROOTS")) cropName = "BEETROOTS";
+
+                boolean cropUnlocked = CropProgression.isUnlocked(plugin, data, cropName);
+
+                int baseXp = plugin.getConfig().getInt("farming.crops." + cropName + ".xp", 5);
+                double essenceChance = plugin.getConfig().getDouble("farming.crops." + cropName + ".essence-chance", 0.10);
+                int baseEssence = plugin.getConfig().getInt("farming.crops." + cropName + ".essence-amount", 1);
+
+                if (cropUnlocked) {
+                    double xpMultiplier = data.getXpMultiplier();
+                    double enchantXpMultiplier = 1.0 + (xpLvl * 0.20);
+                    totalXpGained += baseXp * xpMultiplier * enchantXpMultiplier;
+
+                    double enchantEssenceChance = essenceChance * (1.0 + (essenceLvl * 0.25));
+                    if (random.nextDouble() < enchantEssenceChance) {
+                        int netEssence = baseEssence + (essenceLvl / 2);
+                        int finalEssence = (int) Math.round(netEssence * data.getEssenceMultiplier());
+                        totalEssenceGained += finalEssence;
+                    }
+                }
+
+                Collection<ItemStack> drops;
+                if (insideFarm) {
+                    FarmCropType cropType = FarmCropType.byConfigKey(cropName);
+                    List<ItemStack> synthDrops = new ArrayList<>();
+                    synthDrops.add(new ItemStack(cropType.getHarvestItem(), 1 + random.nextInt(3)));
+                    if (cropType.getSeedItem() != null && random.nextDouble() < 0.5) {
+                        synthDrops.add(new ItemStack(cropType.getSeedItem(), 1));
+                    }
+                    drops = synthDrops;
+                } else {
+                    drops = b.getDrops(hoe);
+                }
+
+                double doubleChance = doubleLvl * 0.10;
+                boolean doubleDrops = random.nextDouble() < doubleChance;
+                if (doubleDrops) anyDoubleDrops = true;
+
+                for (ItemStack drop : drops) {
+                    if (insideFarm && isSeed(drop.getType())) continue;
+                    if (doubleDrops) {
+                        drop.setAmount(drop.getAmount() * 2);
+                    }
+                    allDrops.add(drop);
+                }
+
+                player.spawnParticle(org.bukkit.Particle.BLOCK, b.getLocation().add(0.5, 0.3, 0.5), 6, 0.2, 0.2, 0.2, 0.05, b.getBlockData());
+
+                if (insideFarm) {
+                    BlockPos pos = BlockPos.fromLocation(b.getLocation());
+                    int maxAge = 7;
+                    org.bukkit.block.data.BlockData bd = material.createBlockData();
+                    if (bd instanceof Ageable ageable) {
+                        maxAge = ageable.getMaximumAge();
+                    }
+                    pMap.put(pos, new RegrowthBlock(b.getLocation(), material, maxAge));
+                    ageZeroUpdates.put(b.getLocation(), 0);
+                } else {
+                    if (replenishLvl > 0 && isReplantable(material)) {
+                        Ageable ageable = (Ageable) b.getBlockData();
+                        ageable.setAge(0);
+                        b.setBlockData(ageable);
+                    } else {
+                        b.setType(Material.AIR);
+                    }
+                }
             }
+
+            Block center = blocks.get(0);
+            player.playSound(center.getLocation(), center.getBlockData().getSoundGroup().getBreakSound(), 1.0f, 1.0f);
+            if (anyDoubleDrops) {
+                player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 0.5f, 1.5f);
+            }
+
+            if (totalXpGained > 0.0) {
+                addFarmingXp(player, data, totalXpGained);
+            }
+
+            if (totalEssenceGained > 0) {
+                data.addEssence(totalEssenceGained);
+                player.sendMessage(plugin.getMiniMessage().deserialize("<light_purple>+ " + totalEssenceGained + " Essence</light_purple>"));
+            }
+
+            boolean shouldAutoSell = globalAutoSell && (autoSellLvl > 0);
+            double totalAutoSellEarnings = 0.0;
+            int totalAutoSoldQuantity = 0;
+
+            for (ItemStack drop : allDrops) {
+                boolean isCropItem = com.github.gensprout.economy.SellManager.getCropConfigName(drop.getType()) != null;
+                if (shouldAutoSell && isCropItem) {
+                    com.github.gensprout.economy.SellManager.SellResult res = com.github.gensprout.economy.SellManager.sellItemStack(plugin, player, drop, 1.0);
+                    if (res.itemsSold > 0) {
+                        totalAutoSellEarnings += res.earnings;
+                        totalAutoSoldQuantity += res.itemsSold;
+                        if (res.xpEarned > 0.0) {
+                            addFarmingXp(player, data, res.xpEarned);
+                        }
+                        continue;
+                    }
+                }
+                player.getInventory().addItem(drop).forEach((index, item) -> {
+                    player.getWorld().dropItemNaturally(player.getLocation(), item);
+                });
+            }
+
+            if (totalAutoSoldQuantity > 0) {
+                com.github.gensprout.economy.EconomyHook.deposit(player, totalAutoSellEarnings);
+                player.sendActionBar(plugin.getMiniMessage().deserialize(
+                        "<green>Auto-Sold <gold>" + totalAutoSoldQuantity + "x</gold> for <gold>" + com.github.gensprout.economy.EconomyHook.format(totalAutoSellEarnings) + "</gold></green>"
+                ));
+            }
+
+            if (!ageZeroUpdates.isEmpty()) {
+                FarmCropView.sendFakeCropsBatch(plugin, player, ageZeroUpdates, 7);
+            }
+        } finally {
+            isAreaHarvesting.set(false);
         }
     }
 

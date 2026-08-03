@@ -309,9 +309,22 @@ hoe-enchants:
     base-cost: 250
     cost-multiplier: 0
   harvest_area:
-    display-name: "<gold>Harvest Area (3x3)</gold>"
+    display-name: "<gold>Harvest Area</gold>"
+    max-level: 4
+    base-cost: 300
+    cost-multiplier: 200
+    cost-exponent: 1.2
+  reach:
+    display-name: "<blue>Reach</blue>"
+    max-level: 5
+    base-cost: 200
+    cost-multiplier: 100
+    cost-exponent: 1.3
+    effect-per-level: 1.0
+  auto_sell:
+    display-name: "<gold>Auto-Sell (Crops Only)</gold>"
     max-level: 1
-    base-cost: 500
+    base-cost: 5000
     cost-multiplier: 0
 
 # ==========================================
@@ -360,7 +373,7 @@ sellwand:
 # ==========================================
 server:
   # The IP address displayed on the scoreboard and tab list footer
-  ip: "play.gensprout.net"
+  ip: "gens.chyaro.xyz"
   # The display name of the server (supports MiniMessage color formatting)
   name: "<gradient:green:aqua><bold>GenSprout</bold></gradient>"
   # A short description tagline for the server
@@ -661,8 +674,6 @@ first-join-tutorial:
   delay-ticks: 30
   dialog-title: "<white><bold>{servername} Starter Guide</bold></white>"
   messages:
-    - "<white><bold>Getting Started on {servername}</bold></white>"
-    - ""
     - "<white>1. Claim Starter Items</white>"
     - "<gray>Run <yellow>/start</yellow> to receive your starter Sprout Hoe and 20 Tier 1 Generators to kickstart your farm.</gray>"
     - ""
@@ -680,5 +691,34 @@ first-join-tutorial:
     - ""
     - "<white>6. Prestige Progression</white>"
     - "<gray>Once you reach the required farming level, use <yellow>/prestige</yellow> to unlock higher tier crop varieties and permanent stat multipliers!</gray>"
+
+# ==========================================
+# Start Command Actions Customization
+# ==========================================
+# Configurable commands to execute when a player runs /start (or /gensprout start).
+# Useful for integrations such as automatic plot claiming (e.g. /plot auto).
+start-command:
+  # Commands executed by the player on /start (leading slash is optional)
+  # Placeholders: {player}
+  player-commands:
+    - "plot auto"
+  # Commands executed by the server console on /start
+  # Placeholders: {player}
+  console-commands: []
+
+# ==========================================
+# Pause Menu Links Customization (Minecraft 1.21+ Server Links)
+# ==========================================
+# Configures custom links displayed inside the Minecraft Pause Menu (Esc menu).
+pause-menu-links:
+  enabled: true
+  links:
+    - label: "<gradient:green:aqua>GenSprout Web Shop</gradient>"
+      url: "https://gensprout.org/shop"
+    - label: "<gold>Community Discord</gold>"
+      url: "https://discord.gg/gensprout"
+    - label: "<yellow>Server Rules</yellow>"
+      url: "https://gensprout.org/rules"
+
 
 

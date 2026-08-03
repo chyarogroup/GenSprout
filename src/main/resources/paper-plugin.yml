@@ -1,32 +1,14 @@
 name: GenSprout
-version: 1.1.1
+version: 1.2.0-beta1
 main: com.github.gensprout.GenSprout
 api-version: '1.21'
 description: Optimized generator & farming plugin with custom block gens, crop region harvesting, Vault economy, prestige, hoe enchants & Paper Dialog UIs.
-author: chyaroscuric
+author: chyarogroup
 dependencies:
   server:
     Vault:
       load: BEFORE
       required: false
-commands:
-  gensprout:
-    description: Main command for GenSprout.
-    aliases: [gs, sprout]
-  sell:
-    description: Sell all crop items in your inventory.
-    aliases: [sellall]
-  genshop:
-    description: Open the generator shop directly.
-    aliases: [gshop]
-  prestige:
-    description: Open the Prestige Menu.
-  shop:
-    description: Open the Generator Building Supplies Shop.
-    aliases: [supplies, bshop, buildshop]
-  start:
-    description: Start the GenSprout tutorial and receive starter items.
-    aliases: [sproutstart, tutorial]
 
 permissions:
   gensprout.admin:

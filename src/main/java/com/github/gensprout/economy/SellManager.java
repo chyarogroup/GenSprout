@@ -192,7 +192,7 @@ public class SellManager {
      * (and should therefore NOT be handed to the player), false if it should be given normally.
      */
     public static boolean tryAutoSell(GenSprout plugin, Player player, ItemStack item) {
-        if (!plugin.getConfig().getBoolean("auto-sell.enabled", true)) return false;
+        if (item == null || item.getType() == Material.AIR) return false;
         if (!isSellable(plugin, item)) return false;
 
         SellResult res = sellItemStack(plugin, player, item, 1.0);
@@ -202,6 +202,7 @@ public class SellManager {
         if (res.xpEarned > 0.0) {
             plugin.getPlayerManager().addXp(player, res.xpEarned);
         }
+        player.sendActionBar(plugin.getMiniMessage().deserialize("<green>Auto-Sold <gold>" + res.itemsSold + "x</gold> for <gold>" + EconomyHook.format(res.earnings) + "</gold></green>"));
         return true;
     }
 }

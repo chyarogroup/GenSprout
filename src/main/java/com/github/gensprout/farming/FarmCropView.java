@@ -50,6 +50,30 @@ public class FarmCropView {
     }
 
     /**
+     * Sends a player multiple fake crop block updates in a single batched packet using sendBlockChanges.
+     */
+    public static void sendFakeCropsBatch(GenSprout plugin, Player player, Map<Location, Integer> locationAgeMap, int realMaxAge) {
+        if (locationAgeMap == null || locationAgeMap.isEmpty()) return;
+        PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
+        String cropKey = CropProgression.getCurrentCropKey(plugin, data);
+        FarmCropType type = FarmCropType.byConfigKey(cropKey);
+        BlockData templateData = type.getCropBlock().createBlockData();
+
+        for (Map.Entry<Location, Integer> entry : locationAgeMap.entrySet()) {
+            Location loc = entry.getKey();
+            int realAge = entry.getValue();
+            BlockData fakeData = templateData.clone();
+            if (fakeData instanceof Ageable ageable) {
+                int scaledAge = realMaxAge <= 0 ? ageable.getMaximumAge()
+                        : (int) Math.round(((double) realAge / realMaxAge) * ageable.getMaximumAge());
+                ageable.setAge(Math.max(0, Math.min(ageable.getMaximumAge(), scaledAge)));
+                fakeData = ageable;
+            }
+            player.sendBlockChange(loc, fakeData);
+        }
+    }
+
+    /**
      * Sends every online player in the region's world a fake crop matching their own tier, at the
      * given real age/maxAge. Call this whenever the real (shared) block's growth state changes so
      * everyone's personalized view stays in sync with the real animation timing.

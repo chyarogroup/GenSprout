@@ -382,40 +382,71 @@ public class DialogManager {
                 return;
             }
         }
-
         // Holding sprout hoe: calculate current enchant levels and upgrade costs
+        int xpMax = plugin.getConfig().getInt("hoe-enchants.xp_booster.max-level", HoeEnchant.XP_BOOSTER.getMaxLevel());
+        int essenceMax = plugin.getConfig().getInt("hoe-enchants.essence_finder.max-level", HoeEnchant.ESSENCE_FINDER.getMaxLevel());
+        int doublerMax = plugin.getConfig().getInt("hoe-enchants.crop_doubler.max-level", HoeEnchant.CROP_DOUBLER.getMaxLevel());
+        int reachMax = plugin.getConfig().getInt("hoe-enchants.reach.max-level", HoeEnchant.REACH.getMaxLevel());
+        int areaMax = plugin.getConfig().getInt("hoe-enchants.harvest_area.max-level", HoeEnchant.HARVEST_AREA.getMaxLevel());
+
         int xpLevel = HoeEnchant.XP_BOOSTER.getLevel(hoe, plugin);
         int essenceLevel = HoeEnchant.ESSENCE_FINDER.getLevel(hoe, plugin);
         int doublerLevel = HoeEnchant.CROP_DOUBLER.getLevel(hoe, plugin);
         int replenishLevel = HoeEnchant.REPLENISH.getLevel(hoe, plugin);
         int areaLevel = HoeEnchant.HARVEST_AREA.getLevel(hoe, plugin);
+        int reachLevel = HoeEnchant.REACH.getLevel(hoe, plugin);
+        int autoSellLevel = HoeEnchant.AUTO_SELL.getLevel(hoe, plugin);
 
         int xpCost = getEnchantUpgradeCost("xp_booster", xpLevel);
         int essenceCost = getEnchantUpgradeCost("essence_finder", essenceLevel);
         int doublerCost = getEnchantUpgradeCost("crop_doubler", doublerLevel);
         int replenishCost = plugin.getConfig().getInt("hoe-enchants.replenish.base-cost", 250);
-        int areaCost = plugin.getConfig().getInt("hoe-enchants.harvest_area.base-cost", 500);
+        int areaCost = getEnchantUpgradeCost("harvest_area", areaLevel);
+        int reachCost = getEnchantUpgradeCost("reach", reachLevel);
+        int autoSellCost = plugin.getConfig().getInt("hoe-enchants.auto_sell.base-cost", 5000);
+
+        String areaNextDim = switch (areaLevel + 1) {
+            case 1 -> "1x2";
+            case 2 -> "2x2";
+            case 3 -> "3x2";
+            default -> "3x3";
+        };
+        String areaDim = switch (areaLevel) {
+            case 1 -> "1x2";
+            case 2 -> "2x2";
+            case 3 -> "3x2";
+            case 4 -> "3x3";
+            default -> "1x1";
+        };
+        String areaStatusMsg = (areaLevel >= areaMax)
+                ? "<gray>Harvest Area: Level <gold>" + areaLevel + "/" + areaMax + " (" + areaDim + ")</gold> (Cost: <light_purple>MAX</light_purple>)</gray>"
+                : "<gray>Harvest Area: Level <gold>" + areaLevel + "/" + areaMax + "</gold> -> <yellow>" + areaNextDim + "</yellow> (Cost: <light_purple>" + areaCost + " Essence</light_purple>)</gray>";
 
         DialogBase base = DialogBase.builder(plugin.getMiniMessage().deserialize("<gradient:light_purple:aqua><bold>Hoe Enchanting</bold></gradient>"))
                 .body(List.of(
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Essence: <light_purple>" + data.getEssence() + "</light_purple></gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>XP Booster: Level <gold>" + xpLevel + "/5</gold> (Cost: <light_purple>" + xpCost + " Essence</light_purple>)</gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Essence Finder: Level <gold>" + essenceLevel + "/5</gold> (Cost: <light_purple>" + essenceCost + " Essence</light_purple>)</gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Crop Doubler: Level <gold>" + doublerLevel + "/5</gold> (Cost: <light_purple>" + doublerCost + " Essence</light_purple>)</gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>XP Booster: Level <gold>" + xpLevel + "/" + xpMax + "</gold> (Cost: <light_purple>" + (xpLevel >= xpMax ? "MAX" : xpCost + " Essence") + "</light_purple>)</gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Essence Finder: Level <gold>" + essenceLevel + "/" + essenceMax + "</gold> (Cost: <light_purple>" + (essenceLevel >= essenceMax ? "MAX" : essenceCost + " Essence") + "</light_purple>)</gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Crop Doubler: Level <gold>" + doublerLevel + "/" + doublerMax + "</gold> (Cost: <light_purple>" + (doublerLevel >= doublerMax ? "MAX" : doublerCost + " Essence") + "</light_purple>)</gray>")),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Reach: Level <gold>" + reachLevel + "/" + reachMax + "</gold> (Cost: <light_purple>" + (reachLevel >= reachMax ? "MAX" : reachCost + " Essence") + "</light_purple>)</gray>")),
                         DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Replenish: <gold>" + (replenishLevel > 0 ? "Unlocked" : "Locked") + "</gold> (Cost: <light_purple>" + replenishCost + " Essence</light_purple>)</gray>")),
-                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Harvest Area (3x3): <gold>" + (areaLevel > 0 ? "Unlocked" : "Locked") + "</gold> (Cost: <light_purple>" + areaCost + " Essence</light_purple>)</gray>"))
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize(areaStatusMsg)),
+                        DialogBody.plainMessage(plugin.getMiniMessage().deserialize("<gray>Auto-Sell (Crops Only): <gold>" + (autoSellLevel > 0 ? "Unlocked" : "Locked") + "</gold> (Cost: <light_purple>" + autoSellCost + " Essence</light_purple>)</gray>"))
                  ))
                  .build();
- 
+
         List<ActionButton> buttons = List.of(
                          ActionButton.builder(plugin.getMiniMessage().deserialize("<yellow>XP Booster</yellow>"))
                                  .action(action((view, p) -> {
                                      ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.XP_BOOSTER.getLevel(currentHoe, plugin);
+                                     int maxLvl = plugin.getConfig().getInt("hoe-enchants.xp_booster.max-level", HoeEnchant.XP_BOOSTER.getMaxLevel());
+                                     int cost = getEnchantUpgradeCost("xp_booster", curLvl);
                                      if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
                                          p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
-                                     } else if (xpLevel < 5) {
-                                         if (data.removeEssence(xpCost)) {
-                                             HoeEnchant.XP_BOOSTER.setLevel(currentHoe, xpLevel + 1, plugin);
+                                     } else if (curLvl < maxLvl) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.XP_BOOSTER.setLevel(currentHoe, curLvl + 1, plugin);
                                              p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
                                          } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
                                      } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already max level!</red>"));
@@ -425,11 +456,14 @@ public class DialogManager {
                          ActionButton.builder(plugin.getMiniMessage().deserialize("<light_purple>Essence Finder</light_purple>"))
                                  .action(action((view, p) -> {
                                      ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.ESSENCE_FINDER.getLevel(currentHoe, plugin);
+                                     int maxLvl = plugin.getConfig().getInt("hoe-enchants.essence_finder.max-level", HoeEnchant.ESSENCE_FINDER.getMaxLevel());
+                                     int cost = getEnchantUpgradeCost("essence_finder", curLvl);
                                      if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
                                          p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
-                                     } else if (essenceLevel < 5) {
-                                         if (data.removeEssence(essenceCost)) {
-                                             HoeEnchant.ESSENCE_FINDER.setLevel(currentHoe, essenceLevel + 1, plugin);
+                                     } else if (curLvl < maxLvl) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.ESSENCE_FINDER.setLevel(currentHoe, curLvl + 1, plugin);
                                              p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
                                          } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
                                      } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already max level!</red>"));
@@ -439,11 +473,31 @@ public class DialogManager {
                          ActionButton.builder(plugin.getMiniMessage().deserialize("<green>Crop Doubler</green>"))
                                  .action(action((view, p) -> {
                                      ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.CROP_DOUBLER.getLevel(currentHoe, plugin);
+                                     int maxLvl = plugin.getConfig().getInt("hoe-enchants.crop_doubler.max-level", HoeEnchant.CROP_DOUBLER.getMaxLevel());
+                                     int cost = getEnchantUpgradeCost("crop_doubler", curLvl);
                                      if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
                                          p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
-                                     } else if (doublerLevel < 5) {
-                                         if (data.removeEssence(doublerCost)) {
-                                             HoeEnchant.CROP_DOUBLER.setLevel(currentHoe, doublerLevel + 1, plugin);
+                                     } else if (curLvl < maxLvl) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.CROP_DOUBLER.setLevel(currentHoe, curLvl + 1, plugin);
+                                             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
+                                         } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
+                                     } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already max level!</red>"));
+                                     openHoeUpgradeShop(p);
+                                 }))
+                                 .build(),
+                         ActionButton.builder(plugin.getMiniMessage().deserialize("<blue>Reach</blue>"))
+                                 .action(action((view, p) -> {
+                                     ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.REACH.getLevel(currentHoe, plugin);
+                                     int maxLvl = plugin.getConfig().getInt("hoe-enchants.reach.max-level", HoeEnchant.REACH.getMaxLevel());
+                                     int cost = getEnchantUpgradeCost("reach", curLvl);
+                                     if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
+                                         p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
+                                     } else if (curLvl < maxLvl) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.REACH.setLevel(currentHoe, curLvl + 1, plugin);
                                              p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
                                          } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
                                      } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already max level!</red>"));
@@ -453,10 +507,12 @@ public class DialogManager {
                          ActionButton.builder(plugin.getMiniMessage().deserialize("<aqua>Replenish</aqua>"))
                                  .action(action((view, p) -> {
                                      ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.REPLENISH.getLevel(currentHoe, plugin);
+                                     int cost = plugin.getConfig().getInt("hoe-enchants.replenish.base-cost", 250);
                                      if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
                                          p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
-                                     } else if (replenishLevel == 0) {
-                                         if (data.removeEssence(replenishCost)) {
+                                     } else if (curLvl == 0) {
+                                         if (data.removeEssence(cost)) {
                                              HoeEnchant.REPLENISH.setLevel(currentHoe, 1, plugin);
                                              p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
                                          } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
@@ -467,11 +523,30 @@ public class DialogManager {
                          ActionButton.builder(plugin.getMiniMessage().deserialize("<gold>Harvest Area</gold>"))
                                  .action(action((view, p) -> {
                                      ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.HARVEST_AREA.getLevel(currentHoe, plugin);
+                                     int maxLvl = plugin.getConfig().getInt("hoe-enchants.harvest_area.max-level", HoeEnchant.HARVEST_AREA.getMaxLevel());
+                                     int cost = getEnchantUpgradeCost("harvest_area", curLvl);
                                      if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
                                          p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
-                                     } else if (areaLevel == 0) {
-                                         if (data.removeEssence(areaCost)) {
-                                             HoeEnchant.HARVEST_AREA.setLevel(currentHoe, 1, plugin);
+                                     } else if (curLvl < maxLvl) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.HARVEST_AREA.setLevel(currentHoe, curLvl + 1, plugin);
+                                             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
+                                         } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
+                                     } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already max level!</red>"));
+                                     openHoeUpgradeShop(p);
+                                 }))
+                                 .build(),
+                         ActionButton.builder(plugin.getMiniMessage().deserialize("<gold>Auto-Sell (Crops Only)</gold>"))
+                                 .action(action((view, p) -> {
+                                     ItemStack currentHoe = p.getInventory().getItemInMainHand();
+                                     int curLvl = HoeEnchant.AUTO_SELL.getLevel(currentHoe, plugin);
+                                     int cost = plugin.getConfig().getInt("hoe-enchants.auto_sell.base-cost", 5000);
+                                     if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
+                                         p.sendMessage(plugin.getMiniMessage().deserialize("<red>Hold a Sprout Hoe to upgrade!</red>"));
+                                     } else if (curLvl == 0) {
+                                         if (data.removeEssence(cost)) {
+                                             HoeEnchant.AUTO_SELL.setLevel(currentHoe, 1, plugin);
                                              p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
                                          } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Not enough Essence!</red>"));
                                      } else p.sendMessage(plugin.getMiniMessage().deserialize("<red>Already unlocked!</red>"));
@@ -729,9 +804,6 @@ public class DialogManager {
                                     p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
                                     closeDialog(p);
                                 }))
-                                .build(),
-                        ActionButton.builder(plugin.getMiniMessage().deserialize("<gray>Close</gray>"))
-                                .action(action((view, p) -> closeDialog(p)))
                                 .build()
                 )).build())
         );

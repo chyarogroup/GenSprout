@@ -2,6 +2,7 @@ package com.github.gensprout.listener;
 
 import com.github.gensprout.GenSprout;
 import com.github.gensprout.economy.SellManager;
+import com.github.gensprout.farming.HoeEnchant;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -10,9 +11,7 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * When enabled (auto-sell.enabled in config.yml, on by default), sellable items picked up off
- * the ground - such as physical generator drops - are instantly sold instead of entering the
- * player's inventory. Directly-harvested crops are handled separately in FarmingListener.
+ * Handles auto-selling items on pickup based on global config and held Sprout Hoe AUTO_SELL enchant.
  */
 public class AutoSellListener implements Listener {
 
@@ -25,15 +24,22 @@ public class AutoSellListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPickup(EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (!plugin.getConfig().getBoolean("auto-sell.enabled", true)) return;
 
         Item itemEntity = event.getItem();
         ItemStack stack = itemEntity.getItemStack();
 
         if (!SellManager.isSellable(plugin, stack)) return;
 
-        event.setCancelled(true);
+        boolean globalAutoSell = plugin.getConfig().getBoolean("auto-sell.enabled", true);
+        boolean isCropItem = SellManager.getCropConfigName(stack.getType()) != null;
+        ItemStack hoe = player.getInventory().getItemInMainHand();
+        boolean hoeAutoSell = HoeEnchant.isSproutHoe(hoe, plugin) && HoeEnchant.AUTO_SELL.getLevel(hoe, plugin) > 0;
+
+        boolean shouldAutoSell = globalAutoSell && hoeAutoSell && isCropItem;
+        if (!shouldAutoSell) return;
+
         if (SellManager.tryAutoSell(plugin, player, stack)) {
+            event.setCancelled(true);
             itemEntity.remove();
         }
     }

@@ -73,7 +73,7 @@ public class GenSprout extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.SellWandListener(this), this);
         Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.AutoSellListener(this), this);
 
-        // Register commands dynamically in CommandMap (supports both plugin.yml and paper-plugin.yml loaders)
+        // Register commands dynamically in CommandMap (Paper 1.21+ compatible)
         GenSproutCommand cmd = new GenSproutCommand(this);
         org.bukkit.command.CommandMap commandMap = Bukkit.getCommandMap();
         String mainCmd = getConfig().getString("commands.gensprout", "gensprout");
@@ -83,6 +83,20 @@ public class GenSprout extends JavaPlugin implements Listener {
         commandMap.register(mainCmd, new DynamicCommand("prestige", "Open the Prestige Menu", "/prestige", java.util.List.of(), cmd, cmd));
         commandMap.register(mainCmd, new DynamicCommand("shop", "Open the Generator Building Supplies Shop", "/shop", java.util.List.of("supplies", "bshop", "buildshop"), cmd, cmd));
         commandMap.register(mainCmd, new DynamicCommand("start", "Start the GenSprout tutorial and receive starter items", "/start", java.util.List.of("sproutstart", "tutorial"), cmd, cmd));
+
+        DynamicCommand helpCmd = new DynamicCommand("help", "View GenSprout starting guide & help tutorial", "/help", java.util.List.of("gensprouthelp", "sprouthelp"), cmd, cmd);
+        commandMap.register(mainCmd, helpCmd);
+
+        // Override existing help commands in Bukkit CommandMap
+        try {
+            java.util.Map<String, org.bukkit.command.Command> knownCommands = commandMap.getKnownCommands();
+            knownCommands.put("help", helpCmd);
+            knownCommands.put("gensprout:help", helpCmd);
+            knownCommands.put("minecraft:help", helpCmd);
+            knownCommands.put("bukkit:help", helpCmd);
+        } catch (Throwable t) {
+            getLogger().warning("Could not override help command in command map: " + t.getMessage());
+        }
 
         getLogger().info("GenSprout has been enabled successfully!");
     }
@@ -105,6 +119,39 @@ public class GenSprout extends JavaPlugin implements Listener {
         }
 
         getLogger().info("GenSprout has been disabled.");
+    }
+
+    public void openTutorialOrHelp(org.bukkit.entity.Player player) {
+        if (player == null || !player.isOnline()) return;
+        if (getConfig().getBoolean("first-join-tutorial.use-dialog", true)) {
+            dialogManager.openFirstJoinTutorialDialog(player);
+        } else {
+            String serverName = getConfig().getString("server.name", "GenSprout");
+            java.util.List<String> tutorialLines = getConfig().getStringList("first-join-tutorial.messages");
+            for (String line : tutorialLines) {
+                String formatted = line.replace("{servername}", serverName)
+                                       .replace("{server_name}", serverName)
+                                       .replace("{player}", player.getName());
+                player.sendMessage(miniMessage.deserialize(formatted));
+            }
+        }
+    }
+
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = false)
+    public void onPlayerCommandPreprocess(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        String message = event.getMessage();
+        if (message == null || message.trim().isEmpty()) return;
+
+        String clean = message.trim();
+        String commandLine = clean.startsWith("/") ? clean.substring(1) : clean;
+        String[] parts = commandLine.split("\\s+", 2);
+        String label = parts[0].toLowerCase();
+
+        if (label.equals("help") || label.equals("gensprouthelp") || label.equals("sprouthelp")
+                || label.equals("gensprout:help") || label.equals("minecraft:help") || label.equals("bukkit:help")) {
+            event.setCancelled(true);
+            openTutorialOrHelp(event.getPlayer());
+        }
     }
 
     @EventHandler
@@ -136,18 +183,7 @@ public class GenSprout extends JavaPlugin implements Listener {
             long delay = getConfig().getLong("first-join-tutorial.delay-ticks", 30L);
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 if (event.getPlayer().isOnline()) {
-                    if (getConfig().getBoolean("first-join-tutorial.use-dialog", true)) {
-                        dialogManager.openFirstJoinTutorialDialog(event.getPlayer());
-                    } else {
-                        String serverName = getConfig().getString("server.name", "GenSprout");
-                        java.util.List<String> tutorialLines = getConfig().getStringList("first-join-tutorial.messages");
-                        for (String line : tutorialLines) {
-                            String formatted = line.replace("{servername}", serverName)
-                                                   .replace("{server_name}", serverName)
-                                                   .replace("{player}", event.getPlayer().getName());
-                            event.getPlayer().sendMessage(miniMessage.deserialize(formatted));
-                        }
-                    }
+                    openTutorialOrHelp(event.getPlayer());
                 }
             }, delay);
         }
@@ -165,6 +201,53 @@ public class GenSprout extends JavaPlugin implements Listener {
                 com.github.gensprout.farming.FarmCropView.refreshRegionForPlayer(this, event.getPlayer(), farmManager.getActiveRegion());
             }
         }, 40L);
+
+        // Setup Pause Menu Links (Minecraft 1.21+ ServerLinks API)
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (event.getPlayer().isOnline()) {
+                setupServerLinks(event.getPlayer());
+            }
+        }, 10L);
+    }
+
+    public void setupServerLinks(org.bukkit.entity.Player player) {
+        if (!getConfig().getBoolean("pause-menu-links.enabled", true)) return;
+
+        try {
+            Class<?> linksClass = Class.forName("org.bukkit.ServerLinks");
+            Object links = Bukkit.getServer().getClass().getMethod("getServerLinks").invoke(Bukkit.getServer());
+            if (links != null) {
+                java.lang.reflect.Method copyMethod = links.getClass().getMethod("copy");
+                Object newLinks = copyMethod.invoke(links);
+
+                java.util.List<java.util.Map<?, ?>> rawLinks = getConfig().getMapList("pause-menu-links.links");
+                for (java.util.Map<?, ?> entry : rawLinks) {
+                    Object labelObj = entry.get("label");
+                    Object urlObj = entry.get("url");
+                    if (labelObj != null && urlObj != null) {
+                        String labelStr = String.valueOf(labelObj);
+                        String urlStr = String.valueOf(urlObj);
+                        try {
+                            java.net.URI uri = java.net.URI.create(urlStr);
+                            net.kyori.adventure.text.Component labelComp = miniMessage.deserialize(labelStr);
+
+                            try {
+                                java.lang.reflect.Method addLink = newLinks.getClass().getMethod("addLink", net.kyori.adventure.text.Component.class, java.net.URI.class);
+                                addLink.invoke(newLinks, labelComp, uri);
+                            } catch (NoSuchMethodException e) {
+                                java.lang.reflect.Method addLink = newLinks.getClass().getMethod("addLink", String.class, java.net.URI.class);
+                                addLink.invoke(newLinks, labelStr, uri);
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                }
+
+                java.lang.reflect.Method setLinks = player.getClass().getMethod("setServerLinks", linksClass);
+                setLinks.invoke(player, newLinks);
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
 

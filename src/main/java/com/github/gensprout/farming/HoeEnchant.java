@@ -19,7 +19,9 @@ public enum HoeEnchant {
     ESSENCE_FINDER("essence_finder", "<light_purple>Essence Finder</light_purple>", 5),
     CROP_DOUBLER("crop_doubler", "<green>Crop Doubler</green>", 5),
     REPLENISH("replenish", "<aqua>Replenish</aqua>", 1),
-    HARVEST_AREA("harvest_area", "<gold>Harvest Area (3x3)</gold>", 1);
+    HARVEST_AREA("harvest_area", "<gold>Harvest Area</gold>", 4),
+    REACH("reach", "<blue>Reach</blue>", 5),
+    AUTO_SELL("auto_sell", "<gold>Auto-Sell (Crops Only)</gold>", 1);
 
     private final String configKey;
     private final String rawDisplayName;
@@ -71,6 +73,21 @@ public enum HoeEnchant {
         } else {
             pdc.remove(key);
         }
+
+        if (this == REACH) {
+            NamespacedKey attrKey = new NamespacedKey(plugin, "hoe_reach");
+            meta.removeAttributeModifier(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE, new org.bukkit.attribute.AttributeModifier(attrKey, 0.0, org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER, org.bukkit.inventory.EquipmentSlotGroup.MAINHAND));
+            if (level > 0) {
+                org.bukkit.attribute.AttributeModifier modifier = new org.bukkit.attribute.AttributeModifier(
+                    attrKey,
+                    (double) level,
+                    org.bukkit.attribute.AttributeModifier.Operation.ADD_NUMBER,
+                    org.bukkit.inventory.EquipmentSlotGroup.MAINHAND
+                );
+                meta.addAttributeModifier(org.bukkit.attribute.Attribute.BLOCK_INTERACTION_RANGE, modifier);
+            }
+        }
+
         item.setItemMeta(meta);
         rebuildLore(item, plugin);
     }
@@ -111,7 +128,17 @@ public enum HoeEnchant {
         for (HoeEnchant enchant : HoeEnchant.values()) {
             int lvl = enchant.getLevel(item, plugin);
             if (lvl > 0) {
-                lore.add(plugin.getMiniMessage().deserialize(" <gray>•</gray> " + enchant.getRawDisplayName() + " <gold>" + getRomanNumeral(lvl) + "</gold>"));
+                String displayName = enchant.getRawDisplayName();
+                if (enchant == HARVEST_AREA) {
+                    String dim = switch (lvl) {
+                        case 1 -> " (1x2)";
+                        case 2 -> " (2x2)";
+                        case 3 -> " (3x2)";
+                        default -> " (3x3)";
+                    };
+                    displayName = "<gold>Harvest Area" + dim + "</gold>";
+                }
+                lore.add(plugin.getMiniMessage().deserialize(" <gray>•</gray> " + displayName + " <gold>" + getRomanNumeral(lvl) + "</gold>"));
                 hasEnchants = true;
             }
         }
