@@ -36,6 +36,12 @@ public class GeneratorPlaceListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItemInHand();
+        Block blockPlaced = event.getBlockPlaced();
+
+        if (plugin.getGeneratorManager().getGenerator(blockPlaced.getLocation()) != null) {
+            event.setCancelled(true);
+            return;
+        }
 
         Integer tier = plugin.getGeneratorManager().getGeneratorTierFromItem(item);
         if (tier == null) return; // Not a custom generator block
@@ -51,11 +57,10 @@ public class GeneratorPlaceListener implements Listener {
         }
 
         // Place the generator block
-        Block block = event.getBlockPlaced();
-        boolean placed = plugin.getGeneratorManager().placeGenerator(block.getLocation(), player.getUniqueId(), tier);
+        boolean placed = plugin.getGeneratorManager().placeGenerator(blockPlaced.getLocation(), player.getUniqueId(), tier);
         if (placed) {
             plugin.getGeneratorManager().saveGenerators();
-            player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, 0.5f, 1.5f);
+            player.playSound(blockPlaced.getLocation(), Sound.BLOCK_ANVIL_PLACE, 0.5f, 1.5f);
             plugin.getLanguageManager().send(player, "actionbar.gen-placed", LanguageManager.values(
                     "tier", String.valueOf(tier),
                     "used", String.valueOf(active + 1),
@@ -204,6 +209,64 @@ public class GeneratorPlaceListener implements Listener {
                 // Open GUI panel
                 plugin.getDialogManager().openGeneratorBlockControl(player, gen);
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPistonExtend(org.bukkit.event.block.BlockPistonExtendEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (plugin.getGeneratorManager().getGenerator(block.getLocation()) != null) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPistonRetract(org.bukkit.event.block.BlockPistonRetractEvent event) {
+        for (Block block : event.getBlocks()) {
+            if (plugin.getGeneratorManager().getGenerator(block.getLocation()) != null) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityExplode(org.bukkit.event.entity.EntityExplodeEvent event) {
+        event.blockList().removeIf(block -> plugin.getGeneratorManager().getGenerator(block.getLocation()) != null);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockExplode(org.bukkit.event.block.BlockExplodeEvent event) {
+        event.blockList().removeIf(block -> plugin.getGeneratorManager().getGenerator(block.getLocation()) != null);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockFromTo(org.bukkit.event.block.BlockFromToEvent event) {
+        if (plugin.getGeneratorManager().getGenerator(event.getToBlock().getLocation()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onEntityChangeBlock(org.bukkit.event.entity.EntityChangeBlockEvent event) {
+        if (plugin.getGeneratorManager().getGenerator(event.getBlock().getLocation()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockBurn(org.bukkit.event.block.BlockBurnEvent event) {
+        if (plugin.getGeneratorManager().getGenerator(event.getBlock().getLocation()) != null) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBlockFade(org.bukkit.event.block.BlockFadeEvent event) {
+        if (plugin.getGeneratorManager().getGenerator(event.getBlock().getLocation()) != null) {
+            event.setCancelled(true);
         }
     }
 }

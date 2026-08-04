@@ -130,9 +130,12 @@ dialog:
     qty-select: "Select Quantity (1 - 64):"
     buy-button: "<green>Buy Selected Generators</green>"
     buy-slot-button: "<gold>Buy +1 Slot (<cost>)</gold>"
-    buy-sellwand-button: "<gold>Buy Sell Wand (<price>)</gold>"
+    buy-essence-slot-button: "<light_purple>Buy +1 Slot (<cost> Essence) [<current>/<max>]</light_purple>"
+    buy-sellwand-button: "<gold>Buy Sell Wand (1.5x) [<cost> Essence]</gold>"
     check-price-button: "<aqua>Check Total Price</aqua>"
     buy-success: "<green>Bought <gold><amount>x Tier <tier> Generator(s)</gold> for <gold><cost></gold>!</green>"
+    buy-slot-success: "<green>Unlocked +1 Generator Slot! (Total Essence Slots: <slots>)</green>"
+    error-max-essence-slots: "<red>You have already purchased the maximum of 25 Essence generator slots!</red>"
     buy-sellwand-success: "<green>Purchased a Sell Wand!</green>"
 
   gencontrol:
@@ -154,9 +157,9 @@ dialog:
     unlocked: "Unlocked"
     locked: "Locked"
     stat-essence: "<gray>Essence: <light_purple><essence></light_purple></gray>"
-    stat-xp-booster: "<gray>XP Booster: Level <gold><level>/<max_level></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
-    stat-essence-finder: "<gray>Essence Finder: Level <gold><level>/<max_level></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
-    stat-crop-doubler: "<gray>Crop Doubler: Level <gold><level>/<max_level></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
+    stat-xp-booster: "<yellow>XP Booster (Lv.<level>/<max_level>):</yellow> <light_purple><cost> Essence</light_purple> <dark_gray>(+0.5% XP/lv)</dark_gray>"
+    stat-essence-finder: "<light_purple>Essence Finder (Lv.<level>/<max_level>):</light_purple> <light_purple><cost> Essence</light_purple> <dark_gray>(+0.1% Essence/lv)</dark_gray>"
+    stat-crop-doubler: "<green>Crop Doubler (Lv.<level>/<max_level>):</green> <light_purple><cost> Essence</light_purple> <dark_gray>(+0.2% Double/lv)</dark_gray>"
     stat-reach: "<gray>Reach: Level <gold><level>/<max_level></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
     stat-replenish: "<gray>Replenish: <gold><status></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
     stat-auto-sell: "<gray>Auto-Sell (Crops Only): <gold><status></gold> (Cost: <light_purple><cost></light_purple>)</gray>"
@@ -179,6 +182,12 @@ dialog:
     error-no-essence: "<red>Not enough Essence! You need <light_purple><cost></light_purple>.</red>"
     error-max-level: "<red>Already at max level!</red>"
     error-already-unlocked: "<red>Already unlocked!</red>"
+    upgrade-dialog-title: "<gradient:light_purple:aqua><b>Upgrade <enchant></b></gradient>"
+    upgrade-dialog-body: "Select how many extra levels to add to your <enchant> (Current: Lv.<level>/<max_level>)."
+    upgrade-slider: "Levels to add (1 - <max_add>):"
+    upgrade-buy-button: "<green>Buy Selected Levels</green>"
+    upgrade-multi-success: "<green>Upgraded <enchant> by +<levels> levels (now Lv.<level>) for <cost> Essence!</green>"
+    error-already-max: "<red>This enchantment is already at maximum level (<max_level>)!</red>"
 
   prestige:
     title: "<gradient:yellow:gold><b>Prestige Menu</b></gradient>"
@@ -198,8 +207,8 @@ dialog:
     error-no-points: "<red>No prestige points available!</red>"
 
   supplies:
-    title: "<gradient:#4ea8de:#48bfe3><b>Building Shop</b></gradient>"
-    body: "Select a category to browse generator building materials."
+    title: "<gradient:#4ea8de:#48bfe3><b>Shop</b></gradient>"
+    body: "Select a category to browse generators, tools, and building materials."
     cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
     cat-body: "<gray>Select an item to purchase:</gray>"
     item-title: "<gradient:#4ea8de:#48bfe3><b>Buy Item</b></gradient>"
@@ -213,10 +222,12 @@ dialog:
     buy-success: "<green>Purchased <gold><amount>x <item></gold> for <gold><cost></gold>!</green>"
     button-back-categories: "<gray>⬅ Back to Categories</gray>"
     button-back-items: "<gray>⬅ Back to Items</gray>"
-    disabled: "<red>The Building Shop is currently disabled!</red>"
-    no-categories: "<red>No supplies categories are configured!</red>"
+    disabled: "<red>The Shop is currently disabled!</red>"
+    no-categories: "<red>No shop categories are configured!</red>"
     no-items: "<red>No items found in this category!</red>"
     categories:
+      generators: "<sprite:block/diamond_block> <gradient:green:aqua><bold>Generators</bold></gradient>"
+      tools: '<sprite:"minecraft:items":item/golden_hoe> <gradient:gold:yellow><bold>Tools</bold></gradient>'
       stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Stone & Structural</bold></gradient>"
       concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Concrete & Colors</bold></gradient>"
       quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Quartz, Nether & End</bold></gradient>"
@@ -224,6 +235,16 @@ dialog:
       glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Glass & Lighting</bold></gradient>"
       storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Storage & Utilities</bold></gradient>'
     items:
+      diamond_pickaxe: '<sprite:"minecraft:items":item/diamond_pickaxe> <gradient:blue:aqua><b>Diamond Pickaxe</b></gradient>'
+      diamond_shovel: '<sprite:"minecraft:items":item/diamond_shovel> <gradient:blue:aqua><b>Diamond Shovel</b></gradient>'
+      diamond_axe: '<sprite:"minecraft:items":item/diamond_axe> <gradient:blue:aqua><b>Diamond Axe</b></gradient>'
+      diamond_hoe: '<sprite:"minecraft:items":item/diamond_hoe> <gradient:blue:aqua><b>Diamond Hoe</b></gradient>'
+      diamond_sword: '<sprite:"minecraft:items":item/diamond_sword> <gradient:blue:aqua><b>Diamond Sword</b></gradient>'
+      netherite_pickaxe_eff5: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:dark_purple:gold><b>Netherite Pickaxe (Eff V)</b></gradient>'
+      netherite_shovel_eff5: '<sprite:"minecraft:items":item/netherite_shovel> <gradient:dark_purple:gold><b>Netherite Shovel (Eff V)</b></gradient>'
+      netherite_axe_eff5: '<sprite:"minecraft:items":item/netherite_axe> <gradient:dark_purple:gold><b>Netherite Axe (Eff V)</b></gradient>'
+      netherite_hoe_eff5: '<sprite:"minecraft:items":item/netherite_hoe> <gradient:dark_purple:gold><b>Netherite Hoe (Eff V)</b></gradient>'
+      netherite_sword_sharp5: '<sprite:"minecraft:items":item/netherite_sword> <gradient:dark_purple:gold><b>Netherite Sword (Sharp V)</b></gradient>'
       cobblestone: "<sprite:block/cobblestone> <gray>Cobblestone</gray>"
       smooth_stone: "<sprite:block/smooth_stone> <gray>Smooth Stone</gray>"
       stone_bricks: "<sprite:block/stone_bricks> <gray>Stone Bricks</gray>"
@@ -270,15 +291,25 @@ dialog:
       lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Lava Bucket</red>'
 
   tutorial:
-    title: "<white><b>{servername} Starter Guide</b></white>"
-    welcome: "<gray>Welcome to {servername}, <gold><player></gold>! Type <yellow>/gensprout</yellow> to get started.</gray>"
+    title: "<gradient:green:aqua><b>{servername} Starter Guide</b></gradient>"
+    welcome: "<gray>Welcome to <gold>{servername}</gold>, <yellow><player></yellow>! Here is everything you need to know:</gray>"
     lines:
-      - "<gray>Break wheat in the farm region to earn Farming XP and Essence.</gray>"
-      - "<gray>Spend Essence on <light_purple>Sprout Hoe</light_purple> enchantments.</gray>"
-      - "<gray>Place generators to earn passive income, even while offline.</gray>"
-      - "<gray>Prestige at higher levels for permanent multipliers.</gray>"
+      - "<gradient:yellow:gold><b>1. Farming & Progression</b></gradient>"
+      - "<gray>Farm crops to earn Farming XP and Essence. Upgrade your <light_purple>Sprout Hoe</light_purple> with custom enchantments (Crop Doubler, Harvest Area, Replenish, Essence Finder, XP Booster).</gray>"
+      - ""
+      - "<gradient:green:aqua><b>2. Generators & Passive Income</b></gradient>"
+      - "<gray>Place generators on your island or base to spawn drops automatically. Generators produce live drops while you are online, plus <gold>20% offline earnings</gold> when you log back in!</gray>"
+      - ""
+      - "<gradient:gold:yellow><b>3. Essential Commands</b></gradient>"
+      - "<gray>• <yellow>/shop</yellow> - Open the main Shop (Generators, Tools, and Building Materials)</gray>"
+      - "<gray>• <yellow>/genshop</yellow> - Buy generator tiers and purchase extra generator slots</gray>"
+      - "<gray>• <yellow>/sell</yellow> - Sell all crops and generator drops instantly</gray>"
+      - "<gray>• <yellow>/prestige</yellow> - Reset level for permanent XP, Money & Essence multipliers</gray>"
+      - "<gray>• <yellow>/gensprout</yellow> - Open the main navigation menu & hoe upgrades</gray>"
     next: "Next Step"
-    close: "<green>Got It! Start Playing</green>"
+    close: "<green>✔ Start Playing</green>"
+    button-genshop: "<sprite:block/diamond_block> <gradient:green:aqua>Generator Shop</gradient>"
+    button-shop: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:gold:yellow>Shop</gradient>'
 
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
@@ -286,7 +317,6 @@ scoreboard:
     - "<gray>-------------------</gray>"
     - "<gray>Player: <yellow>{player}</yellow></gray>"
     - "<gray>Level: <gold>{level}</gold></gray>"
-    - "<gray>XP: <gold>{xp}</gold></gray>"
     - "<gray>Prestige: <gold>{prestige}</gold></gray>"
     - "<gray>Essence: <light_purple>{essence}</light_purple></gray>"
     - "<gray>Placed Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
@@ -296,6 +326,7 @@ scoreboard:
   tablist:
     header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Online Players: <gold>{online}</gold></gray>"
     footer: "<gray>Visit <gold>/gensprout</gold> for the menu</gray>"
+    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> Farming XP</green> <gray>(<current>/<next>)</gray>"
@@ -319,6 +350,7 @@ generator:
   place-failed: "<red>Failed to place the generator!</red>"
   not-owner: "<red>This generator belongs to someone else!</red>"
   not-owner-named: "<red>This generator belongs to <gold><player></gold>.</red>"
+  drop-not-owner: "<red>You cannot pick up another player's generator drops!</red>"
   upgrade-success: "<green>Upgraded your generator to Tier <gold><tier></gold>!</green>"
   insufficient-funds-upgrade: "<red>Insufficient funds! You need <gold><cost></gold> to upgrade to Tier <tier>.</red>"
 

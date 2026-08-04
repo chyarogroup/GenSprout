@@ -18,6 +18,7 @@ public class PlayerData {
     private int essence = 0;
     private double balance = 0.0;
     private int purchasedSlots = 0;
+    private int essenceSlots = 0;
     private long lastSeen = System.currentTimeMillis();
     private boolean completedTutorial = false;
 
@@ -125,6 +126,14 @@ public class PlayerData {
         this.purchasedSlots++;
     }
 
+    public int getEssenceSlots() {
+        return essenceSlots;
+    }
+
+    public void setEssenceSlots(int essenceSlots) {
+        this.essenceSlots = Math.min(25, Math.max(0, essenceSlots));
+    }
+
     public long getLastSeen() {
         return lastSeen;
     }
@@ -134,10 +143,10 @@ public class PlayerData {
     }
 
     /**
-     * Total slot limit: default slots (starts at 20) + 1 per prestige + purchased slots
+     * Total slot limit: default slots (starts at 20) + 1 per prestige + purchased slots + essence slots
      */
     public int getMaxSlots(int defaultSlots) {
-        return defaultSlots + prestige + purchasedSlots;
+        return defaultSlots + prestige + purchasedSlots + essenceSlots;
     }
 
     /**

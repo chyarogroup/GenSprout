@@ -353,12 +353,13 @@ public class FarmingListener implements Listener {
 
                 if (cropUnlocked) {
                     double xpMultiplier = data.getXpMultiplier();
-                    double enchantXpMultiplier = 1.0 + (xpLvl * 0.20);
+                    double enchantXpMultiplier = 1.0 + (xpLvl * 0.005); // +0.5% XP per level (up to +250% at lv 500)
                     totalXpGained += baseXp * xpMultiplier * enchantXpMultiplier;
 
-                    double enchantEssenceChance = essenceChance * (1.0 + (essenceLvl * 0.25));
+                    // Essence is now a lot easier to obtain (high base chance + bonus for essenceLvl)
+                    double enchantEssenceChance = Math.min(1.0, 0.50 + (essenceLvl * 0.001));
                     if (random.nextDouble() < enchantEssenceChance) {
-                        int netEssence = baseEssence + (essenceLvl / 2);
+                        int netEssence = Math.max(1, baseEssence + (essenceLvl / 5));
                         int finalEssence = (int) Math.round(netEssence * data.getEssenceMultiplier());
                         totalEssenceGained += finalEssence;
                     }
@@ -377,7 +378,7 @@ public class FarmingListener implements Listener {
                     drops = b.getDrops(hoe);
                 }
 
-                double doubleChance = doubleLvl * 0.10;
+                double doubleChance = Math.min(1.0, doubleLvl * 0.002); // +0.2% per level (up to 100% at lv 500)
                 boolean doubleDrops = random.nextDouble() < doubleChance;
                 if (doubleDrops) anyDoubleDrops = true;
 

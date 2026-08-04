@@ -147,7 +147,7 @@ public class FarmManager {
         for (Component c : rawLore) {
             finalLore.add(c.decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
         }
-        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+        String mainCmd = plugin.getMainCommandName();
         finalLore.add(plugin.getLanguageManager().getComponent("items.selector.lore-savefarm", viewer,
                 com.github.gensprout.lang.LanguageManager.values("command", mainCmd))
                 .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));

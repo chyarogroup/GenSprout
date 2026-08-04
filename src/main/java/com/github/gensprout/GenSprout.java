@@ -82,6 +82,7 @@ public class GenSprout extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(farmingListener, this);
         Bukkit.getPluginManager().registerEvents(new GeneratorPlaceListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.GeneratorDropProtectionListener(this), this);
         Bukkit.getPluginManager().registerEvents(new FarmSelectorListener(this), this);
         Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.SellWandListener(this), this);
         Bukkit.getPluginManager().registerEvents(new com.github.gensprout.listener.AutoSellListener(this), this);
@@ -89,22 +90,50 @@ public class GenSprout extends JavaPlugin implements Listener {
         // Register commands dynamically in CommandMap (Paper 1.21+ compatible)
         GenSproutCommand cmd = new GenSproutCommand(this);
         org.bukkit.command.CommandMap commandMap = Bukkit.getCommandMap();
-        String mainCmd = getConfig().getString("commands.gensprout", "gensprout");
-        commandMap.register(mainCmd, new DynamicCommand(mainCmd, "Main command for GenSprout", "/" + mainCmd, java.util.List.of("gs", "sprout"), cmd, cmd));
-        commandMap.register(mainCmd, new DynamicCommand("sell", "Sell all crop items in your inventory", "/sell", java.util.List.of("sellall"), cmd, cmd));
-        commandMap.register(mainCmd, new DynamicCommand("genshop", "Open the generator shop directly", "/genshop", java.util.List.of("gshop"), cmd, cmd));
-        commandMap.register(mainCmd, new DynamicCommand("prestige", "Open the Prestige Menu", "/prestige", java.util.List.of(), cmd, cmd));
-        commandMap.register(mainCmd, new DynamicCommand("shop", "Open the Generator Building Supplies Shop", "/shop", java.util.List.of("supplies", "bshop", "buildshop"), cmd, cmd));
-        commandMap.register(mainCmd, new DynamicCommand("start", "Start the GenSprout tutorial and receive starter items", "/start", java.util.List.of("sproutstart", "tutorial"), cmd, cmd));
 
-        DynamicCommand helpCmd = new DynamicCommand("help", "View GenSprout starting guide & help tutorial", "/help", java.util.List.of("gensprouthelp", "sprouthelp"), cmd, cmd);
+        java.util.List<String> mainCmdList = getCommandConfig("gensprout", java.util.List.of("gensprout", "sprout", "gs"));
+        String mainCmd = mainCmdList.get(0);
+        java.util.List<String> mainAliases = mainCmdList.size() > 1 ? mainCmdList.subList(1, mainCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(mainCmd, "Main command for GenSprout", "/" + mainCmd, mainAliases, cmd, cmd));
+
+        java.util.List<String> sellCmdList = getCommandConfig("sell", java.util.List.of("sell", "sellall"));
+        String sellCmd = sellCmdList.get(0);
+        java.util.List<String> sellAliases = sellCmdList.size() > 1 ? sellCmdList.subList(1, sellCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(sellCmd, "Sell all crop items in your inventory", "/" + sellCmd, sellAliases, cmd, cmd));
+
+        java.util.List<String> genshopCmdList = getCommandConfig("genshop", java.util.List.of("genshop", "gshop", "generatorshop"));
+        String genshopCmd = genshopCmdList.get(0);
+        java.util.List<String> genshopAliases = genshopCmdList.size() > 1 ? genshopCmdList.subList(1, genshopCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(genshopCmd, "Open the generator shop directly", "/" + genshopCmd, genshopAliases, cmd, cmd));
+
+        java.util.List<String> prestigeCmdList = getCommandConfig("prestige", java.util.List.of("prestige", "prestigemenu", "pmenu"));
+        String prestigeCmd = prestigeCmdList.get(0);
+        java.util.List<String> prestigeAliases = prestigeCmdList.size() > 1 ? prestigeCmdList.subList(1, prestigeCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(prestigeCmd, "Open the Prestige Menu", "/" + prestigeCmd, prestigeAliases, cmd, cmd));
+
+        java.util.List<String> shopCmdList = getCommandConfig("shop", java.util.List.of("shop", "supplies", "bshop", "buildshop"));
+        String shopCmd = shopCmdList.get(0);
+        java.util.List<String> shopAliases = shopCmdList.size() > 1 ? shopCmdList.subList(1, shopCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(shopCmd, "Open the Shop", "/" + shopCmd, shopAliases, cmd, cmd));
+
+        java.util.List<String> startCmdList = getCommandConfig("start", java.util.List.of("start", "sproutstart", "tutorial"));
+        String startCmd = startCmdList.get(0);
+        java.util.List<String> startAliases = startCmdList.size() > 1 ? startCmdList.subList(1, startCmdList.size()) : java.util.List.of();
+        commandMap.register(mainCmd, new DynamicCommand(startCmd, "Start the GenSprout tutorial and receive starter items", "/" + startCmd, startAliases, cmd, cmd));
+
+        java.util.List<String> helpCmdList = getCommandConfig("help", java.util.List.of("help", "gensprouthelp", "sprouthelp"));
+        String helpCmdName = helpCmdList.get(0);
+        java.util.List<String> helpAliases = helpCmdList.size() > 1 ? helpCmdList.subList(1, helpCmdList.size()) : java.util.List.of();
+        DynamicCommand helpCmd = new DynamicCommand(helpCmdName, "View GenSprout starting guide & help tutorial", "/" + helpCmdName, helpAliases, cmd, cmd);
         commandMap.register(mainCmd, helpCmd);
 
         // Override existing help commands in Bukkit CommandMap
         try {
             java.util.Map<String, org.bukkit.command.Command> knownCommands = commandMap.getKnownCommands();
-            knownCommands.put("help", helpCmd);
-            knownCommands.put("gensprout:help", helpCmd);
+            for (String alias : helpCmdList) {
+                knownCommands.put(alias.toLowerCase(), helpCmd);
+            }
+            knownCommands.put(mainCmd + ":" + helpCmdName, helpCmd);
             knownCommands.put("minecraft:help", helpCmd);
             knownCommands.put("bukkit:help", helpCmd);
         } catch (Throwable t) {
@@ -208,6 +237,15 @@ public class GenSprout extends JavaPlugin implements Listener {
         }, 40L);
     }
 
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGH, ignoreCancelled = true)
+    public void onFoodLevelChange(org.bukkit.event.entity.FoodLevelChangeEvent event) {
+        if (!getConfig().getBoolean("disable-hunger", true)) return;
+        if (event.getEntity() instanceof org.bukkit.entity.Player player) {
+            event.setCancelled(true);
+            player.setFoodLevel(20);
+            player.setSaturation(20.0f);
+        }
+    }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -312,6 +350,29 @@ public class GenSprout extends JavaPlugin implements Listener {
             dataFolder.mkdirs();
         }
         return dataFolder;
+    }
+
+    public java.util.List<String> getCommandConfig(String key, java.util.List<String> defaultList) {
+        java.util.List<String> list = getConfig().getStringList("commands." + key);
+        if (list != null && !list.isEmpty()) {
+            return list;
+        }
+        String single = getConfig().getString("commands." + key);
+        if (single != null && !single.isEmpty()) {
+            java.util.List<String> result = new java.util.ArrayList<>();
+            result.add(single);
+            for (String def : defaultList) {
+                if (!def.equalsIgnoreCase(single)) {
+                    result.add(def);
+                }
+            }
+            return result;
+        }
+        return defaultList;
+    }
+
+    public String getMainCommandName() {
+        return getCommandConfig("gensprout", java.util.List.of("gensprout", "sprout", "gs")).get(0);
     }
 
     private void migrateLegacyDataFolder() {

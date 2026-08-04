@@ -130,9 +130,12 @@ dialog:
     qty-select: "Elige la Cantidad (1 - 64):"
     buy-button: "<green>Comprar Generadores</green>"
     buy-slot-button: "<gold>Comprar +1 Ranura (<cost>)</gold>"
-    buy-sellwand-button: "<gold>Comprar Vara de venta (<price>)</gold>"
+    buy-essence-slot-button: "<light_purple>Comprar +1 Ranura (<cost> Esencia) [<current>/<max>]</light_purple>"
+    buy-sellwand-button: "<gold>Comprar Vara de venta (1.5x) [<cost> Esencia]</gold>"
     check-price-button: "<aqua>Ver Precio Total</aqua>"
     buy-success: "<green>¡Compraste <gold><amount>x Generador(es) de Tier <tier></gold> por <gold><cost></gold>!</green>"
+    buy-slot-success: "<green>¡+1 Ranura de generador desbloqueada! (Ranuras de Esencia totales: <slots>)</green>"
+    error-max-essence-slots: "<red>¡Ya compraste el máximo de 25 ranuras de generador por Esencia!</red>"
     buy-sellwand-success: "<green>¡Compraste una Vara de venta!</green>"
 
   gencontrol:
@@ -154,9 +157,9 @@ dialog:
     unlocked: "Desbloqueado"
     locked: "Bloqueado"
     stat-essence: "<gray>Esencia: <light_purple><essence></light_purple></gray>"
-    stat-xp-booster: "<gray>Potenciador de XP: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
-    stat-essence-finder: "<gray>Buscador de Esencia: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
-    stat-crop-doubler: "<gray>Duplicador de Cultivos: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-xp-booster: "<yellow>Potenciador de XP (Nv.<level>/<max_level>):</yellow> <light_purple><cost> Esencia</light_purple> <dark_gray>(+0.5% XP/nv)</dark_gray>"
+    stat-essence-finder: "<light_purple>Buscador de Esencia (Nv.<level>/<max_level>):</light_purple> <light_purple><cost> Esencia</light_purple> <dark_gray>(+0.1% Esencia/nv)</dark_gray>"
+    stat-crop-doubler: "<green>Duplicador de Cultivos (Nv.<level>/<max_level>):</green> <light_purple><cost> Esencia</light_purple> <dark_gray>(+0.2% Doble/nv)</dark_gray>"
     stat-reach: "<gray>Alcance: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
     stat-replenish: "<gray>Resiembra: <gold><status></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
     stat-auto-sell: "<gray>Venta automática (solo cultivos): <gold><status></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
@@ -176,9 +179,15 @@ dialog:
     initialized: "<green>¡Convertiste la azada que sostienes en una Azada Sprout!</green>"
     error-need-hoe: "<red>¡Sostén una azada para acceder a las mejoras!</red>"
     error-not-sprout-hoe: "<red>¡Sostén una Azada Sprout para mejorar!</red>"
-    error-no-essence: "<red>¡No tienes suficiente Esencia! Necesitas <light_purple><cost></light_purple>.</red>"
+    error-no-essence: "<red>¡Esencia insuficiente! Necesitas <light_purple><cost></light_purple>.</red>"
     error-max-level: "<red>¡Ya está en el nivel máximo!</red>"
-    error-already-unlocked: "<red>¡Ya está desbloqueado!</red>"
+    error-already-unlocked: "<red>¡Ya desbloqueado!</red>"
+    upgrade-dialog-title: "<gradient:light_purple:aqua><b>Mejorar <enchant></b></gradient>"
+    upgrade-dialog-body: "Selecciona cuántos niveles extra deseas añadir a tu <enchant> (Actual: Nivel <level>/<max_level>)."
+    upgrade-slider: "Niveles a añadir (1 - <max_add>):"
+    upgrade-buy-button: "<green>Comprar niveles seleccionados</green>"
+    upgrade-multi-success: "<green>¡Has mejorado <enchant> en +<levels> niveles (ahora Nivel <level>) por <cost> Esencia!</green>"
+    error-already-max: "<red>¡Este encantamiento ya está en el nivel máximo (<max_level>)!</red>"
 
   prestige:
     title: "<gradient:yellow:gold><b>Menú de Prestigio</b></gradient>"
@@ -198,8 +207,8 @@ dialog:
     error-no-points: "<red>¡No tienes puntos de prestigio disponibles!</red>"
 
   supplies:
-    title: "<gradient:#4ea8de:#48bfe3><b>Tienda de Materiales</b></gradient>"
-    body: "Elige una categoría para ver materiales de construcción para generadores."
+    title: "<gradient:#4ea8de:#48bfe3><b>Tienda</b></gradient>"
+    body: "Elige una categoría para ver generadores, herramientas y materiales."
     cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
     cat-body: "<gray>Elige un artículo para comprar:</gray>"
     item-title: "<gradient:#4ea8de:#48bfe3><b>Comprar Artículo</b></gradient>"
@@ -213,10 +222,12 @@ dialog:
     buy-success: "<green>¡Compraste <gold><amount>x <item></gold> por <gold><cost></gold>!</green>"
     button-back-categories: "<gray>⬅ Volver a Categorías</gray>"
     button-back-items: "<gray>⬅ Volver a Artículos</gray>"
-    disabled: "<red>¡La Tienda de Materiales está desactivada!</red>"
-    no-categories: "<red>¡No hay categorías de materiales configuradas!</red>"
+    disabled: "<red>¡La Tienda está desactivada!</red>"
+    no-categories: "<red>¡No hay categorías configuradas!</red>"
     no-items: "<red>¡No se encontraron artículos en esta categoría!</red>"
     categories:
+      generators: "<sprite:block/diamond_block> <gradient:green:aqua><bold>Generadores</bold></gradient>"
+      tools: '<sprite:"minecraft:items":item/golden_hoe> <gradient:gold:yellow><bold>Herramientas</bold></gradient>'
       stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Piedra y Estructura</bold></gradient>"
       concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Hormigón y Colores</bold></gradient>"
       quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Cuarzo, Nether y End</bold></gradient>"
@@ -224,6 +235,16 @@ dialog:
       glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Cristal e Iluminación</bold></gradient>"
       storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Almacenamiento y Utilidades</bold></gradient>'
     items:
+      diamond_pickaxe: '<sprite:"minecraft:items":item/diamond_pickaxe> <gradient:blue:aqua><b>Pico de Diamante</b></gradient>'
+      diamond_shovel: '<sprite:"minecraft:items":item/diamond_shovel> <gradient:blue:aqua><b>Pala de Diamante</b></gradient>'
+      diamond_axe: '<sprite:"minecraft:items":item/diamond_axe> <gradient:blue:aqua><b>Hacha de Diamante</b></gradient>'
+      diamond_hoe: '<sprite:"minecraft:items":item/diamond_hoe> <gradient:blue:aqua><b>Azada de Diamante</b></gradient>'
+      diamond_sword: '<sprite:"minecraft:items":item/diamond_sword> <gradient:blue:aqua><b>Espada de Diamante</b></gradient>'
+      netherite_pickaxe_eff5: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:dark_purple:gold><b>Pico de Netherita (Eficiencia V)</b></gradient>'
+      netherite_shovel_eff5: '<sprite:"minecraft:items":item/netherite_shovel> <gradient:dark_purple:gold><b>Pala de Netherita (Eficiencia V)</b></gradient>'
+      netherite_axe_eff5: '<sprite:"minecraft:items":item/netherite_axe> <gradient:dark_purple:gold><b>Hacha de Netherita (Eficiencia V)</b></gradient>'
+      netherite_hoe_eff5: '<sprite:"minecraft:items":item/netherite_hoe> <gradient:dark_purple:gold><b>Azada de Netherita (Eficiencia V)</b></gradient>'
+      netherite_sword_sharp5: '<sprite:"minecraft:items":item/netherite_sword> <gradient:dark_purple:gold><b>Espada de Netherita (Agudeza V)</b></gradient>'
       cobblestone: "<sprite:block/cobblestone> <gray>Adoquín</gray>"
       smooth_stone: "<sprite:block/smooth_stone> <gray>Piedra Lisa</gray>"
       stone_bricks: "<sprite:block/stone_bricks> <gray>Ladrillos de Piedra</gray>"
@@ -270,15 +291,25 @@ dialog:
       lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Cubo de Lava</red>'
 
   tutorial:
-    title: "<white><b>Guía Inicial de {servername}</b></white>"
-    welcome: "<gray>¡Bienvenido a {servername}, <gold><player></gold>! Escribe <yellow>/gensprout</yellow> para empezar.</gray>"
+    title: "<gradient:green:aqua><b>Guía de Inicio de {servername}</b></gradient>"
+    welcome: "<gray>¡Bienvenido a <gold>{servername}</gold>, <yellow><player></yellow>! Aquí tienes todo lo que necesitas saber:</gray>"
     lines:
-      - "<gray>Rompe trigo en la región de granja para ganar XP de cultivo y Esencia.</gray>"
-      - "<gray>Gasta Esencia en encantamientos de la <light_purple>Azada Sprout</light_purple>.</gray>"
-      - "<gray>Coloca generadores para ganar ingresos pasivos, incluso desconectado.</gray>"
-      - "<gray>Haz prestigio en niveles altos para obtener multiplicadores permanentes.</gray>"
-    next: "Siguiente"
-    close: "<green>¡Entendido! A jugar</green>"
+      - "<gradient:yellow:gold><b>1. Agricultura y Progresión</b></gradient>"
+      - "<gray>Cosecha cultivos para obtener XP y Esencia. Mejora tu <light_purple>Azada de Brote</light_purple> con encantamientos personalizados.</gray>"
+      - ""
+      - "<gradient:green:aqua><b>2. Generadores e Ingresos Pasivos</b></gradient>"
+      - "<gray>Coloca generadores para producir objetos automáticamente mientras juegas, ¡y obtén un <gold>20% de ganancias offline</gold> al volver a entrar!</gray>"
+      - ""
+      - "<gradient:gold:yellow><b>3. Comandos Esenciales</b></gradient>"
+      - "<gray>• <yellow>/shop</yellow> - Abre la Tienda principal (Generadores, Herramientas, Materiales)</gray>"
+      - "<gray>• <yellow>/genshop</yellow> - Compra generadores y ranuras adicionales</gray>"
+      - "<gray>• <yellow>/sell</yellow> - Vende cultivos y drops al instante</gray>"
+      - "<gray>• <yellow>/prestige</yellow> - Reinicia nivel para multiplicadores permanentes</gray>"
+      - "<gray>• <yellow>/gensprout</yellow> - Abre el menú principal y mejoras</gray>"
+    next: "Siguiente Paso"
+    close: "<green>✔ Empezar a Jugar</green>"
+    button-genshop: "<sprite:block/diamond_block> <gradient:green:aqua>Tienda de Generadores</gradient>"
+    button-shop: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:gold:yellow>Tienda</gradient>'
 
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
@@ -286,7 +317,6 @@ scoreboard:
     - "<gray>-------------------</gray>"
     - "<gray>Jugador: <yellow>{player}</yellow></gray>"
     - "<gray>Nivel: <gold>{level}</gold></gray>"
-    - "<gray>XP: <gold>{xp}</gold></gray>"
     - "<gray>Prestigio: <gold>{prestige}</gold></gray>"
     - "<gray>Esencia: <light_purple>{essence}</light_purple></gray>"
     - "<gray>Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
@@ -296,6 +326,7 @@ scoreboard:
   tablist:
     header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Jugadores en línea: <gold>{online}</gold></gray>"
     footer: "<gray>Usa <gold>/gensprout</gold> para abrir el menú</gray>"
+    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> XP de cultivo</green> <gray>(<current>/<next>)</gray>"
@@ -317,9 +348,10 @@ economy:
 
 generator:
   place-failed: "<red>¡No se pudo colocar el generador!</red>"
-  not-owner: "<red>¡Este generador es de otro jugador!</red>"
-  not-owner-named: "<red>Este generador le pertenece a <gold><player></gold>.</red>"
-  upgrade-success: "<green>¡Mejoraste tu generador al Tier <gold><tier></gold>!</green>"
+  not-owner: "<red>¡Este generador pertenece a otra persona!</red>"
+  not-owner-named: "<red>Este generador pertenece a <gold><player></gold>.</red>"
+  drop-not-owner: "<red>¡No puedes recoger los drops de generador de otro jugador!</red>"
+  upgrade-success: "<green>¡Has mejorado tu generador al Nivel <gold><tier></gold>!</green>"
   insufficient-funds-upgrade: "<red>¡Fondos insuficientes! Necesitas <gold><cost></gold> para mejorar al Tier <tier>.</red>"
 
 title:

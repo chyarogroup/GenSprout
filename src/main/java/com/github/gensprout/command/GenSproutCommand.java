@@ -202,7 +202,15 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (command.getName().equalsIgnoreCase("genshop")) {
+        String cmdName = command.getName().toLowerCase();
+        List<String> gensproutCmds = plugin.getCommandConfig("gensprout", List.of("gensprout", "sprout", "gs"));
+        List<String> genshopCmds = plugin.getCommandConfig("genshop", List.of("genshop", "gshop", "generatorshop"));
+        List<String> sellCmds = plugin.getCommandConfig("sell", List.of("sell", "sellall"));
+        List<String> shopCmds = plugin.getCommandConfig("shop", List.of("shop", "supplies", "bshop", "buildshop"));
+        List<String> helpCmds = plugin.getCommandConfig("help", List.of("help", "gensprouthelp", "sprouthelp"));
+        List<String> startCmds = plugin.getCommandConfig("start", List.of("start", "sproutstart", "tutorial"));
+
+        if (genshopCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
                 plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "use the generator shop"));
@@ -217,7 +225,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (command.getName().equalsIgnoreCase("sellall") || command.getName().equalsIgnoreCase("sell")) {
+        if (sellCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
                 plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "sell crops"));
@@ -232,7 +240,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (command.getName().equalsIgnoreCase("shop") || command.getName().equalsIgnoreCase("supplies") || command.getName().equalsIgnoreCase("bshop") || command.getName().equalsIgnoreCase("buildshop")) {
+        if (shopCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
                 plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "open the Generator Building Supplies Shop"));
@@ -247,7 +255,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (command.getName().equalsIgnoreCase("help") || command.getName().equalsIgnoreCase("gensprouthelp") || command.getName().equalsIgnoreCase("sprouthelp")) {
+        if (helpCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
                 plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "view the tutorial guide"));
@@ -259,7 +267,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (command.getName().equalsIgnoreCase("start") || command.getName().equalsIgnoreCase("sproutstart") || command.getName().equalsIgnoreCase("tutorial")) {
+        if (startCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
                 plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "start the tutorial"));
@@ -274,9 +282,8 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // Handle main command
-        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
-        if (command.getName().equalsIgnoreCase(mainCmd)) {
+        // Handle main command (gensprout, sprout, gs)
+        if (gensproutCmds.contains(cmdName)) {
             if (args.length > 0) {
                 String sub = args[0].toLowerCase();
                 if (sub.equals("help")) {
@@ -331,7 +338,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
 
             List<Player> targets = resolveTargets(sender, args, -1);
             if (targets.isEmpty()) {
-                plugin.getLanguageManager().send(sender, "command.usage", LanguageManager.values("command", mainCmd));
+                plugin.getLanguageManager().send(sender, "command.usage", LanguageManager.values("command", plugin.getMainCommandName()));
                 return true;
             }
 

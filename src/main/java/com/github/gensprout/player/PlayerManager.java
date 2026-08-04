@@ -71,6 +71,7 @@ public class PlayerManager {
             data.setEssence(dataConfig.getInt(path + ".essence", 0));
             data.setBalance(dataConfig.getDouble(path + ".balance", 0.0));
             data.setPurchasedSlots(dataConfig.getInt(path + ".purchased-slots", 0));
+            data.setEssenceSlots(dataConfig.getInt(path + ".essence-slots", 0));
             data.setLastSeen(dataConfig.getLong(path + ".last-seen", System.currentTimeMillis()));
             data.setCompletedTutorial(dataConfig.getBoolean(path + ".completed-tutorial", false));
         } else {
@@ -95,6 +96,7 @@ public class PlayerManager {
             dataConfig.set(path + ".essence", data.getEssence());
             dataConfig.set(path + ".balance", data.getBalance());
             dataConfig.set(path + ".purchased-slots", data.getPurchasedSlots());
+            dataConfig.set(path + ".essence-slots", data.getEssenceSlots());
             dataConfig.set(path + ".last-seen", data.getLastSeen());
             dataConfig.set(path + ".completed-tutorial", data.hasCompletedTutorial());
         }

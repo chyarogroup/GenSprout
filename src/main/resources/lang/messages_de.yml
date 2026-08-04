@@ -130,9 +130,12 @@ dialog:
     qty-select: "Menge wählen (1 - 64):"
     buy-button: "<green>Ausgewählte Generatoren kaufen</green>"
     buy-slot-button: "<gold>+1 Slot kaufen (<cost>)</gold>"
-    buy-sellwand-button: "<gold>Verkaufsstab kaufen (<price>)</gold>"
+    buy-essence-slot-button: "<light_purple>+1 Slot kaufen (<cost> Essenz) [<current>/<max>]</light_purple>"
+    buy-sellwand-button: "<gold>Verkaufsstab (1.5x) kaufen [<cost> Essenz]</gold>"
     check-price-button: "<aqua>Gesamtpreis prüfen</aqua>"
     buy-success: "<green><gold><amount>x Generator(en) der Stufe <tier></gold> für <gold><cost></gold> gekauft!</green>"
+    buy-slot-success: "<green>+1 Generator-Slot freigeschaltet! (Gesamt Essenz-Slots: <slots>)</green>"
+    error-max-essence-slots: "<red>Du hast bereits das Maximum von 25 Essenz-Generator-Slots gekauft!</red>"
     buy-sellwand-success: "<green>Verkaufsstab gekauft!</green>"
 
   gencontrol:
@@ -154,9 +157,9 @@ dialog:
     unlocked: "Freigeschaltet"
     locked: "Gesperrt"
     stat-essence: "<gray>Essenz: <light_purple><essence></light_purple></gray>"
-    stat-xp-booster: "<gray>XP-Booster: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
-    stat-essence-finder: "<gray>Essenz-Finder: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
-    stat-crop-doubler: "<gray>Ernte-Verdoppler: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-xp-booster: "<yellow>XP-Booster (Lv.<level>/<max_level>):</yellow> <light_purple><cost> Essenz</light_purple> <dark_gray>(+0,5% XP/Lv)</dark_gray>"
+    stat-essence-finder: "<light_purple>Essenz-Finder (Lv.<level>/<max_level>):</light_purple> <light_purple><cost> Essenz</light_purple> <dark_gray>(+0,1% Essenz/Lv)</dark_gray>"
+    stat-crop-doubler: "<green>Ernte-Verdoppler (Lv.<level>/<max_level>):</green> <light_purple><cost> Essenz</light_purple> <dark_gray>(+0,2% Doppel/Lv)</dark_gray>"
     stat-reach: "<gray>Reichweite: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
     stat-replenish: "<gray>Nachpflanzen: <gold><status></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
     stat-auto-sell: "<gray>Auto-Verkauf (nur Ernte): <gold><status></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
@@ -176,9 +179,15 @@ dialog:
     initialized: "<green>Deine gehaltene Hacke ist jetzt eine Sprout-Hacke!</green>"
     error-need-hoe: "<red>Halte eine Hacke, um die Upgrades zu öffnen!</red>"
     error-not-sprout-hoe: "<red>Halte eine Sprout-Hacke, um sie aufzuwerten!</red>"
-    error-no-essence: "<red>Nicht genug Essenz! Du brauchst <light_purple><cost></light_purple>.</red>"
-    error-max-level: "<red>Schon auf Maximallevel!</red>"
-    error-already-unlocked: "<red>Schon freigeschaltet!</red>"
+    error-no-essence: "<red>Nicht genug Essenz! Du benötigst <light_purple><cost></light_purple>.</red>"
+    error-max-level: "<red>Bereits auf maximaler Stufe!</red>"
+    error-already-unlocked: "<red>Bereits freigeschaltet!</red>"
+    upgrade-dialog-title: "<gradient:light_purple:aqua><b><enchant> verbessern</b></gradient>"
+    upgrade-dialog-body: "Wähle, wie viele zusätzliche Stufen du zu deinem <enchant> hinzufügen möchtest (Aktuell: Stufe <level>/<max_level>)."
+    upgrade-slider: "Hinzuzufügende Stufen (1 - <max_add>):"
+    upgrade-buy-button: "<green>Ausgewählte Stufen kaufen</green>"
+    upgrade-multi-success: "<green><enchant> um +<levels> Stufen verbessert (jetzt Stufe <level>) für <cost> Essenz!</green>"
+    error-already-max: "<red>Diese Verzauberung hat bereits die maximale Stufe (<max_level>) erreicht!</red>"
 
   prestige:
     title: "<gradient:yellow:gold><b>Prestige-Menü</b></gradient>"
@@ -198,8 +207,8 @@ dialog:
     error-no-points: "<red>Keine Prestige-Punkte verfügbar!</red>"
 
   supplies:
-    title: "<gradient:#4ea8de:#48bfe3><b>Bau-Shop</b></gradient>"
-    body: "Wähle eine Kategorie, um Baumaterial für Generatoren anzusehen."
+    title: "<gradient:#4ea8de:#48bfe3><b>Shop</b></gradient>"
+    body: "Wähle eine Kategorie, um Generatoren, Werkzeuge und Baumaterialien anzusehen."
     cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
     cat-body: "<gray>Wähle einen Gegenstand zum Kaufen:</gray>"
     item-title: "<gradient:#4ea8de:#48bfe3><b>Gegenstand kaufen</b></gradient>"
@@ -213,10 +222,12 @@ dialog:
     buy-success: "<green><gold><amount>x <item></gold> für <gold><cost></gold> gekauft!</green>"
     button-back-categories: "<gray>⬅ Zurück zu den Kategorien</gray>"
     button-back-items: "<gray>⬅ Zurück zu den Gegenständen</gray>"
-    disabled: "<red>Der Bau-Shop ist derzeit deaktiviert!</red>"
-    no-categories: "<red>Es sind keine Baumaterial-Kategorien konfiguriert!</red>"
+    disabled: "<red>Der Shop ist derzeit deaktiviert!</red>"
+    no-categories: "<red>Es sind keine Shop-Kategorien konfiguriert!</red>"
     no-items: "<red>Keine Artikel in dieser Kategorie gefunden!</red>"
     categories:
+      generators: "<sprite:block/diamond_block> <gradient:green:aqua><bold>Generatoren</bold></gradient>"
+      tools: '<sprite:"minecraft:items":item/golden_hoe> <gradient:gold:yellow><bold>Werkzeuge</bold></gradient>'
       stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Stein & Struktur</bold></gradient>"
       concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Beton & Farben</bold></gradient>"
       quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Quarz, Nether & Ende</bold></gradient>"
@@ -224,6 +235,16 @@ dialog:
       glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Glas & Beleuchtung</bold></gradient>"
       storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Lagerung & Nützliches</bold></gradient>'
     items:
+      diamond_pickaxe: '<sprite:"minecraft:items":item/diamond_pickaxe> <gradient:blue:aqua><b>Diamantspitzhacke</b></gradient>'
+      diamond_shovel: '<sprite:"minecraft:items":item/diamond_shovel> <gradient:blue:aqua><b>Diamantschaufel</b></gradient>'
+      diamond_axe: '<sprite:"minecraft:items":item/diamond_axe> <gradient:blue:aqua><b>Diamantaxt</b></gradient>'
+      diamond_hoe: '<sprite:"minecraft:items":item/diamond_hoe> <gradient:blue:aqua><b>Diamanthacke</b></gradient>'
+      diamond_sword: '<sprite:"minecraft:items":item/diamond_sword> <gradient:blue:aqua><b>Diamantschwert</b></gradient>'
+      netherite_pickaxe_eff5: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:dark_purple:gold><b>Netheritspitzhacke (Eff V)</b></gradient>'
+      netherite_shovel_eff5: '<sprite:"minecraft:items":item/netherite_shovel> <gradient:dark_purple:gold><b>Netheritschaufel (Eff V)</b></gradient>'
+      netherite_axe_eff5: '<sprite:"minecraft:items":item/netherite_axe> <gradient:dark_purple:gold><b>Netheritaxt (Eff V)</b></gradient>'
+      netherite_hoe_eff5: '<sprite:"minecraft:items":item/netherite_hoe> <gradient:dark_purple:gold><b>Netherithacke (Eff V)</b></gradient>'
+      netherite_sword_sharp5: '<sprite:"minecraft:items":item/netherite_sword> <gradient:dark_purple:gold><b>Netheritschwert (Schärfe V)</b></gradient>'
       cobblestone: "<sprite:block/cobblestone> <gray>Bruchstein</gray>"
       smooth_stone: "<sprite:block/smooth_stone> <gray>Glatter Stein</gray>"
       stone_bricks: "<sprite:block/stone_bricks> <gray>Steinziegel</gray>"
@@ -270,15 +291,25 @@ dialog:
       lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Lavaeimer</red>'
 
   tutorial:
-    title: "<white><b>{servername} Startanleitung</b></white>"
-    welcome: "<gray>Willkommen auf {servername}, <gold><player></gold>! Tippe <yellow>/gensprout</yellow>, um loszulegen.</gray>"
+    title: "<gradient:green:aqua><b>{servername} Startanleitung</b></gradient>"
+    welcome: "<gray>Willkommen auf <gold>{servername}</gold>, <yellow><player></yellow>! Hier ist alles, was du wissen musst:</gray>"
     lines:
-      - "<gray>Ernte Weizen in der Farm-Region, um Farm-XP und Essenz zu verdienen.</gray>"
-      - "<gray>Gib Essenz für Verzauberungen der <light_purple>Sprout-Hacke</light_purple> aus.</gray>"
-      - "<gray>Platziere Generatoren für passives Einkommen, auch wenn du offline bist.</gray>"
-      - "<gray>Prestige auf höheren Leveln für dauerhafte Multiplikatoren.</gray>"
+      - "<gradient:yellow:gold><b>1. Landwirtschaft & Fortschritt</b></gradient>"
+      - "<gray>Baue Erntemengen ab, um Landwirtschafts-XP und Essenz zu verdienen. Wende Verzauberungen auf deine <light_purple>Keimhacke</light_purple> an.</gray>"
+      - ""
+      - "<gradient:green:aqua><b>2. Generatoren & Passives Einkommen</b></gradient>"
+      - "<gray>Platziere Generatoren, um automatisch Gegenstände zu erzeugen. Sie produzieren Gegenstände, während du online bist, plus <gold>20% Offline-Einnahmen</gold> beim Wiederanmelden!</gray>"
+      - ""
+      - "<gradient:gold:yellow><b>3. Wichtige Befehle</b></gradient>"
+      - "<gray>• <yellow>/shop</yellow> - Öffne den Shop (Generatoren, Werkzeuge, Baumaterialien)</gray>"
+      - "<gray>• <yellow>/genshop</yellow> - Kaufe Generatoren und erweitere Plätze</gray>"
+      - "<gray>• <yellow>/sell</yellow> - Verkaufe Ernten und Generator-Drops sofort</gray>"
+      - "<gray>• <yellow>/prestige</yellow> - Setze dein Level zurück für dauerhafte Multiplikatoren</gray>"
+      - "<gray>• <yellow>/gensprout</yellow> - Öffne das Hauptmenü & Hacken-Upgrades</gray>"
     next: "Nächster Schritt"
-    close: "<green>Alles klar! Losspielen</green>"
+    close: "<green>✔ Loslegen & Spielen</green>"
+    button-genshop: "<sprite:block/diamond_block> <gradient:green:aqua>Generator-Shop</gradient>"
+    button-shop: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:gold:yellow>Shop</gradient>'
 
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
@@ -286,7 +317,6 @@ scoreboard:
     - "<gray>-------------------</gray>"
     - "<gray>Spieler: <yellow>{player}</yellow></gray>"
     - "<gray>Lvl: <gold>{level}</gold></gray>"
-    - "<gray>XP: <gold>{xp}</gold></gray>"
     - "<gray>Prestige: <gold>{prestige}</gold></gray>"
     - "<gray>Essenz: <light_purple>{essence}</light_purple></gray>"
     - "<gray>Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
@@ -296,6 +326,7 @@ scoreboard:
   tablist:
     header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Spieler online: <gold>{online}</gold></gray>"
     footer: "<gray>Nutze <gold>/gensprout</gold> für das Menü</gray>"
+    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> Farm-XP</green> <gray>(<current>/<next>)</gray>"
@@ -319,6 +350,7 @@ generator:
   place-failed: "<red>Der Generator konnte nicht platziert werden!</red>"
   not-owner: "<red>Dieser Generator gehört jemand anderem!</red>"
   not-owner-named: "<red>Dieser Generator gehört <gold><player></gold>.</red>"
+  drop-not-owner: "<red>Du kannst die Generator-Drops anderer Spieler nicht aufheben!</red>"
   upgrade-success: "<green>Dein Generator wurde auf Stufe <gold><tier></gold> aufgewertet!</green>"
   insufficient-funds-upgrade: "<red>Nicht genug Geld! Du brauchst <gold><cost></gold> für die Aufwertung auf Stufe <tier>.</red>"
 

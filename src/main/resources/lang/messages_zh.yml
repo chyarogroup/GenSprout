@@ -129,9 +129,12 @@ dialog:
     qty-select: "选择数量（1 - 64）："
     buy-button: "<green>购买所选生成器</green>"
     buy-slot-button: "<gold>购买 +1 槽位（<cost>）</gold>"
-    buy-sellwand-button: "<gold>购买售卖魔杖（<price>）</gold>"
+    buy-essence-slot-button: "<light_purple>购买 +1 槽位（<cost> 精华）[<current>/<max>]</light_purple>"
+    buy-sellwand-button: "<gold>购买售卖魔杖 (1.5x) [<cost> 精华]</gold>"
     check-price-button: "<aqua>查看总价</aqua>"
     buy-success: "<green>已购买 <gold><amount>x <tier> 阶生成器</gold>，花费 <gold><cost></gold>！</green>"
+    buy-slot-success: "<green>已解锁 +1 生成器槽位！（精华槽位总计：<slots>）</green>"
+    error-max-essence-slots: "<red>你已购买了上限 25 个精华生成器槽位！</red>"
     buy-sellwand-success: "<green>已购买一支售卖魔杖！</green>"
 
   gencontrol:
@@ -153,9 +156,9 @@ dialog:
     unlocked: "已解锁"
     locked: "未解锁"
     stat-essence: "<gray>精华：<light_purple><essence></light_purple></gray>"
-    stat-xp-booster: "<gray>经验加成：等级 <gold><level>/<max_level></gold>（花费：<light_purple><cost></light_purple>）</gray>"
-    stat-essence-finder: "<gray>精华探寻：等级 <gold><level>/<max_level></gold>（花费：<light_purple><cost></light_purple>）</gray>"
-    stat-crop-doubler: "<gray>作物翻倍：等级 <gold><level>/<max_level></gold>（花费：<light_purple><cost></light_purple>）</gray>"
+    stat-xp-booster: "<yellow>经验加成（Lv.<level>/<max_level>）：</yellow> <light_purple><cost> 精华</light_purple> <dark_gray>(+0.5% XP/级)</dark_gray>"
+    stat-essence-finder: "<light_purple>精华探寻（Lv.<level>/<max_level>）：</light_purple> <light_purple><cost> 精华</light_purple> <dark_gray>(+0.1% 精华/级)</dark_gray>"
+    stat-crop-doubler: "<green>作物翻倍（Lv.<level>/<max_level>）：</green> <light_purple><cost> 精华</light_purple> <dark_gray>(+0.2% 翻倍/级)</dark_gray>"
     stat-reach: "<gray>触及距离：等级 <gold><level>/<max_level></gold>（花费：<light_purple><cost></light_purple>）</gray>"
     stat-replenish: "<gray>自动补种：<gold><status></gold>（花费：<light_purple><cost></light_purple>）</gray>"
     stat-auto-sell: "<gray>自动售卖（仅作物）：<gold><status></gold>（花费：<light_purple><cost></light_purple>）</gray>"
@@ -176,8 +179,14 @@ dialog:
     error-need-hoe: "<red>手持一把锄头才能进入升级界面！</red>"
     error-not-sprout-hoe: "<red>手持嫩芽锄才能升级！</red>"
     error-no-essence: "<red>精华不足！你需要 <light_purple><cost></light_purple>。</red>"
-    error-max-level: "<red>已经是最高等级了！</red>"
-    error-already-unlocked: "<red>已经解锁了！</red>"
+    error-max-level: "<red>已达最高等级！</red>"
+    error-already-unlocked: "<red>已解锁！</red>"
+    upgrade-dialog-title: "<gradient:light_purple:aqua><b>升级 <enchant></b></gradient>"
+    upgrade-dialog-body: "选择要为你的 <enchant> 增加的等级数（当前：Lv.<level>/<max_level>）。"
+    upgrade-slider: "要增加的等级数（1 - <max_add>）："
+    upgrade-buy-button: "<green>购买所选等级</green>"
+    upgrade-multi-success: "<green>已将 <enchant> 提升 +<levels> 级（现为 Lv.<level>），花费 <cost> 精华！</green>"
+    error-already-max: "<red>该附魔已达到最高等级（<max_level>）！</red>"
 
   prestige:
     title: "<gradient:yellow:gold><b>转生菜单</b></gradient>"
@@ -197,8 +206,8 @@ dialog:
     error-no-points: "<red>没有可用的转生点数！</red>"
 
   supplies:
-    title: "<gradient:#4ea8de:#48bfe3><b>建筑商店</b></gradient>"
-    body: "选择一个分类来浏览生成器建筑材料。"
+    title: "<gradient:#4ea8de:#48bfe3><b>商店</b></gradient>"
+    body: "选择一个分类来浏览生成器、工具与建筑材料。"
     cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
     cat-body: "<gray>选择一件要购买的物品：</gray>"
     item-title: "<gradient:#4ea8de:#48bfe3><b>购买物品</b></gradient>"
@@ -212,10 +221,12 @@ dialog:
     buy-success: "<green>已购买 <gold><amount>x <item></gold>，花费 <gold><cost></gold>！</green>"
     button-back-categories: "<gray>⬅ 返回分类</gray>"
     button-back-items: "<gray>⬅ 返回物品列表</gray>"
-    disabled: "<red>建筑商店目前已关闭！</red>"
-    no-categories: "<red>尚未配置任何材料分类！</red>"
+    disabled: "<red>商店目前已关闭！</red>"
+    no-categories: "<red>尚未配置任何分类！</red>"
     no-items: "<red>该分类下未找到任何物品！</red>"
     categories:
+      generators: "<sprite:block/diamond_block> <gradient:green:aqua><bold>生成器</bold></gradient>"
+      tools: '<sprite:"minecraft:items":item/golden_hoe> <gradient:gold:yellow><bold>工具</bold></gradient>'
       stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>石材与建筑</bold></gradient>"
       concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>混凝土与色彩</bold></gradient>"
       quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>石英、下界与末地</bold></gradient>"
@@ -223,6 +234,16 @@ dialog:
       glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>玻璃与照明</bold></gradient>"
       storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>存储与实用工具</bold></gradient>'
     items:
+      diamond_pickaxe: '<sprite:"minecraft:items":item/diamond_pickaxe> <gradient:blue:aqua><b>钻石镐</b></gradient>'
+      diamond_shovel: '<sprite:"minecraft:items":item/diamond_shovel> <gradient:blue:aqua><b>钻石锹</b></gradient>'
+      diamond_axe: '<sprite:"minecraft:items":item/diamond_axe> <gradient:blue:aqua><b>钻石斧</b></gradient>'
+      diamond_hoe: '<sprite:"minecraft:items":item/diamond_hoe> <gradient:blue:aqua><b>钻石锄</b></gradient>'
+      diamond_sword: '<sprite:"minecraft:items":item/diamond_sword> <gradient:blue:aqua><b>钻石剑</b></gradient>'
+      netherite_pickaxe_eff5: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:dark_purple:gold><b>下界合金镐 (效率 V)</b></gradient>'
+      netherite_shovel_eff5: '<sprite:"minecraft:items":item/netherite_shovel> <gradient:dark_purple:gold><b>下界合金锹 (效率 V)</b></gradient>'
+      netherite_axe_eff5: '<sprite:"minecraft:items":item/netherite_axe> <gradient:dark_purple:gold><b>下界合金斧 (效率 V)</b></gradient>'
+      netherite_hoe_eff5: '<sprite:"minecraft:items":item/netherite_hoe> <gradient:dark_purple:gold><b>下界合金锄 (效率 V)</b></gradient>'
+      netherite_sword_sharp5: '<sprite:"minecraft:items":item/netherite_sword> <gradient:dark_purple:gold><b>下界合金剑 (锋利 V)</b></gradient>'
       cobblestone: "<sprite:block/cobblestone> <gray>圆石</gray>"
       smooth_stone: "<sprite:block/smooth_stone> <gray>平滑石材</gray>"
       stone_bricks: "<sprite:block/stone_bricks> <gray>石砖</gray>"
@@ -269,15 +290,25 @@ dialog:
       lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>岩浆桶</red>'
 
   tutorial:
-    title: "<white><b>{servername} 新手指南</b></white>"
-    welcome: "<gray>欢迎来到 {servername}，<gold><player></gold>！输入 <yellow>/gensprout</yellow> 开始游戏。</gray>"
+    title: "<gradient:green:aqua><b>{servername} 新手指南</b></gradient>"
+    welcome: "<gray>欢迎来到 <gold>{servername}</gold>，<yellow><player></yellow>！以下是你需要了解的一切：</gray>"
     lines:
-      - "<gray>在农场区域内破坏小麦即可赚取耕种经验和精华。</gray>"
-      - "<gray>把精华花在<light_purple>嫩芽锄</light_purple>的附魔上。</gray>"
-      - "<gray>放置生成器可赚取被动收入，离线时也能累积。</gray>"
-      - "<gray>在更高等级进行转生以获得永久倍率加成。</gray>"
+      - "<gradient:yellow:gold><b>1. 农作与升级</b></gradient>"
+      - "<gray>收割农作物以获得农作经验和精华。使用专属魔咒升级你的<light_purple>嫩芽锄</light_purple>。</gray>"
+      - ""
+      - "<gradient:green:aqua><b>2. 生成器与被动收益</b></gradient>"
+      - "<gray>放置生成器自动产生掉落物。在线时即时产出，重新登录时更可享受 <gold>20% 离线收益</gold>！</gray>"
+      - ""
+      - "<gradient:gold:yellow><b>3. 常用指令</b></gradient>"
+      - "<gray>• <yellow>/shop</yellow> - 打开主商店（生成器、工具、建筑材料）</gray>"
+      - "<gray>• <yellow>/genshop</yellow> - 购买生成器阶级与生成器槽位</gray>"
+      - "<gray>• <yellow>/sell</yellow> - 快速出售所有农作物和生成器掉落物</gray>"
+      - "<gray>• <yellow>/prestige</yellow> - 重置等级获得永久倍率加成</gray>"
+      - "<gray>• <yellow>/gensprout</yellow> - 打开主导航菜单与锄头升级</gray>"
     next: "下一步"
-    close: "<green>明白了！开始游戏</green>"
+    close: "<green>✔ 开始游戏</green>"
+    button-genshop: "<sprite:block/diamond_block> <gradient:green:aqua>生成器商店</gradient>"
+    button-shop: '<sprite:"minecraft:items":item/netherite_pickaxe> <gradient:gold:yellow>商店</gradient>'
 
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
@@ -285,7 +316,6 @@ scoreboard:
     - "<gray>-------------------</gray>"
     - "<gray>玩家：<yellow>{player}</yellow></gray>"
     - "<gray>等级：<gold>{level}</gold></gray>"
-    - "<gray>经验：<gold>{xp}</gold></gray>"
     - "<gray>转生：<gold>{prestige}</gold></gray>"
     - "<gray>精华：<light_purple>{essence}</light_purple></gray>"
     - "<gray>已放置生成器：<gold>{placed_gens}/{max_gens}</gold></gray>"
@@ -295,6 +325,7 @@ scoreboard:
   tablist:
     header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>在线玩家：<gold>{online}</gold></gray>"
     footer: "<gray>使用 <gold>/gensprout</gold> 打开菜单</gray>"
+    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> 耕种经验</green> <gray>(<current>/<next>)</gray>"
@@ -318,6 +349,7 @@ generator:
   place-failed: "<red>生成器放置失败！</red>"
   not-owner: "<red>这个生成器属于其他人！</red>"
   not-owner-named: "<red>这个生成器属于 <gold><player></gold>。</red>"
+  drop-not-owner: "<red>你不能拾取其他玩家的生成器掉落物！</red>"
   upgrade-success: "<green>你的生成器已升级至 <gold><tier></gold> 阶！</green>"
   insufficient-funds-upgrade: "<red>资金不足！你需要 <gold><cost></gold> 才能升级到 <tier> 阶。</red>"
 

@@ -53,6 +53,7 @@ public class ScoreboardManager {
         }
         for (Player player : Bukkit.getOnlinePlayers()) {
             player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+            player.playerListName(null);
         }
     }
 
@@ -68,6 +69,7 @@ public class ScoreboardManager {
         if (!plugin.getConfig().getBoolean("tablist.enabled", true)) {
             for (Player player : Bukkit.getOnlinePlayers()) {
                 player.sendPlayerListHeaderAndFooter(Component.empty(), Component.empty());
+                player.playerListName(null);
             }
         }
     }
@@ -174,6 +176,7 @@ public class ScoreboardManager {
     public void updateTabList(Player player) {
         if (!plugin.getConfig().getBoolean("tablist.enabled", true)) {
             player.sendPlayerListHeaderAndFooter(Component.empty(), Component.empty());
+            player.playerListName(null);
             return;
         }
 
@@ -183,5 +186,12 @@ public class ScoreboardManager {
         Component footer = plugin.getLanguageManager().getComponent("scoreboard.tablist.footer", player, placeholders);
 
         player.sendPlayerListHeaderAndFooter(header, footer);
+
+        Component playerTabName = plugin.getLanguageManager().getComponent("scoreboard.tablist.player-name", player, placeholders);
+        if (playerTabName.equals(Component.empty())) {
+            String rawFormat = plugin.getConfig().getString("tablist.player-name", "<white>{player}</white> <gray>[P{prestige}]</gray>");
+            playerTabName = plugin.getLanguageManager().renderRaw(rawFormat, player, placeholders);
+        }
+        player.playerListName(playerTabName);
     }
 }

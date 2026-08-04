@@ -16,9 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum HoeEnchant {
-    XP_BOOSTER("xp_booster", "<yellow>XP Booster</yellow>", 5),
-    ESSENCE_FINDER("essence_finder", "<light_purple>Essence Finder</light_purple>", 5),
-    CROP_DOUBLER("crop_doubler", "<green>Crop Doubler</green>", 5),
+    XP_BOOSTER("xp_booster", "<yellow>XP Booster</yellow>", 500),
+    ESSENCE_FINDER("essence_finder", "<light_purple>Essence Finder</light_purple>", 500),
+    CROP_DOUBLER("crop_doubler", "<green>Crop Doubler</green>", 500),
     REPLENISH("replenish", "<aqua>Replenish</aqua>", 1),
     HARVEST_AREA("harvest_area", "<gold>Harvest Area</gold>", 4),
     REACH("reach", "<blue>Reach</blue>", 5),

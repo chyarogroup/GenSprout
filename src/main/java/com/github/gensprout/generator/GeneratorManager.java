@@ -33,6 +33,7 @@ public class GeneratorManager {
     private final Map<Integer, GeneratorType> generatorTiers = new ConcurrentHashMap<>();
     private final NamespacedKey tierKey;
     private final NamespacedKey dropValueKey;
+    private final NamespacedKey dropOwnerKey;
     private final File dataFile;
     private FileConfiguration dataConfig;
 
@@ -44,6 +45,7 @@ public class GeneratorManager {
         this.plugin = plugin;
         this.tierKey = new NamespacedKey(plugin, "generator_tier");
         this.dropValueKey = new NamespacedKey(plugin, "drop_value");
+        this.dropOwnerKey = new NamespacedKey(plugin, "generator_owner");
         this.dataFile = new File(plugin.getGenSproutDataFolder(), "generators.yml");
         
         loadConfigTiers();
@@ -230,6 +232,12 @@ public class GeneratorManager {
                 World world = loc.getWorld();
                 if (world == null) continue;
 
+                // Generators only MAKE live drops when the generator owner is ONLINE
+                Player owner = Bukkit.getPlayer(gen.getOwnerUuid());
+                if (owner == null || !owner.isOnline()) {
+                    continue; // Owner is offline: DO NOT SPAWN LIVE DROPS (20% offline generation is handled on join)
+                }
+
                 int chunkX = pos.x() >> 4;
                 int chunkZ = pos.z() >> 4;
                 if (!world.isChunkLoaded(chunkX, chunkZ)) {
@@ -247,7 +255,7 @@ public class GeneratorManager {
                     continue;
                 }
 
-                spawnPhysicalDrops(loc, gen.getTier(), 1);
+                spawnPhysicalDrops(loc, gen.getTier(), 1, gen.getOwnerUuid());
                 gen.setLastHarvestTime(now);
 
                 world.spawnParticle(Particle.HAPPY_VILLAGER, loc.clone().add(0.5, 1.2, 0.5), 3, 0.2, 0.1, 0.2, 0.02);
@@ -265,21 +273,37 @@ public class GeneratorManager {
     }
 
     public void spawnPhysicalDrops(Location loc, int tier, int amount) {
-        ItemStack dropItem = createDropItem(tier);
+        spawnPhysicalDrops(loc, tier, amount, null);
+    }
+
+    public void spawnPhysicalDrops(Location loc, int tier, int amount, UUID ownerUuid) {
+        ItemStack dropItem = createDropItem(tier, ownerUuid);
         if (dropItem == null) return;
 
-        Location spawnLoc = loc.clone().add(0.5, 1.1, 0.5);
+        Location spawnLoc = loc.getBlock().getLocation().add(0.5, 1.05, 0.5);
         int remaining = amount;
         while (remaining > 0) {
             int currentBatch = Math.min(remaining, 64);
             ItemStack stack = dropItem.clone();
             stack.setAmount(currentBatch);
-            loc.getWorld().dropItem(spawnLoc, stack);
+            org.bukkit.entity.Item itemEntity = loc.getWorld().dropItem(spawnLoc, stack);
+            itemEntity.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+            itemEntity.teleport(spawnLoc);
+            if (ownerUuid != null) {
+                try {
+                    itemEntity.setOwner(ownerUuid);
+                } catch (Throwable ignored) {}
+                itemEntity.getPersistentDataContainer().set(dropOwnerKey, PersistentDataType.STRING, ownerUuid.toString());
+            }
             remaining -= currentBatch;
         }
     }
 
     public ItemStack createDropItem(int tier) {
+        return createDropItem(tier, null);
+    }
+
+    public ItemStack createDropItem(int tier, UUID ownerUuid) {
         GeneratorType type = getTierConfig(tier);
         if (type == null) return null;
 
@@ -304,6 +328,9 @@ public class GeneratorManager {
 
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(dropValueKey, PersistentDataType.DOUBLE, type.getDropValue());
+            if (ownerUuid != null) {
+                pdc.set(dropOwnerKey, PersistentDataType.STRING, ownerUuid.toString());
+            }
             item.setItemMeta(meta);
         }
         return item;

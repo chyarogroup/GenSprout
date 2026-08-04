@@ -202,8 +202,11 @@ public class DialogManager {
                 ))
                 .build();
 
-        int sellWandTier = getLowestSellWandTier();
-        double sellWandPrice = SellWand.getPriceForTier(plugin, sellWandTier);
+        int slotCost = plugin.getConfig().getInt("essence-slots.cost-per-slot", 500);
+        int maxEssenceSlots = plugin.getConfig().getInt("essence-slots.max-slots", 25);
+        int currentEssenceSlots = data.getEssenceSlots();
+
+        int sellWandCost = plugin.getConfig().getInt("sellwand.essence-cost", 1000);
 
         List<ActionButton> buttons = List.of(
                 ActionButton.builder(lang().getComponent("dialog.genshop.buy-button", player))
@@ -233,20 +236,46 @@ public class DialogManager {
                             }
                         }))
                         .build(),
-                ActionButton.builder(lang().getComponent("dialog.genshop.buy-sellwand-button", player,
-                                LanguageManager.values("price", EconomyHook.format(sellWandPrice))))
+                ActionButton.builder(lang().getComponent("dialog.genshop.buy-essence-slot-button", player,
+                                LanguageManager.values(
+                                        "current", String.valueOf(currentEssenceSlots),
+                                        "max", String.valueOf(maxEssenceSlots),
+                                        "cost", String.valueOf(slotCost))))
                         .action(action((view, p) -> {
-                            int tier = getLowestSellWandTier();
-                            double price = SellWand.getPriceForTier(plugin, tier);
-                            if (EconomyHook.has(p, price)) {
-                                EconomyHook.withdraw(p, price);
-                                ItemStack wand = SellWand.createSellWand(plugin, tier);
+                            PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                            int maxEssence = plugin.getConfig().getInt("essence-slots.max-slots", 25);
+                            int cost = plugin.getConfig().getInt("essence-slots.cost-per-slot", 500);
+                            if (pd.getEssenceSlots() >= maxEssence) {
+                                lang().send(p, "dialog.genshop.error-max-essence-slots");
+                            } else if (pd.removeEssence(cost)) {
+                                pd.setEssenceSlots(pd.getEssenceSlots() + 1);
+                                plugin.getPlayerManager().savePlayer(p.getUniqueId());
+                                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+                                lang().send(p, "dialog.genshop.buy-slot-success", LanguageManager.values(
+                                        "slots", String.valueOf(pd.getEssenceSlots())));
+                            } else {
+                                lang().send(p, "dialog.hoe.error-no-essence",
+                                        LanguageManager.values("cost", String.valueOf(cost)));
+                            }
+                            openGeneratorShop(p, null, null, view.getFloat("tier").intValue(), view.getFloat("qty").intValue());
+                        }))
+                        .build(),
+                ActionButton.builder(lang().getComponent("dialog.genshop.buy-sellwand-button", player,
+                                LanguageManager.values(
+                                        "cost", String.valueOf(sellWandCost),
+                                        "price", String.valueOf(sellWandCost))))
+                        .action(action((view, p) -> {
+                            PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                            int cost = plugin.getConfig().getInt("sellwand.essence-cost", 1000);
+                            if (pd.removeEssence(cost)) {
+                                plugin.getPlayerManager().savePlayer(p.getUniqueId());
+                                ItemStack wand = SellWand.createSellWand(plugin, 1);
                                 p.getInventory().addItem(wand).forEach((index, it) -> p.getWorld().dropItemNaturally(p.getLocation(), it));
                                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
                                 lang().send(p, "dialog.genshop.buy-sellwand-success");
                             } else {
-                                lang().send(p, "dialog.common.insufficient-funds",
-                                        LanguageManager.values("cost", EconomyHook.format(price)));
+                                lang().send(p, "dialog.hoe.error-no-essence",
+                                        LanguageManager.values("cost", String.valueOf(cost)));
                             }
                             openGeneratorShop(p, null, null, view.getFloat("tier").intValue(), view.getFloat("qty").intValue());
                         }))
@@ -274,8 +303,10 @@ public class DialogManager {
      * cost = base-cost + ((next_level ^ cost-exponent) * cost-multiplier)
      */
     private int getEnchantUpgradeCost(String configKey, int currentLevel) {
-        int baseCost = plugin.getConfig().getInt("hoe-enchants." + configKey + ".base-cost", 100);
-        double costMultiplier = plugin.getConfig().getDouble("hoe-enchants." + configKey + ".cost-multiplier", 50);
+        int defaultBase = (configKey.equals("replenish") || configKey.equals("auto_sell") || configKey.equals("harvest_area")) ? 100 : 10;
+        double defaultMult = (configKey.equals("replenish") || configKey.equals("auto_sell") || configKey.equals("harvest_area")) ? 50.0 : 2.0;
+        int baseCost = plugin.getConfig().getInt("hoe-enchants." + configKey + ".base-cost", defaultBase);
+        double costMultiplier = plugin.getConfig().getDouble("hoe-enchants." + configKey + ".cost-multiplier", defaultMult);
         double costExponent = plugin.getConfig().getDouble("hoe-enchants." + configKey + ".cost-exponent", 1.0);
         int nextLevel = currentLevel + 1;
         return (int) Math.round(baseCost + (Math.pow(nextLevel, costExponent) * costMultiplier));
@@ -517,6 +548,107 @@ public class DialogManager {
     }
 
     /**
+     * Computes the total essence cost to upgrade a hoe enchant by multiple levels.
+     */
+    private int getMultiLevelEnchantCost(String configKey, int currentLevel, int levelsToBuy) {
+        int totalCost = 0;
+        for (int i = 0; i < levelsToBuy; i++) {
+            totalCost += getEnchantUpgradeCost(configKey, currentLevel + i);
+        }
+        return totalCost;
+    }
+
+    public void openHoeEnchantSliderDialog(Player player, HoeEnchant enchant, String configKey) {
+        ItemStack currentHoe = player.getInventory().getItemInMainHand();
+        if (!HoeEnchant.isSproutHoe(currentHoe, plugin)) {
+            lang().send(player, "dialog.hoe.error-not-sprout-hoe");
+            openHoeUpgradeShop(player);
+            return;
+        }
+
+        PlayerData pd = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
+        int curLvl = enchant.getLevel(currentHoe, plugin);
+        int maxLvl = plugin.getConfig().getInt("hoe-enchants." + configKey + ".max-level", enchant.getMaxLevel());
+        int maxAdd = maxLvl - curLvl;
+
+        if (maxAdd <= 0) {
+            lang().send(player, "dialog.hoe.error-already-max", LanguageManager.values("max_level", String.valueOf(maxLvl)));
+            openHoeUpgradeShop(player);
+            return;
+        }
+
+        String enchantName = lang().getPlainText("dialog.hoe.button-" + configKey.replace('_', '-'), player);
+
+        DialogBase base = DialogBase.builder(lang().getComponent("dialog.hoe.upgrade-dialog-title", player,
+                        LanguageManager.values("enchant", enchantName)))
+                .body(List.of(
+                        DialogBody.plainMessage(lang().getComponent("dialog.hoe.upgrade-dialog-body", player,
+                                LanguageManager.values(
+                                        "enchant", enchantName,
+                                        "level", String.valueOf(curLvl),
+                                        "max_level", String.valueOf(maxLvl)))),
+                        DialogBody.plainMessage(lang().getComponent("dialog.hoe.stat-essence", player,
+                                LanguageManager.values("essence", String.valueOf(pd.getEssence()))))
+                ))
+                .inputs(List.of(
+                        DialogInput.numberRange("levels", lang().getComponent("dialog.hoe.upgrade-slider", player,
+                                        LanguageManager.values("max_add", String.valueOf(maxAdd))), 1f, (float) maxAdd)
+                                .step(1f)
+                                .initial(1f)
+                                .build()
+                ))
+                .build();
+
+        List<ActionButton> buttons = List.of(
+                ActionButton.builder(lang().getComponent("dialog.hoe.upgrade-buy-button", player))
+                        .action(action((view, p) -> {
+                            ItemStack hoe = p.getInventory().getItemInMainHand();
+                            if (!HoeEnchant.isSproutHoe(hoe, plugin)) {
+                                lang().send(p, "dialog.hoe.error-not-sprout-hoe");
+                                openHoeUpgradeShop(p);
+                                return;
+                            }
+                            int currentLevel = enchant.getLevel(hoe, plugin);
+                            int maxLevel = plugin.getConfig().getInt("hoe-enchants." + configKey + ".max-level", enchant.getMaxLevel());
+                            int availableAdd = maxLevel - currentLevel;
+                            if (availableAdd <= 0) {
+                                lang().send(p, "dialog.hoe.error-already-max", LanguageManager.values("max_level", String.valueOf(maxLevel)));
+                                openHoeUpgradeShop(p);
+                                return;
+                            }
+
+                            int levelsToBuy = Math.min(Math.max(1, view.getFloat("levels").intValue()), availableAdd);
+                            int totalCost = getMultiLevelEnchantCost(configKey, currentLevel, levelsToBuy);
+
+                            PlayerData data = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                            if (data.removeEssence(totalCost)) {
+                                enchant.setLevel(hoe, currentLevel + levelsToBuy, plugin, p);
+                                plugin.getPlayerManager().savePlayer(p.getUniqueId());
+                                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+                                lang().send(p, "dialog.hoe.upgrade-multi-success", LanguageManager.values(
+                                        "enchant", enchantName,
+                                        "levels", String.valueOf(levelsToBuy),
+                                        "level", String.valueOf(currentLevel + levelsToBuy),
+                                        "cost", String.valueOf(totalCost)));
+                            } else {
+                                lang().send(p, "dialog.hoe.error-no-essence", LanguageManager.values("cost", String.valueOf(totalCost)));
+                            }
+                            openHoeUpgradeShop(p);
+                        }))
+                        .build(),
+                ActionButton.builder(lang().getComponent("dialog.common.button-back", player))
+                        .action(action((view, p) -> openHoeUpgradeShop(p)))
+                        .build()
+        );
+
+        Dialog dialog = Dialog.create(builder -> builder.empty()
+                .base(base)
+                .type(DialogType.multiAction(buttons, closeButton(player), 1))
+        );
+        player.showDialog(dialog);
+    }
+
+    /**
      * @param unlockStyle    true for one-off unlocks such as Replenish, which have no levels
      * @param defaultBaseCost fallback essence cost for unlock-style enchants
      */
@@ -531,30 +663,34 @@ public class DialogManager {
                         openHoeUpgradeShop(p);
                         return;
                     }
-                    PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
-                    int curLvl = enchant.getLevel(currentHoe, plugin);
-                    int maxLvl = unlockStyle
-                            ? 1
-                            : plugin.getConfig().getInt("hoe-enchants." + configKey + ".max-level", enchant.getMaxLevel());
-                    int cost = unlockStyle
-                            ? plugin.getConfig().getInt("hoe-enchants." + configKey + ".base-cost", defaultBaseCost)
-                            : getEnchantUpgradeCost(configKey, curLvl);
-
-                    if (curLvl >= maxLvl) {
-                        lang().send(p, unlockStyle ? "dialog.hoe.error-already-unlocked" : "dialog.hoe.error-max-level");
-                    } else if (pd.removeEssence(cost)) {
-                        enchant.setLevel(currentHoe, curLvl + 1, plugin, p);
-                        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
+                    if (unlockStyle) {
+                        PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                        int curLvl = enchant.getLevel(currentHoe, plugin);
+                        int cost = plugin.getConfig().getInt("hoe-enchants." + configKey + ".base-cost", defaultBaseCost);
+                        if (curLvl >= 1) {
+                            lang().send(p, "dialog.hoe.error-already-unlocked");
+                        } else if (pd.removeEssence(cost)) {
+                            enchant.setLevel(currentHoe, 1, plugin, p);
+                            p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
+                        } else {
+                            lang().send(p, "dialog.hoe.error-no-essence",
+                                    LanguageManager.values("cost", String.valueOf(cost)));
+                        }
+                        openHoeUpgradeShop(p);
                     } else {
-                        lang().send(p, "dialog.hoe.error-no-essence",
-                                LanguageManager.values("cost", String.valueOf(cost)));
+                        openHoeEnchantSliderDialog(p, enchant, configKey);
                     }
-                    openHoeUpgradeShop(p);
                 }))
                 .build();
     }
 
     public void openGeneratorBlockControl(Player player, GeneratorBlock gen) {
+        if (!gen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("gensprout.admin")) {
+            String ownerName = org.bukkit.Bukkit.getOfflinePlayer(gen.getOwnerUuid()).getName();
+            lang().send(player, "generator.not-owner-named", LanguageManager.values("player", ownerName != null ? ownerName : "another player"));
+            return;
+        }
+
         GeneratorType type = plugin.getGeneratorManager().getTierConfig(gen.getTier());
         if (type == null) return;
 
@@ -580,6 +716,11 @@ public class DialogManager {
         List<ActionButton> buttons = List.of(
                 ActionButton.builder(lang().getComponent("dialog.gencontrol.button-upgrade", player))
                         .action(action((view, p) -> {
+                            if (!gen.getOwnerUuid().equals(p.getUniqueId()) && !p.hasPermission("gensprout.admin")) {
+                                lang().send(p, "generator.not-owner");
+                                closeDialog(p);
+                                return;
+                            }
                             if (nextType != null) {
                                 if (EconomyHook.has(p, upgradeCost)) {
                                     EconomyHook.withdraw(p, upgradeCost);
@@ -602,6 +743,11 @@ public class DialogManager {
                         .build(),
                 ActionButton.builder(lang().getComponent("dialog.gencontrol.button-pickup", player))
                         .action(action((view, p) -> {
+                            if (!gen.getOwnerUuid().equals(p.getUniqueId()) && !p.hasPermission("gensprout.admin")) {
+                                lang().send(p, "generator.not-owner");
+                                closeDialog(p);
+                                return;
+                            }
                             // Remove and give item
                             ItemStack item = plugin.getGeneratorManager().createGeneratorItem(gen.getTier(), 1, p);
                             plugin.getGeneratorManager().removeGenerator(gen.getLocation());
@@ -660,6 +806,16 @@ public class DialogManager {
                 .build();
 
         List<ActionButton> buttons = new ArrayList<>();
+
+        // Add Generators category button (redirects to /genshop)
+        String genCatName = lang().hasKey("dialog.supplies.categories.generators", player)
+                ? lang().getRawMessage("dialog.supplies.categories.generators", lang().resolveLocale(player))
+                : "<sprite:block/diamond_block> <gradient:green:aqua><bold>Generators</bold></gradient>";
+
+        buttons.add(ActionButton.builder(lang().renderRaw(genCatName, player, null))
+                .action(action((view, p) -> openGeneratorShop(p, null, null, 1, 1)))
+                .build());
+
         for (String catKey : categoriesSec.getKeys(false)) {
             String name = getCategoryDisplayNameRaw(player, catKey);
             buttons.add(ActionButton.builder(lang().renderRaw(name, player, null))
@@ -755,6 +911,21 @@ public class DialogManager {
                         ActionButton.builder(lang().getComponent("dialog.supplies.buy-button", player))
                                 .action(action((view, p) -> {
                                     int qty = Math.max(1, Math.min(64, view.getFloat("qty").intValue()));
+                                    if (itemKey.equalsIgnoreCase("sell_wand")) {
+                                        PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                                        int wandCost = plugin.getConfig().getInt("sellwand.essence-cost", 1000);
+                                        if (pd.removeEssence(wandCost)) {
+                                            plugin.getPlayerManager().savePlayer(p.getUniqueId());
+                                            ItemStack wand = SellWand.createSellWand(plugin, 1);
+                                            p.getInventory().addItem(wand).forEach((index, item) -> p.getWorld().dropItemNaturally(p.getLocation(), item));
+                                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+                                            lang().send(p, "dialog.genshop.buy-sellwand-success");
+                                        } else {
+                                            lang().send(p, "dialog.hoe.error-no-essence", LanguageManager.values("cost", String.valueOf(wandCost)));
+                                        }
+                                        openSuppliesCategoryItemsMenu(p, categoryKey);
+                                        return;
+                                    }
                                     double totalCost = unitPrice * qty;
                                     Material mat = Material.matchMaterial(matName);
                                     if (mat == null) mat = Material.COBBLESTONE;
@@ -762,6 +933,14 @@ public class DialogManager {
                                     if (EconomyHook.has(p, totalCost)) {
                                         EconomyHook.withdraw(p, totalCost);
                                         ItemStack stack = new ItemStack(mat, qty);
+                                        int effLevel = plugin.getConfig().getInt("generator-supplies-shop.categories." + categoryKey + ".items." + itemKey + ".efficiency", 0);
+                                        if (effLevel > 0) {
+                                            stack.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.EFFICIENCY, effLevel);
+                                        }
+                                        int sharpLevel = plugin.getConfig().getInt("generator-supplies-shop.categories." + categoryKey + ".items." + itemKey + ".sharpness", 0);
+                                        if (sharpLevel > 0) {
+                                            stack.addUnsafeEnchantment(org.bukkit.enchantments.Enchantment.SHARPNESS, sharpLevel);
+                                        }
                                         p.getInventory().addItem(stack).forEach((index, item) -> p.getWorld().dropItemNaturally(p.getLocation(), item));
                                         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
                                         Map<String, String> boughtValues = LanguageManager.values(
@@ -804,6 +983,8 @@ public class DialogManager {
                 : lang().renderRaw(plugin.getConfig().getString("first-join-tutorial.dialog-title", ""), player, null);
 
         List<DialogBody> bodyList = new ArrayList<>();
+        bodyList.add(DialogBody.plainMessage(lang().getComponent("dialog.tutorial.welcome", player)));
+
         List<String> configMessages = plugin.getConfig().getStringList("first-join-tutorial.messages");
         if (!configMessages.isEmpty() && !isConfigDefault("first-join-tutorial.messages")) {
             for (String msg : configMessages) {
@@ -814,30 +995,29 @@ public class DialogManager {
                 bodyList.add(DialogBody.plainMessage(line));
             }
         }
-        if (bodyList.isEmpty()) {
-            if (!configMessages.isEmpty()) {
-                for (String msg : configMessages) {
-                    bodyList.add(DialogBody.plainMessage(lang().renderRaw(msg, player, null)));
-                }
-            } else {
-                bodyList.add(DialogBody.plainMessage(lang().getComponent("dialog.tutorial.welcome", player)));
-            }
-        }
 
         DialogBase base = DialogBase.builder(title)
                 .body(bodyList)
                 .build();
 
+        List<ActionButton> buttons = List.of(
+                ActionButton.builder(lang().getComponent("dialog.tutorial.button-genshop", player))
+                        .action(action((view, p) -> openGeneratorShop(p, null, null, 1, 1)))
+                        .build(),
+                ActionButton.builder(lang().getComponent("dialog.tutorial.button-shop", player))
+                        .action(action((view, p) -> openSuppliesShopCategoryMenu(p)))
+                        .build(),
+                ActionButton.builder(lang().getComponent("dialog.tutorial.close", player))
+                        .action(action((view, p) -> {
+                            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+                            closeDialog(p);
+                        }))
+                        .build()
+        );
+
         Dialog dialog = Dialog.create(builder -> builder.empty()
                 .base(base)
-                .type(DialogType.multiAction(List.of(
-                        ActionButton.builder(lang().getComponent("dialog.tutorial.close", player))
-                                .action(action((view, p) -> {
-                                    p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
-                                    closeDialog(p);
-                                }))
-                                .build()
-                )).build())
+                .type(DialogType.multiAction(buttons, null, 1))
         );
         player.showDialog(dialog);
     }
