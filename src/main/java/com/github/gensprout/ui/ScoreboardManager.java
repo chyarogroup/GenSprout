@@ -2,6 +2,7 @@ package com.github.gensprout.ui;
 
 import com.github.gensprout.GenSprout;
 import com.github.gensprout.economy.EconomyHook;
+import com.github.gensprout.lang.LanguageManager;
 import com.github.gensprout.player.PlayerData;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -15,8 +16,15 @@ import org.bukkit.scoreboard.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ScoreboardManager {
+
+    /**
+     * Sidebar entry keys are built from legacy colour codes, which gives 16 usable invisible keys.
+     * Lines beyond this are dropped rather than colliding with an existing entry.
+     */
+    private static final int MAX_SIDEBAR_LINES = 16;
 
     private final GenSprout plugin;
     private BukkitTask task;
@@ -64,11 +72,30 @@ public class ScoreboardManager {
         }
     }
 
-    public void updateScoreboard(Player player) {
+    /**
+     * Every placeholder a scoreboard or tab list line may use. Server-wide values such as
+     * {@code servername} and {@code online} are added by the language layer, so only the
+     * player-specific values are built here.
+     */
+    private Map<String, String> buildPlaceholders(Player player) {
         PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
 
+        return LanguageManager.values(
+                "player", player.getName(),
+                "level", String.valueOf(data.getLevel()),
+                "xp", String.format("%.1f", data.getFarmingXp()),
+                "prestige", String.valueOf(data.getPrestige()),
+                "points", String.valueOf(data.getPrestigePoints()),
+                "essence", String.valueOf(data.getEssence()),
+                "placed_gens", String.valueOf(activeGens),
+                "max_gens", String.valueOf(maxSlots),
+                "balance", EconomyHook.format(EconomyHook.getBalance(player))
+        );
+    }
+
+    public void updateScoreboard(Player player) {
         if (!plugin.getConfig().getBoolean("scoreboard.enabled", true)) {
             if (player.getScoreboard() != Bukkit.getScoreboardManager().getMainScoreboard()) {
                 player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
@@ -82,76 +109,47 @@ public class ScoreboardManager {
             player.setScoreboard(board);
         }
 
-        String serverIp = plugin.getConfig().getString("server.ip", "play.gensprout.net");
-        String serverName = plugin.getConfig().getString("server.name", "<gradient:green:aqua><bold>GenSprout</bold></gradient>");
+        Map<String, String> placeholders = buildPlaceholders(player);
 
-        String titleRaw = plugin.getConfig().getString("scoreboard.title", "{servername}");
-        String titleProcessed = titleRaw
-            .replace("{player}", player.getName())
-            .replace("{servername}", serverName)
-            .replace("{server_name}", serverName)
-            .replace("{server_ip}", serverIp);
+        Component title = plugin.getLanguageManager().getComponent("scoreboard.title", player, placeholders);
 
         Objective obj = board.getObjective("gensprout");
         if (obj == null) {
-            obj = board.registerNewObjective("gensprout", "dummy", plugin.getMiniMessage().deserialize(titleProcessed));
+            obj = board.registerNewObjective("gensprout", "dummy", title);
             obj.setDisplaySlot(DisplaySlot.SIDEBAR);
         } else {
-            obj.displayName(plugin.getMiniMessage().deserialize(titleProcessed));
+            obj.displayName(title);
         }
 
-        List<String> rawLines = plugin.getConfig().getStringList("scoreboard.lines");
-        if (rawLines.isEmpty()) {
-            rawLines = List.of(
-                "<gray>-------------------</gray>",
-                "<gray>Player: <yellow>{player}</yellow></gray>",
-                "<gray>Level: <gold>{level}</gold></gray>",
-                "<gray>XP: <gold>{xp}</gold></gray>",
-                "<gray>Prestige: <gold>{prestige}</gold></gray>",
-                "<gray>Essence: <light_purple>{essence}</light_purple></gray>",
-                "<gray>Placed Gens: <gold>{placed_gens}/{max_gens}</gold></gray>",
-                "<gray>Balance: <green>{balance}</green></gray>",
-                "<gray>-------------------</gray>",
-                "{server_ip}"
-            );
+        List<Component> lines = plugin.getLanguageManager().getComponentList("scoreboard.lines", player, placeholders);
+        if (lines.isEmpty()) {
+            // Operators who customised the sidebar in config.yml before it moved into the language
+            // files keep working; the language files take priority when they define the key.
+            List<String> configLines = plugin.getConfig().getStringList("scoreboard.lines");
+            lines = new ArrayList<>(configLines.size());
+            for (String raw : configLines) {
+                lines.add(plugin.getLanguageManager().renderRaw(raw, player, placeholders));
+            }
         }
 
-        List<Component> lines = new ArrayList<>();
-        for (String rawLine : rawLines) {
-            String processed = rawLine
-                .replace("{player}", player.getName())
-                .replace("{level}", String.valueOf(data.getLevel()))
-                .replace("{xp}", String.format("%.1f", data.getFarmingXp()))
-                .replace("{prestige}", String.valueOf(data.getPrestige()))
-                .replace("{essence}", String.valueOf(data.getEssence()))
-                .replace("{placed_gens}", String.valueOf(activeGens))
-                .replace("{max_gens}", String.valueOf(maxSlots))
-                .replace("{balance}", EconomyHook.format(EconomyHook.getBalance(player)))
-                .replace("{server_ip}", serverIp)
-                .replace("{servername}", serverName)
-                .replace("{server_name}", serverName)
-                .replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()))
-                .replace("{ping}", String.valueOf(player.getPing()));
-            lines.add(plugin.getMiniMessage().deserialize(processed));
+        if (lines.size() > MAX_SIDEBAR_LINES) {
+            lines = lines.subList(0, MAX_SIDEBAR_LINES);
         }
-
-        ChatColor[] colorCodes = ChatColor.values();
         int totalLines = lines.size();
 
-        // Clean up excess teams if line count decreased
-        for (int i = totalLines; i < 16; i++) {
-            String entryKey = colorCodes[i % colorCodes.length] + "§r";
-            board.resetScores(entryKey);
-            Team team = board.getTeam("gs_line_" + i);
-            if (team != null) {
-                team.unregister();
+        // Remove teams and entries left behind when the line count shrinks
+        for (int i = totalLines; i < MAX_SIDEBAR_LINES; i++) {
+            board.resetScores(entryKey(i));
+            Team stale = board.getTeam("gs_line_" + i);
+            if (stale != null) {
+                stale.unregister();
             }
         }
 
         for (int i = 0; i < totalLines; i++) {
             int score = totalLines - i;
             String teamName = "gs_line_" + i;
-            String entryKey = colorCodes[i % colorCodes.length] + "§r";
+            String entryKey = entryKey(i);
 
             Team team = board.getTeam(teamName);
             if (team == null) {
@@ -164,38 +162,26 @@ public class ScoreboardManager {
         }
     }
 
+    /**
+     * An invisible, unique sidebar entry key for the given line index. Only the 16 colour codes are
+     * used; the formatting codes that follow them in {@link ChatColor#values()} are not valid
+     * standalone entries.
+     */
+    private String entryKey(int index) {
+        return ChatColor.getByChar("0123456789abcdef".charAt(index % 16)) + "§r";
+    }
+
     public void updateTabList(Player player) {
         if (!plugin.getConfig().getBoolean("tablist.enabled", true)) {
             player.sendPlayerListHeaderAndFooter(Component.empty(), Component.empty());
             return;
         }
 
-        String rawHeader = plugin.getConfig().getString("tablist.header", "\n{server_name}\n{tagline}\n");
-        String rawFooter = plugin.getConfig().getString("tablist.footer", "\n<gray>Online Players: <gold>{online}</gold> | Ping: <gold>{ping}ms</gold></gray>\n{server_ip}\n");
+        Map<String, String> placeholders = buildPlaceholders(player);
 
-        String serverIp = plugin.getConfig().getString("server.ip", "play.gensprout.net");
-        String serverName = plugin.getConfig().getString("server.name", "GenSprout MC");
-        String tagline = plugin.getConfig().getString("server.tagline", "<gray>The ultimate farming server</gray>");
+        Component header = plugin.getLanguageManager().getComponent("scoreboard.tablist.header", player, placeholders);
+        Component footer = plugin.getLanguageManager().getComponent("scoreboard.tablist.footer", player, placeholders);
 
-        String headerProcessed = rawHeader
-            .replace("{servername}", serverName)
-            .replace("{server_name}", serverName)
-            .replace("{server_ip}", serverIp)
-            .replace("{tagline}", tagline)
-            .replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()))
-            .replace("{ping}", String.valueOf(player.getPing()));
-
-        String footerProcessed = rawFooter
-            .replace("{servername}", serverName)
-            .replace("{server_name}", serverName)
-            .replace("{server_ip}", serverIp)
-            .replace("{tagline}", tagline)
-            .replace("{online}", String.valueOf(Bukkit.getOnlinePlayers().size()))
-            .replace("{ping}", String.valueOf(player.getPing()));
-
-        player.sendPlayerListHeaderAndFooter(
-            plugin.getMiniMessage().deserialize(headerProcessed),
-            plugin.getMiniMessage().deserialize(footerProcessed)
-        );
+        player.sendPlayerListHeaderAndFooter(header, footer);
     }
 }

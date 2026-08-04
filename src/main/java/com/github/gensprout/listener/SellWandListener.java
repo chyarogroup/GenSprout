@@ -45,6 +45,6 @@ public class SellWandListener implements Listener {
         }
 
         // Sell Wands only work on containers - remind the player instead of selling their inventory
-        player.sendActionBar(plugin.getMiniMessage().deserialize("<red>Right-click a chest, barrel, or other container to sell its contents!</red>"));
+        plugin.getLanguageManager().sendActionBar(player, "economy.sellwand-needs-container");
     }
 }

@@ -121,21 +121,16 @@ public class SellManager {
             EconomyHook.deposit(player, totalEarnings);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f);
 
-            String xpMsg = "";
             if (totalXpEarned > 0.0) {
                 plugin.getPlayerManager().addXp(player, totalXpEarned);
-                xpMsg = " <gray>(+" + String.format("%.2f", totalXpEarned) + " XP)</gray>";
             }
 
-            String multMsg = extraMultiplier > 1.0
-                    ? " <light_purple>(Sell Wand " + String.format("%.1f", extraMultiplier) + "x)</light_purple>"
-                    : "";
-
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Successfully sold <gold>" + totalItemsSold + "</gold> item(s) for <gold>" + EconomyHook.format(totalEarnings) + "</gold>!" + multMsg + xpMsg + "</green>"
+            plugin.getLanguageManager().send(player, "economy.sell-success", com.github.gensprout.lang.LanguageManager.values(
+                    "amount", String.valueOf(totalItemsSold),
+                    "total", EconomyHook.format(totalEarnings)
             ));
         } else {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>There is nothing sellable in there!</red>"));
+            plugin.getLanguageManager().send(player, "economy.nothing-sellable-container");
         }
     }
 
@@ -168,21 +163,16 @@ public class SellManager {
             EconomyHook.deposit(player, totalEarnings);
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.5f, 1.2f);
 
-            String xpMsg = "";
             if (totalXpEarned > 0.0) {
                 plugin.getPlayerManager().addXp(player, totalXpEarned);
-                xpMsg = " <gray>(+" + String.format("%.2f", totalXpEarned) + " XP)</gray>";
             }
 
-            String multMsg = extraMultiplier > 1.0
-                    ? " <light_purple>(Sell Wand " + String.format("%.1f", extraMultiplier) + "x)</light_purple>"
-                    : "";
-
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Successfully sold <gold>" + totalItemsSold + "</gold> item(s) for <gold>" + EconomyHook.format(totalEarnings) + "</gold>!" + multMsg + xpMsg + "</green>"
+            plugin.getLanguageManager().send(player, "economy.sell-success", com.github.gensprout.lang.LanguageManager.values(
+                    "amount", String.valueOf(totalItemsSold),
+                    "total", EconomyHook.format(totalEarnings)
             ));
         } else {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You do not have any crops or generator drops to sell in your inventory!</red>"));
+            plugin.getLanguageManager().send(player, "economy.nothing-sellable-inventory");
         }
     }
 
@@ -202,7 +192,10 @@ public class SellManager {
         if (res.xpEarned > 0.0) {
             plugin.getPlayerManager().addXp(player, res.xpEarned);
         }
-        player.sendActionBar(plugin.getMiniMessage().deserialize("<green>Auto-Sold <gold>" + res.itemsSold + "x</gold> for <gold>" + EconomyHook.format(res.earnings) + "</gold></green>"));
+        plugin.getLanguageManager().sendActionBar(player, "actionbar.autosell", com.github.gensprout.lang.LanguageManager.values(
+                "amount", String.valueOf(res.itemsSold),
+                "total", EconomyHook.format(res.earnings)
+        ));
         return true;
     }
 }

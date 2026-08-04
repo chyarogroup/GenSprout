@@ -5,6 +5,7 @@ import com.github.gensprout.economy.EconomyHook;
 import com.github.gensprout.farming.HoeEnchant;
 import com.github.gensprout.generator.GeneratorBlock;
 import com.github.gensprout.generator.GeneratorType;
+import com.github.gensprout.lang.LanguageManager;
 import com.github.gensprout.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -45,9 +46,7 @@ public class GeneratorPlaceListener implements Listener {
 
         if (active >= max) {
             event.setCancelled(true);
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<red>You have reached your placed generator limit of <gold>" + max + "</gold>! Buy more slots or prestige to place more.</red>"
-            ));
+            plugin.getLanguageManager().send(player, "actionbar.gen-limit", LanguageManager.values("max", String.valueOf(max)));
             return;
         }
 
@@ -57,12 +56,14 @@ public class GeneratorPlaceListener implements Listener {
         if (placed) {
             plugin.getGeneratorManager().saveGenerators();
             player.playSound(block.getLocation(), Sound.BLOCK_ANVIL_PLACE, 0.5f, 1.5f);
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Placed Tier " + tier + " Generator! (" + (active + 1) + "/" + max + " active)</green>"
+            plugin.getLanguageManager().send(player, "actionbar.gen-placed", LanguageManager.values(
+                    "tier", String.valueOf(tier),
+                    "used", String.valueOf(active + 1),
+                    "max", String.valueOf(max)
             ));
         } else {
             event.setCancelled(true);
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>Failed to place generator!</red>"));
+            plugin.getLanguageManager().send(player, "generator.place-failed");
         }
     }
 
@@ -87,19 +88,19 @@ public class GeneratorPlaceListener implements Listener {
         if (gen == null) return;
 
         if (!gen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("gensprout.admin")) {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>This generator belongs to someone else!</red>"));
+            plugin.getLanguageManager().send(player, "generator.not-owner");
             return;
         }
 
         // Give the block back to the player
-        ItemStack item = plugin.getGeneratorManager().createGeneratorItem(gen.getTier(), 1);
+        ItemStack item = plugin.getGeneratorManager().createGeneratorItem(gen.getTier(), 1, player);
         plugin.getGeneratorManager().removeGenerator(loc);
         plugin.getGeneratorManager().saveGenerators();
 
         // Put in inventory or drop
         player.getInventory().addItem(item).forEach((index, it) -> player.getWorld().dropItemNaturally(loc, it));
         player.playSound(loc, Sound.BLOCK_WOOD_BREAK, 0.7f, 0.8f);
-        player.sendMessage(plugin.getMiniMessage().deserialize("<green>Picked up your Tier " + gen.getTier() + " Generator.</green>"));
+        plugin.getLanguageManager().send(player, "actionbar.gen-removed", LanguageManager.values("tier", String.valueOf(gen.getTier())));
     }
 
     private final java.util.Map<UUID, Long> shiftUpgradeCooldown = new java.util.HashMap<>();
@@ -161,9 +162,7 @@ public class GeneratorPlaceListener implements Listener {
             if (!gen.getOwnerUuid().equals(player.getUniqueId()) && !player.hasPermission("gensprout.admin")) {
                 UUID ownerUuid = gen.getOwnerUuid();
                 String ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
-                player.sendMessage(plugin.getMiniMessage().deserialize(
-                        "<red>This generator belongs to " + (ownerName != null ? ownerName : "another player") + ".</red>"
-                ));
+                plugin.getLanguageManager().send(player, "generator.not-owner-named", LanguageManager.values("player", ownerName != null ? ownerName : "another player"));
                 return;
             }
 
@@ -181,7 +180,7 @@ public class GeneratorPlaceListener implements Listener {
 
                 GeneratorType nextType = plugin.getGeneratorManager().getTierConfig(gen.getTier() + 1);
                 if (nextType == null) {
-                    player.sendMessage(plugin.getMiniMessage().deserialize("<red>This generator is already at maximum tier!</red>"));
+                    plugin.getLanguageManager().send(player, "dialog.gencontrol.error-max-tier");
                     return;
                 }
 
@@ -193,10 +192,11 @@ public class GeneratorPlaceListener implements Listener {
                     plugin.getGeneratorManager().saveGenerators();
 
                     player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 0.5f, 1.2f);
-                    player.sendMessage(plugin.getMiniMessage().deserialize("<green>Upgraded Generator to Tier " + gen.getTier() + "!</green>"));
+                    plugin.getLanguageManager().send(player, "generator.upgrade-success", LanguageManager.values("tier", String.valueOf(gen.getTier())));
                 } else {
-                    player.sendMessage(plugin.getMiniMessage().deserialize(
-                            "<red>Insufficient funds! You need " + EconomyHook.format(upgradeCost) + " to upgrade to Tier " + nextType.getTier() + ".</red>"
+                    plugin.getLanguageManager().send(player, "generator.insufficient-funds-upgrade", LanguageManager.values(
+                            "cost", EconomyHook.format(upgradeCost),
+                            "tier", String.valueOf(nextType.getTier())
                     ));
                 }
             } else {

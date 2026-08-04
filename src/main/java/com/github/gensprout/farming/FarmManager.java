@@ -34,11 +34,11 @@ public class FarmManager {
     public FarmManager(GenSprout plugin) {
         this.plugin = plugin;
         this.selectorKey = new NamespacedKey(plugin, "selector_tool");
-        this.dataFile = new File(plugin.getDataFolder(), "data/farm.yml");
+        this.dataFile = new File(plugin.getGenSproutDataFolder(), "farm.yml");
         loadFarmRegion();
     }
 
-    private void loadFarmRegion() {
+    public void loadFarmRegion() {
         if (!dataFile.exists()) {
             return; // No farm defined yet
         }
@@ -132,22 +132,38 @@ public class FarmManager {
     }
 
     public ItemStack createSelectorStick() {
+        return createSelectorStick(null);
+    }
+
+    public void rebuildSelectorStickLore(ItemStack item, org.bukkit.entity.Player viewer) {
+        if (!isSelectorStick(item)) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
+        meta.displayName(plugin.getLanguageManager().getComponent("items.selector.name", viewer)
+                .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        List<Component> rawLore = plugin.getLanguageManager().getComponentList("items.selector.lore", viewer);
+        List<Component> finalLore = new ArrayList<>();
+        for (Component c : rawLore) {
+            finalLore.add(c.decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        }
+        String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
+        finalLore.add(plugin.getLanguageManager().getComponent("items.selector.lore-savefarm", viewer,
+                com.github.gensprout.lang.LanguageManager.values("command", mainCmd))
+                .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        meta.lore(finalLore);
+        item.setItemMeta(meta);
+    }
+
+    public ItemStack createSelectorStick(org.bukkit.entity.Player viewer) {
         ItemStack stick = new ItemStack(Material.STICK);
         ItemMeta meta = stick.getItemMeta();
         if (meta != null) {
-            meta.displayName(plugin.getMiniMessage().deserialize("<gradient:green:aqua><bold>Farm Selector Stick</bold></gradient>"));
-            List<Component> lore = new ArrayList<>();
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Use to select cuboid farm boundaries.</gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Left Click: <yellow>Set Pos 1</yellow></gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Right Click: <yellow>Set Pos 2</yellow></gray>"));
-            String mainCmd = plugin.getConfig().getString("commands.gensprout", "gensprout");
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Run <gold>/" + mainCmd + " savefarm</gold> to define.</gray>"));
-            meta.lore(lore);
-
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(selectorKey, PersistentDataType.BYTE, (byte) 1);
             stick.setItemMeta(meta);
         }
+        rebuildSelectorStickLore(stick, viewer);
         return stick;
     }
 

@@ -31,7 +31,7 @@ public class FarmSelectorListener implements Listener {
 
         if (!player.hasPermission("gensprout.admin")) {
             event.setCancelled(true);
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You do not have permission to use the Farm Selector Stick!</red>"));
+            plugin.getLanguageManager().send(player, "system.no-permission");
             return;
         }
 
@@ -50,13 +50,19 @@ public class FarmSelectorListener implements Listener {
 
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             plugin.getFarmManager().setPos1(player.getUniqueId(), loc);
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Position 1 set to <gold>" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "</gold> in world <yellow>" + loc.getWorld().getName() + "</yellow>.</green>"
+            plugin.getLanguageManager().send(player, "command.farm.pos1", com.github.gensprout.lang.LanguageManager.values(
+                    "x", String.valueOf(loc.getBlockX()),
+                    "y", String.valueOf(loc.getBlockY()),
+                    "z", String.valueOf(loc.getBlockZ()),
+                    "world", loc.getWorld().getName()
             ));
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             plugin.getFarmManager().setPos2(player.getUniqueId(), loc);
-            player.sendMessage(plugin.getMiniMessage().deserialize(
-                    "<green>Position 2 set to <gold>" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + "</gold> in world <yellow>" + loc.getWorld().getName() + "</yellow>.</green>"
+            plugin.getLanguageManager().send(player, "command.farm.pos2", com.github.gensprout.lang.LanguageManager.values(
+                    "x", String.valueOf(loc.getBlockX()),
+                    "y", String.valueOf(loc.getBlockY()),
+                    "z", String.valueOf(loc.getBlockZ()),
+                    "world", loc.getWorld().getName()
             ));
         }
     }

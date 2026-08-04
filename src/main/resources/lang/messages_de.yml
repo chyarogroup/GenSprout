@@ -1,0 +1,365 @@
+# GenSprout - Deutsches Sprachpaket
+#
+# Platzhalter funktionieren in beiden Schreibweisen: <placeholder> oder {placeholder}. Beide liefern
+# denselben Wert, nutze also die, die dir besser gefällt.
+#
+# Immer verfügbar: {servername}, {servername_styled}, {server_ip}, {tagline}, {online},
+# {max_players}, {prefix}. Nachrichten an Spieler erhalten zusätzlich {player}, {ping} und {lang}.
+#
+# {servername} ist der reine Servername ohne Formatierung, du kannst ihn also gefahrlos in eigene
+# Farben und Gradienten einpacken. {servername_styled} behält das Markup aus der config.yml bei.
+#
+# Geldbeträge enthalten das Währungssymbol bereits, schreibe also <cost> und nicht $<cost>.
+#
+# file-version dient dazu, veraltete Dateien nach einem Plugin-Update zu erkennen. Nicht entfernen!
+# Wenn das Plugin eine neuere Version mitbringt, wird deine alte Datei in .old umbenannt und die neue
+# an ihre Stelle geschrieben. Bewahre also eine Kopie deiner Änderungen auf.
+file-version: 4
+
+prefix: "<gradient:green:aqua><b>{servername}</b></gradient> <dark_gray>»</dark_gray> "
+
+system:
+  no-permission: "<red>Du hast keine Berechtigung, diesen Befehl auszuführen!</red>"
+  player-only: "<red>Nur Spieler können diesen Befehl ausführen!</red>"
+  player-only-action: "<red>Nur Spieler können <action>!</red>"
+  player-not-found: "<red>Keine Spieler gefunden, die zu '<player>' passen.</red>"
+  reload-success: "<green>Konfiguration und Sprachdateien von {servername} erfolgreich neu geladen!</green>"
+  unknown-subcommand: "<red>Unbekannter Unterbefehl. Tippe <gold>/<command> help</gold> für Hilfe.</red>"
+  economy-disabled: "<red>Die Vault-Wirtschaft ist auf diesem Server nicht aktiviert.</red>"
+  invalid-number: "<red><input> ist keine gültige Zahl!</red>"
+
+command:
+  usage: "<red>Verwendung: <gold>/<command> <help|start|givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige|givehoe|givesellwand|clearstats|reload></gold></red>"
+  admin-usage: "<red>Verwendung: <gold>/<command> <subcommand> <player> <amount></gold></red>"
+  opened:
+    main: "<green>Hauptmenü für <gold><player></gold> geöffnet.</green>"
+    genshop: "<green>Generator-Shop für <gold><player></gold> geöffnet.</green>"
+    prestige: "<green>Prestige-Menü für <gold><player></gold> geöffnet.</green>"
+    supplies: "<green>Baumaterial-Shop für <gold><player></gold> geöffnet.</green>"
+  executed:
+    sellall: "<green>Verkauf für <gold><player></gold> ausgeführt.</green>"
+    start: "<green>Tutorial für <gold><player></gold> gestartet.</green>"
+  start:
+    already-completed: "<red>Du hast das Tutorial bereits abgeschlossen und deine Startausrüstung erhalten!</red>"
+    success: "<green>Tutorial gestartet! Du hast eine <gradient:green:aqua>Sprout-Hacke</gradient> und <gold><amount></gold> Generatoren der Stufe 1 für den Start erhalten!</green>"
+  givegen:
+    usage: "<red>Verwendung: <gold>/<command> givegen <player> <tier> [amount]</gold></red>"
+    invalid-tier: "<red>Ungültige Generator-Stufe! Wähle zwischen 1 und <max_tier>.</red>"
+    error-not-number: "<red>Stufe und Menge müssen beide Zahlen sein!</red>"
+    success-sender: "<green><gold><amount>x Generator(en) der Stufe <tier></gold> an <gold><player></gold> gegeben.</green>"
+    success-target: "<green>Du hast <gold><amount>x Generator(en) der Stufe <tier></gold> erhalten!</green>"
+  givegenslots:
+    error-not-number: "<red>Die Slot-Anzahl muss eine Zahl sein!</red>"
+    success-sender: "<green><gold><amount></gold> zusätzliche Generator-Slot(s) an <gold><player></gold> gegeben.</green>"
+    success-target: "<green>Du hast <gold><amount></gold> zusätzliche Generator-Slot(s) von einem Admin erhalten.</green>"
+  givehoe:
+    usage: "<red>Verwendung: <gold>/<command> givehoe <player></gold></red>"
+    success-sender: "<green>Eine Sprout-Hacke an <gold><player></gold> gegeben.</green>"
+    success-target: "<green>Du hast eine Sprout-Hacke von einem Admin erhalten.</green>"
+  givesellwand:
+    usage: "<red>Verwendung: <gold>/<command> givesellwand <player> [tier]</gold></red>"
+    error-not-number: "<red>Die Stufe muss eine Zahl sein!</red>"
+    success-sender: "<green>Einen Verkaufsstab (Stufe <gold><tier></gold>) an <gold><player></gold> gegeben.</green>"
+    success-target: "<green>Du hast einen Verkaufsstab von einem Admin erhalten.</green>"
+  addxp:
+    error-not-number: "<red>Die XP-Menge muss eine Zahl sein!</red>"
+    success-sender: "<green><gold><amount></gold> Farm-XP zu <gold><player></gold> hinzugefügt.</green>"
+    success-target: "<green>Du hast <gold><amount></gold> Farm-XP von einem Admin erhalten.</green>"
+  addessence:
+    error-not-number: "<red>Die Essenz-Menge muss eine Zahl sein!</red>"
+    success-sender: "<green><gold><amount></gold> Essenz zu <gold><player></gold> hinzugefügt.</green>"
+    success-target: "<green>Du hast <gold><amount></gold> Essenz von einem Admin erhalten.</green>"
+  removeessence:
+    success-sender: "<green><gold><amount></gold> Essenz von <gold><player></gold> entfernt. Neuer Stand: <gold><total></gold>.</green>"
+    success-target: "<red>Ein Admin hat <gold><amount></gold> Essenz von deinem Guthaben entfernt.</red>"
+  setessence:
+    success-sender: "<green>Essenz-Guthaben von <gold><player></gold> auf <gold><amount></gold> gesetzt.</green>"
+    success-target: "<green>Dein Essenz-Guthaben wurde von einem Admin auf <gold><amount></gold> gesetzt.</green>"
+  addmoney:
+    error-not-number: "<red>Der Betrag muss eine Zahl sein!</red>"
+    success-sender: "<green><gold><amount></gold> an <gold><player></gold> gegeben.</green>"
+    success-target: "<green>Du hast <gold><amount></gold> von einem Admin erhalten.</green>"
+  setlevel:
+    error-not-number: "<red>Das Level muss eine Zahl sein!</red>"
+    success-sender: "<green>Farm-Level von <gold><player></gold> auf <gold><level></gold> gesetzt.</green>"
+    success-target: "<green>Dein Farm-Level wurde von einem Admin auf <gold><level></gold> gesetzt.</green>"
+  setprestige:
+    error-not-number: "<red>Das Prestige muss eine Zahl sein!</red>"
+    success-sender: "<green>Prestige von <gold><player></gold> auf <gold><prestige></gold> gesetzt.</green>"
+    success-target: "<green>Dein Prestige wurde von einem Admin auf <gold><prestige></gold> gesetzt.</green>"
+  clearstats:
+    usage: "<red>Verwendung: <gold>/<command> clearstats <player></gold></red>"
+    success-sender: "<green>Alle Statistiken (Level, XP, Prestige, Essenz, Geld) von <gold><player></gold> zurückgesetzt.</green>"
+    success-target: "<red>Alle deine Statistiken (Level, XP, Prestige, Essenz, Geld) wurden von einem Admin zurückgesetzt.</red>"
+    success-offline: "<green>Alle Statistiken des Offline-Spielers <gold><player></gold> zurückgesetzt.</green>"
+  farm:
+    selector-given: "<green>Du hast den Farm-Auswahlstab erhalten. Setze mit Links- und Rechtsklick beide Ecken und führe dann <gold>/<command> savefarm</gold> aus, um die Region festzulegen.</green>"
+    no-selection: "<red>Du hast nicht beide Positionen ausgewählt! Nutze zuerst Links- und Rechtsklick mit dem Farm-Auswahlstab.</red>"
+    different-world: "<red>Beide Positionen müssen in derselben Welt liegen!</red>"
+    pos1: "<green>Farm-Ecke #1 auf <gold><x>, <y>, <z></gold> in <gold><world></gold> gesetzt.</green>"
+    pos2: "<green>Farm-Ecke #2 auf <gold><x>, <y>, <z></gold> in <gold><world></gold> gesetzt.</green>"
+    saved: "<green>Farm-Region erfolgreich festgelegt und gespeichert!</green>"
+    populated: "<green>Farm-Region mit Ackerboden und Weizen gefüllt!</green>"
+
+dialog:
+  common:
+    button-back: "<gray>⬅ Zurück zum Hauptmenü</gray>"
+    button-close: "<red>❌ Menü schließen</red>"
+    insufficient-funds: "<red>Nicht genug Geld! Du brauchst <cost>.</red>"
+    invalid-selection: "<red>Ungültige Auswahl!</red>"
+
+  main:
+    title: "<gradient:green:aqua><b>{servername} Hauptmenü</b></gradient>"
+    body: "Willkommen auf <b>{servername}</b>! Wähle unten eine Aktion, um deine Generatoren zu verwalten, Werkzeuge aufzuwerten oder zu prestigen."
+    stat-level: "<gray>Level: <gold><level></gold></gray>"
+    stat-xp: "<gray>XP: <gold><xp></gold></gray>"
+    stat-prestige: "<gray>Prestige: <gold><prestige></gold> (<yellow><points> Punkte</yellow>)</gray>"
+    stat-slots: "<gray>Generator-Slots: <gold><used>/<max></gold></gray>"
+    stat-essence: "<gray>Farm-Essenz: <light_purple><essence></light_purple></gray>"
+    stat-balance: "<gray>Guthaben: <green><balance></green></gray>"
+    button-genshop: "<green>Generator-Shop</green>"
+    button-hoe: "<green>Sprout-Hacken-Upgrades</green>"
+    button-prestige: "<yellow>Prestige-Menü</yellow>"
+    button-supplies: "<blue>Baumaterial-Shop</blue>"
+    button-close: "<red>❌ Menü schließen</red>"
+
+  genshop:
+    title: "<gradient:green:aqua><b>Generator-Shop</b></gradient>"
+    body: "Kaufe Generatoren und erweitere dein Limit an Generator-Slots."
+    tier-select: "Generator-Stufe wählen (1 - <max_tier>):"
+    qty-select: "Menge wählen (1 - 64):"
+    buy-button: "<green>Ausgewählte Generatoren kaufen</green>"
+    buy-slot-button: "<gold>+1 Slot kaufen (<cost>)</gold>"
+    buy-sellwand-button: "<gold>Verkaufsstab kaufen (<price>)</gold>"
+    check-price-button: "<aqua>Gesamtpreis prüfen</aqua>"
+    buy-success: "<green><gold><amount>x Generator(en) der Stufe <tier></gold> für <gold><cost></gold> gekauft!</green>"
+    buy-sellwand-success: "<green>Verkaufsstab gekauft!</green>"
+
+  gencontrol:
+    title: "<gradient:gold:yellow><b>Generator-Steuerung</b></gradient>"
+    tier: "<gray>Generator-Stufe: <gold><tier>/<max_tier></gold></gray>"
+    drop-value: "<gray>Drop-Wert: <green><value></green></gray>"
+    upgrade-cost: "<gray>Kosten für nächste Stufe: <gold><cost></gold></gray>"
+    max-tier: "<red>MAX. STUFE ERREICHT</red>"
+    button-upgrade: "<yellow>Stufe aufwerten</yellow>"
+    button-pickup: "<gold>Generator aufheben</gold>"
+    upgrade-success: "<green>Dein Generator wurde auf Stufe <gold><tier></gold> aufgewertet!</green>"
+    error-max-tier: "<red>Dieser Generator hat schon die höchste Stufe!</red>"
+    pickup-success: "<green>Du hast deinen Generator-Block aufgehoben!</green>"
+
+  hoe:
+    title: "<gradient:light_purple:aqua><b>Hacken-Verzauberung</b></gradient>"
+    body: "Halte deine Sprout-Hacke in der Hand und werte ihre Spezial-Verzauberungen mit Farm-Essenz auf."
+    max: "MAX"
+    unlocked: "Freigeschaltet"
+    locked: "Gesperrt"
+    stat-essence: "<gray>Essenz: <light_purple><essence></light_purple></gray>"
+    stat-xp-booster: "<gray>XP-Booster: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-essence-finder: "<gray>Essenz-Finder: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-crop-doubler: "<gray>Ernte-Verdoppler: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-reach: "<gray>Reichweite: Level <gold><level>/<max_level></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-replenish: "<gray>Nachpflanzen: <gold><status></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-auto-sell: "<gray>Auto-Verkauf (nur Ernte): <gold><status></gold> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area: "<gray>Erntefläche: Level <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Kosten: <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area-max: "<gray>Erntefläche: Level <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Kosten: <light_purple>MAX</light_purple>)</gray>"
+    no-hoe-title: "<light_purple>Sprout-Hacken-Shop</light_purple>"
+    no-hoe-body: "<red>Du musst eine Sprout-Hacke halten, um Verzauberungen aufzuwerten!</red>\n<gray>Eine Einsteiger-Sprout-Hacke für <gold><cost></gold> kaufen?</gray>"
+    no-hoe-buy: "<green>Sprout-Hacke kaufen (<cost>)</green>"
+    button-xp-booster: "<yellow>XP-Booster</yellow>"
+    button-essence-finder: "<light_purple>Essenz-Finder</light_purple>"
+    button-crop-doubler: "<green>Ernte-Verdoppler</green>"
+    button-replenish: "<aqua>Nachpflanzen</aqua>"
+    button-harvest-area: "<gold>Erntefläche</gold>"
+    button-reach: "<blue>Reichweite</blue>"
+    button-auto-sell: "<gold>Auto-Verkauf (nur Ernte)</gold>"
+    buy-success: "<green>Sprout-Hacke gekauft!</green>"
+    initialized: "<green>Deine gehaltene Hacke ist jetzt eine Sprout-Hacke!</green>"
+    error-need-hoe: "<red>Halte eine Hacke, um die Upgrades zu öffnen!</red>"
+    error-not-sprout-hoe: "<red>Halte eine Sprout-Hacke, um sie aufzuwerten!</red>"
+    error-no-essence: "<red>Nicht genug Essenz! Du brauchst <light_purple><cost></light_purple>.</red>"
+    error-max-level: "<red>Schon auf Maximallevel!</red>"
+    error-already-unlocked: "<red>Schon freigeschaltet!</red>"
+
+  prestige:
+    title: "<gradient:yellow:gold><b>Prestige-Menü</b></gradient>"
+    body: "Setze dein Farm-Level zurück, um Prestige-Punkte zu erhalten und dauerhafte Multiplikatoren freizuschalten."
+    stat-prestige: "<gray>Prestige-Level: <gold><prestige></gold></gray>"
+    stat-req-level: "<gray>Level für nächstes Prestige: <gold><level>/<req_level></gold></gray>"
+    stat-points: "<gray>Prestige-Punkte: <yellow><points></yellow></gray>"
+    stat-xp-mult: "<gray>XP-Multiplikator: <gold>+<percent>%</gold> (Lvl <level>)</gray>"
+    stat-money-mult: "<gray>Geld-Multiplikator: <gold>+<percent>%</gold> (Lvl <level>)</gray>"
+    stat-essence-mult: "<gray>Essenz-Multiplikator: <gold>+<percent>%</gold> (Lvl <level>)</gray>"
+    button-prestige: "<yellow>Prestige auslösen (ab Lvl <req_level>)</yellow>"
+    button-buy-xp-mult: "<aqua>XP-Mult. kaufen (+5%) [1 Punkt]</aqua>"
+    button-buy-money-mult: "<green>Geld-Mult. kaufen (+5%) [1 Punkt]</green>"
+    button-buy-essence-mult: "<light_purple>Essenz-Mult. kaufen (+5%) [1 Punkt]</light_purple>"
+    success: "<green><b>PRESTIGE!</b> Zurück auf Level 1. Slots und Prestige-Punkt erhöht!</green>"
+    error-level: "<red>Du musst Farm-Level <gold><req_level></gold> erreichen, um zu prestigen!</red>"
+    error-no-points: "<red>Keine Prestige-Punkte verfügbar!</red>"
+
+  supplies:
+    title: "<gradient:#4ea8de:#48bfe3><b>Bau-Shop</b></gradient>"
+    body: "Wähle eine Kategorie, um Baumaterial für Generatoren anzusehen."
+    cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
+    cat-body: "<gray>Wähle einen Gegenstand zum Kaufen:</gray>"
+    item-title: "<gradient:#4ea8de:#48bfe3><b>Gegenstand kaufen</b></gradient>"
+    item-button: "<item_name> <gray>(<unit_price> pro Stk.)</gray>"
+    buy-item-line: "<gray>Gegenstand: <item_name></gray>"
+    buy-body: "<gray>Stückpreis: <gold><unit_price></gold></gray>"
+    qty-select: "Menge (1-64)"
+    buy-button: "<green>Auswahl kaufen</green>"
+    check-price-button: "<aqua>Gesamtpreis prüfen</aqua>"
+    total-price: "<yellow>Gesamtpreis für <amount>x: </yellow><green><total_price></green>"
+    buy-success: "<green><gold><amount>x <item></gold> für <gold><cost></gold> gekauft!</green>"
+    button-back-categories: "<gray>⬅ Zurück zu den Kategorien</gray>"
+    button-back-items: "<gray>⬅ Zurück zu den Gegenständen</gray>"
+    disabled: "<red>Der Bau-Shop ist derzeit deaktiviert!</red>"
+    no-categories: "<red>Es sind keine Baumaterial-Kategorien konfiguriert!</red>"
+    no-items: "<red>Keine Artikel in dieser Kategorie gefunden!</red>"
+    categories:
+      stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Stein & Struktur</bold></gradient>"
+      concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Beton & Farben</bold></gradient>"
+      quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Quarz, Nether & Ende</bold></gradient>"
+      wood_planks: "<sprite:block/oak_planks> <gradient:gold:yellow><bold>Holz & Bretter</bold></gradient>"
+      glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Glas & Beleuchtung</bold></gradient>"
+      storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Lagerung & Nützliches</bold></gradient>'
+    items:
+      cobblestone: "<sprite:block/cobblestone> <gray>Bruchstein</gray>"
+      smooth_stone: "<sprite:block/smooth_stone> <gray>Glatter Stein</gray>"
+      stone_bricks: "<sprite:block/stone_bricks> <gray>Steinziegel</gray>"
+      mossy_stone_bricks: "<sprite:block/mossy_stone_bricks> <dark_green>Moosige Steinziegel</dark_green>"
+      polished_andesite: "<sprite:block/polished_andesite> <gray>Polierter Andesit</gray>"
+      polished_diorite: "<sprite:block/polished_diorite> <white>Polierter Diorit</white>"
+      polished_granite: "<sprite:block/polished_granite> <red>Polierter Granit</red>"
+      polished_deepslate: "<sprite:block/polished_deepslate> <dark_gray>Polierter Tiefenschiefer</dark_gray>"
+      deepslate_bricks: "<sprite:block/deepslate_bricks> <dark_gray>Tiefenschieferziegel</dark_gray>"
+      deepslate_tiles: "<sprite:block/deepslate_tiles> <dark_gray>Tiefenschieferfliesen</dark_gray>"
+      white_concrete: "<sprite:block/white_concrete> <white>Weißer Beton</white>"
+      gray_concrete: "<sprite:block/gray_concrete> <gray>Grauer Beton</gray>"
+      black_concrete: "<sprite:block/black_concrete> <dark_gray>Schwarzer Beton</dark_gray>"
+      cyan_concrete: "<sprite:block/cyan_concrete> <dark_aqua>Türkiser Beton</dark_aqua>"
+      blue_concrete: "<sprite:block/blue_concrete> <blue>Blauer Beton</blue>"
+      red_concrete: "<sprite:block/red_concrete> <red>Roter Beton</red>"
+      green_concrete: "<sprite:block/green_concrete> <green>Grüner Beton</green>"
+      yellow_concrete: "<sprite:block/yellow_concrete> <yellow>Gelber Beton</yellow>"
+      purple_concrete: "<sprite:block/purple_concrete> <dark_purple>Violetter Beton</dark_purple>"
+      terracotta: "<sprite:block/terracotta> <gold>Terrakotta</gold>"
+      quartz_block: "<sprite:block/quartz_block_side> <white>Quarzblock</white>"
+      smooth_quartz: "<sprite:block/quartz_block_bottom> <white>Glatter Quarz</white>"
+      quartz_bricks: "<sprite:block/quartz_bricks> <white>Quarzziegel</white>"
+      nether_bricks: "<sprite:block/nether_bricks> <red>Netherziegel</red>"
+      red_nether_bricks: "<sprite:block/red_nether_bricks> <dark_red>Rote Netherziegel</dark_red>"
+      end_stone_bricks: "<sprite:block/end_stone_bricks> <yellow>Endsteinziegel</yellow>"
+      purpur_block: "<sprite:block/purpur_block> <light_purple>Purpurblock</light_purple>"
+      prismarine_bricks: "<sprite:block/prismarine_bricks> <dark_aqua>Prismarinziegel</dark_aqua>"
+      oak_planks: "<sprite:block/oak_planks> <gold>Eichenholzbretter</gold>"
+      spruce_planks: "<sprite:block/spruce_planks> <gold>Fichtenholzbretter</gold>"
+      birch_planks: "<sprite:block/birch_planks> <yellow>Birkenholzbretter</yellow>"
+      dark_oak_planks: "<sprite:block/dark_oak_planks> <dark_gray>Schwarzeichenholzbretter</dark_gray>"
+      mangrove_planks: "<sprite:block/mangrove_planks> <red>Mangrovenholzbretter</red>"
+      cherry_planks: "<sprite:block/cherry_planks> <light_purple>Kirschholzbretter</light_purple>"
+      glass: "<sprite:block/glass> <white>Glas</white>"
+      tinted_glass: "<sprite:block/tinted_glass> <dark_gray>Getöntes Glas</dark_gray>"
+      sea_lantern: "<sprite:block/sea_lantern> <aqua>Seelaterne</aqua>"
+      glowstone: "<sprite:block/glowstone> <yellow>Glowstone</yellow>"
+      ochre_froglight: "<sprite:block/ochre_froglight_side> <gold>Ocker-Froschlicht</gold>"
+      chest: "<sprite:block/barrel_top> <gold>Truhe</gold>"
+      barrel: "<sprite:block/barrel_side> <gold>Fass</gold>"
+      hopper: '<sprite:"minecraft:items":item/hopper> <gray>Trichter</gray>'
+      water_bucket: '<sprite:"minecraft:items":item/water_bucket> <blue>Wassereimer</blue>'
+      lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Lavaeimer</red>'
+
+  tutorial:
+    title: "<white><b>{servername} Startanleitung</b></white>"
+    welcome: "<gray>Willkommen auf {servername}, <gold><player></gold>! Tippe <yellow>/gensprout</yellow>, um loszulegen.</gray>"
+    lines:
+      - "<gray>Ernte Weizen in der Farm-Region, um Farm-XP und Essenz zu verdienen.</gray>"
+      - "<gray>Gib Essenz für Verzauberungen der <light_purple>Sprout-Hacke</light_purple> aus.</gray>"
+      - "<gray>Platziere Generatoren für passives Einkommen, auch wenn du offline bist.</gray>"
+      - "<gray>Prestige auf höheren Leveln für dauerhafte Multiplikatoren.</gray>"
+    next: "Nächster Schritt"
+    close: "<green>Alles klar! Losspielen</green>"
+
+scoreboard:
+  title: "<gradient:green:aqua><b>{servername}</b></gradient>"
+  lines:
+    - "<gray>-------------------</gray>"
+    - "<gray>Spieler: <yellow>{player}</yellow></gray>"
+    - "<gray>Lvl: <gold>{level}</gold></gray>"
+    - "<gray>XP: <gold>{xp}</gold></gray>"
+    - "<gray>Prestige: <gold>{prestige}</gold></gray>"
+    - "<gray>Essenz: <light_purple>{essence}</light_purple></gray>"
+    - "<gray>Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
+    - "<gray>Guthaben: <green>{balance}</green></gray>"
+    - "<gray>-------------------</gray>"
+    - "<yellow>{server_ip}</yellow>"
+  tablist:
+    header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Spieler online: <gold>{online}</gold></gray>"
+    footer: "<gray>Nutze <gold>/gensprout</gold> für das Menü</gray>"
+
+actionbar:
+  xp-gain: "<green>+<xp> Farm-XP</green> <gray>(<current>/<next>)</gray>"
+  xp-progress: "<gold>Lvl <level></gold> <gray>[</gray><white><filled></white><gray><empty></gray><gray>]</gray> <yellow><percent>%</yellow>"
+  level-up: "<green><b>LEVEL-UP!</b> Du bist jetzt Level <gold><level></gold>!</green>"
+  essence-found: "<light_purple>+<amount> Essenz</light_purple>"
+  autosell: "<green><gold><amount>x</gold> automatisch verkauft für <gold><total></gold></green>"
+  gen-limit: "<red>Du hast dein Limit von <gold><max></gold> platzierten Generatoren erreicht! Kaufe mehr Slots im Generator-Shop.</red>"
+  gen-placed: "<green>Generator der Stufe <gold><tier></gold> platziert! (<used>/<max> aktiv)</green>"
+  gen-removed: "<green>Du hast deinen Generator der Stufe <gold><tier></gold> aufgehoben.</green>"
+  hoe-required: "<red>Zum Ernten brauchst du hier eine Sprout-Hacke!</red>"
+
+economy:
+  sell-success: "<green><gold><amount></gold> Gegenstand/Gegenstände für <gold><total></gold> verkauft!</green>"
+  nothing-sellable-container: "<red>Darin ist nichts Verkäufliches!</red>"
+  nothing-sellable-inventory: "<red>Du hast keine Ernte und keine Generator-Drops zum Verkaufen!</red>"
+  sellwand-needs-container: "<red>Rechtsklicke eine Truhe, ein Fass oder einen anderen Behälter, um den Verkaufsstab zu nutzen!</red>"
+  offline-earnings: "<green>Willkommen zurück! Deine Generatoren haben geschätzte <gold><estimated></gold> verdient, während du weg warst, und davon wurden dir <gold><payout></gold> (<percent>%) ausgezahlt!</green>"
+
+generator:
+  place-failed: "<red>Der Generator konnte nicht platziert werden!</red>"
+  not-owner: "<red>Dieser Generator gehört jemand anderem!</red>"
+  not-owner-named: "<red>Dieser Generator gehört <gold><player></gold>.</red>"
+  upgrade-success: "<green>Dein Generator wurde auf Stufe <gold><tier></gold> aufgewertet!</green>"
+  insufficient-funds-upgrade: "<red>Nicht genug Geld! Du brauchst <gold><cost></gold> für die Aufwertung auf Stufe <tier>.</red>"
+
+title:
+  prestige-available: "<gradient:gold:yellow><b>PRESTIGE VERFÜGBAR</b></gradient>"
+  prestige-available-subtitle: "<gray>Nutze <gold>/prestige</gold>, um jetzt zu prestigen!</gray>"
+
+items:
+  hoe:
+    name: "<gradient:green:aqua><b>Sprout-Hacke</b></gradient>"
+    lore-description: "<gray>Eine spezielle Farm-Hacke, aufgewertet mit Essenz.</gray>"
+    lore-enchants-header: "<dark_aqua><b>Spezial-Verzauberungen:</b></dark_aqua>"
+    lore-enchant-entry: " <gray>•</gray> <name> <gold><level></gold>"
+    lore-no-enchants: " <gray><i>Keine (Rechtsklick zum Verzaubern)</i></gray>"
+    lore-hint: "<gray>Rechtsklick in die Luft öffnet den Upgrade-Shop.</gray>"
+    enchant:
+      xp_booster: "<yellow>XP-Booster</yellow>"
+      essence_finder: "<light_purple>Essenz-Finder</light_purple>"
+      crop_doubler: "<green>Ernte-Verdoppler</green>"
+      replenish: "<aqua>Nachpflanzen</aqua>"
+      harvest_area: "<gold>Erntefläche <dimension></gold>"
+      reach: "<blue>Reichweite</blue>"
+      auto_sell: "<gold>Auto-Verkauf (nur Ernte)</gold>"
+  sellwand:
+    lore-line1: "<gray>Rechtsklick, um alle verkaufbaren Gegenstände</gray>"
+    lore-line2: "<gray>in deinem Inventar sofort zu verkaufen.</gray>"
+    lore-line3: "<gray>Rechtsklick auf eine Truhe oder ein Fass,</gray>"
+    lore-line4: "<gray>um stattdessen alle Gegenstände darin</gray>"
+    lore-line5: "<gray>sofort zu verkaufen!</gray>"
+    lore-multiplier: "<gray>Verkaufsmultiplikator: <gold><multiplier>x</gold></gray>"
+  selector:
+    name: "<gradient:green:aqua><b>Farm-Auswahlstab</b></gradient>"
+    lore:
+      - "<gray>Zum Auswählen der quaderförmigen Farm-Region.</gray>"
+      - "<gray>Linksklick: Position 1 setzen</gray>"
+      - "<gray>Rechtsklick: Position 2 setzen</gray>"
+    lore-savefarm: "<gray>Führe <gold>/<command> savefarm</gold> aus, um die Region festzulegen.</gray>"
+  generator:
+    lore-description: "<gray>Platziere diesen Generator-Block, um Einkommen zu erhalten.</gray>"
+    lore-tier: "<gray>Stufe: <gold><tier></gold></gray>"
+    lore-income: "<gray>Einkommen pro Drop: <green><value></green></gray>"
+  generator-drop:
+    lore-label: "<gray>Generator-Drop</gray>"
+    lore-value: "<gray>Verkaufswert: <green><value></green></gray>"

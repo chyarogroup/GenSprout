@@ -1,0 +1,360 @@
+# GenSprout - Paquete de traduccion al espanol
+#
+# Los marcadores funcionan en cualquiera de los dos estilos: <placeholder> o {placeholder}. Ambos
+# devuelven el mismo valor, asi que usa el que te resulte mas comodo.
+#
+# Siempre disponibles: {servername}, {servername_styled}, {server_ip}, {tagline}, {online},
+# {max_players}, {prefix}. Los mensajes dirigidos a jugadores tambien reciben {player}, {ping} y {lang}.
+#
+# {servername} es el nombre del servidor sin formato, asi que puedes envolverlo con tus propios
+# colores y degradados sin problema. {servername_styled} conserva el formato exacto de config.yml.
+#
+# Los valores monetarios ya incluyen el simbolo de la moneda, asi que escribe <cost> y no $<cost>.
+#
+# file-version sirve para detectar archivos desactualizados tras una actualizacion del plugin. No lo
+# elimines. Cuando el plugin incluya una version mas nueva, tu archivo anterior se renombra a .old y
+# el nuevo se escribe en su lugar, asi que guarda una copia de los cambios que quieras conservar.
+file-version: 4
+
+prefix: "<gradient:green:aqua><b>{servername}</b></gradient> <dark_gray>»</dark_gray> "
+
+system:
+  no-permission: "<red>¡No tienes permiso para ejecutar este comando!</red>"
+  player-only: "<red>¡Solo los jugadores pueden ejecutar este comando!</red>"
+  player-only-action: "<red>¡Solo los jugadores pueden <action>!</red>"
+  player-not-found: "<red>No se encontraron jugadores que coincidan con '<player>'.</red>"
+  reload-success: "<green>¡La configuración y los archivos de idioma de {servername} se recargaron correctamente!</green>"
+  unknown-subcommand: "<red>Subcomando desconocido. Escribe <gold>/<command> help</gold> para ver la ayuda.</red>"
+  economy-disabled: "<red>La economía de Vault no está habilitada en este servidor.</red>"
+  invalid-number: "<red>¡<input> no es un número válido!</red>"
+
+command:
+  usage: "<red>Uso: <gold>/<command> <help|start|givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige|givehoe|givesellwand|clearstats|reload></gold></red>"
+  admin-usage: "<red>Uso: <gold>/<command> <subcommand> <player> <amount></gold></red>"
+  opened:
+    main: "<green>Se abrió el Menú Principal para <gold><player></gold>.</green>"
+    genshop: "<green>Se abrió la Tienda de Generadores para <gold><player></gold>.</green>"
+    prestige: "<green>Se abrió el Menú de Prestigio para <gold><player></gold>.</green>"
+    supplies: "<green>Se abrió la Tienda de Materiales para <gold><player></gold>.</green>"
+  executed:
+    sellall: "<green>Se ejecutó la venta para <gold><player></gold>.</green>"
+    start: "<green>Se inició el tutorial para <gold><player></gold>.</green>"
+  start:
+    already-completed: "<red>¡Ya completaste el tutorial y reclamaste tus objetos iniciales!</red>"
+    success: "<green>¡Tutorial iniciado! ¡Recibiste una <gradient:green:aqua>Azada Sprout</gradient> y <gold><amount></gold> Generadores de Tier 1 para empezar!</green>"
+  givegen:
+    usage: "<red>Uso: <gold>/<command> givegen <player> <tier> [amount]</gold></red>"
+    invalid-tier: "<red>¡Tier de generador inválido! Elige entre 1 y <max_tier>.</red>"
+    error-not-number: "<red>¡El tier y la cantidad deben ser números!</red>"
+    success-sender: "<green>Le diste <gold><amount>x Generador(es) de Tier <tier></gold> a <gold><player></gold>.</green>"
+    success-target: "<green>¡Recibiste <gold><amount>x Generador(es) de Tier <tier></gold>!</green>"
+  givegenslots:
+    error-not-number: "<red>¡La cantidad de ranuras debe ser un número!</red>"
+    success-sender: "<green>Le diste <gold><amount></gold> ranura(s) de generador extra a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste <gold><amount></gold> ranura(s) de generador extra de un administrador.</green>"
+  givehoe:
+    usage: "<red>Uso: <gold>/<command> givehoe <player></gold></red>"
+    success-sender: "<green>Le diste una Azada Sprout a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste una Azada Sprout de un administrador.</green>"
+  givesellwand:
+    usage: "<red>Uso: <gold>/<command> givesellwand <player> [tier]</gold></red>"
+    error-not-number: "<red>¡El tier debe ser un número!</red>"
+    success-sender: "<green>Le diste una Vara de venta (Tier <gold><tier></gold>) a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste una Vara de venta de un administrador.</green>"
+  addxp:
+    error-not-number: "<red>¡La cantidad de XP debe ser un número!</red>"
+    success-sender: "<green>Le añadiste <gold><amount></gold> de XP de cultivo a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste <gold><amount></gold> de XP de cultivo de un administrador.</green>"
+  addessence:
+    error-not-number: "<red>¡La cantidad de Esencia debe ser un número!</red>"
+    success-sender: "<green>Le añadiste <gold><amount></gold> de Esencia a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste <gold><amount></gold> de Esencia de un administrador.</green>"
+  removeessence:
+    success-sender: "<green>Le quitaste <gold><amount></gold> de Esencia a <gold><player></gold>. Nuevo total: <gold><total></gold>.</green>"
+    success-target: "<red>Un administrador quitó <gold><amount></gold> de Esencia de tu saldo.</red>"
+  setessence:
+    success-sender: "<green>Estableciste la Esencia de <gold><player></gold> en <gold><amount></gold>.</green>"
+    success-target: "<green>Un administrador estableció tu Esencia en <gold><amount></gold>.</green>"
+  addmoney:
+    error-not-number: "<red>¡La cantidad debe ser un número!</red>"
+    success-sender: "<green>Le diste <gold><amount></gold> a <gold><player></gold>.</green>"
+    success-target: "<green>Recibiste <gold><amount></gold> de un administrador.</green>"
+  setlevel:
+    error-not-number: "<red>¡El nivel debe ser un número!</red>"
+    success-sender: "<green>Estableciste el Nivel de cultivo de <gold><player></gold> en <gold><level></gold>.</green>"
+    success-target: "<green>Un administrador estableció tu Nivel de cultivo en <gold><level></gold>.</green>"
+  setprestige:
+    error-not-number: "<red>¡El prestigio debe ser un número!</red>"
+    success-sender: "<green>Estableciste el Prestigio de <gold><player></gold> en <gold><prestige></gold>.</green>"
+    success-target: "<green>Un administrador estableció tu Prestigio en <gold><prestige></gold>.</green>"
+  clearstats:
+    usage: "<red>Uso: <gold>/<command> clearstats <player></gold></red>"
+    success-sender: "<green>Borraste todas las estadísticas (Nivel, XP, Prestigio, Esencia, Dinero) de <gold><player></gold>.</green>"
+    success-target: "<red>Un administrador borró todas tus estadísticas (Nivel, XP, Prestigio, Esencia, Dinero).</red>"
+    success-offline: "<green>Se borraron todas las estadísticas del jugador desconectado <gold><player></gold>.</green>"
+  farm:
+    selector-given: "<green>Recibiste la Vara Selectora de Granja. Haz clic izquierdo y clic derecho para marcar ambas esquinas y luego usa <gold>/<command> savefarm</gold> para definir la región.</green>"
+    no-selection: "<red>¡No seleccionaste ambas posiciones! Primero haz clic izquierdo y clic derecho con la Vara Selectora de Granja.</red>"
+    different-world: "<red>¡Ambas posiciones deben estar en el mismo mundo!</red>"
+    pos1: "<green>Esquina #1 de la granja fijada en <gold><x>, <y>, <z></gold> en <gold><world></gold>.</green>"
+    pos2: "<green>Esquina #2 de la granja fijada en <gold><x>, <y>, <z></gold> en <gold><world></gold>.</green>"
+    saved: "<green>¡Región de granja definida y guardada correctamente!</green>"
+    populated: "<green>¡Región de granja rellenada con tierra de cultivo y trigo!</green>"
+
+dialog:
+  common:
+    button-back: "<gray>⬅ Volver al Menú Principal</gray>"
+    button-close: "<red>❌ Cerrar Menú</red>"
+    insufficient-funds: "<red>¡Fondos insuficientes! Necesitas <cost>.</red>"
+    invalid-selection: "<red>¡Selección inválida!</red>"
+
+  main:
+    title: "<gradient:green:aqua><b>Menú Principal de {servername}</b></gradient>"
+    body: "¡Bienvenido a <b>{servername}</b>! Elige una acción para gestionar tus generadores, mejorar herramientas o hacer prestigio."
+    stat-level: "<gray>Nivel: <gold><level></gold></gray>"
+    stat-xp: "<gray>XP: <gold><xp></gold></gray>"
+    stat-prestige: "<gray>Prestigio: <gold><prestige></gold> (<yellow><points> Puntos</yellow>)</gray>"
+    stat-slots: "<gray>Ranuras de Generador: <gold><used>/<max></gold></gray>"
+    stat-essence: "<gray>Esencia de cultivo: <light_purple><essence></light_purple></gray>"
+    stat-balance: "<gray>Saldo: <green><balance></green></gray>"
+    button-genshop: "<green>Tienda de Generadores</green>"
+    button-hoe: "<green>Mejoras de Azada Sprout</green>"
+    button-prestige: "<yellow>Menú de Prestigio</yellow>"
+    button-supplies: "<blue>Tienda de Materiales</blue>"
+    button-close: "<red>❌ Cerrar Menú</red>"
+
+  genshop:
+    title: "<gradient:green:aqua><b>Tienda de Generadores</b></gradient>"
+    body: "Compra generadores y amplía tu límite de ranuras de generador."
+    tier-select: "Elige el Tier del Generador (1 - <max_tier>):"
+    qty-select: "Elige la Cantidad (1 - 64):"
+    buy-button: "<green>Comprar Generadores</green>"
+    buy-slot-button: "<gold>Comprar +1 Ranura (<cost>)</gold>"
+    buy-sellwand-button: "<gold>Comprar Vara de venta (<price>)</gold>"
+    check-price-button: "<aqua>Ver Precio Total</aqua>"
+    buy-success: "<green>¡Compraste <gold><amount>x Generador(es) de Tier <tier></gold> por <gold><cost></gold>!</green>"
+    buy-sellwand-success: "<green>¡Compraste una Vara de venta!</green>"
+
+  gencontrol:
+    title: "<gradient:gold:yellow><b>Control del Generador</b></gradient>"
+    tier: "<gray>Tier del Generador: <gold><tier>/<max_tier></gold></gray>"
+    drop-value: "<gray>Valor del drop: <green><value></green></gray>"
+    upgrade-cost: "<gray>Costo del siguiente Tier: <gold><cost></gold></gray>"
+    max-tier: "<red>TIER MÁXIMO ALCANZADO</red>"
+    button-upgrade: "<yellow>Mejorar Tier</yellow>"
+    button-pickup: "<gold>Recoger Generador</gold>"
+    upgrade-success: "<green>¡Mejoraste tu generador al Tier <gold><tier></gold>!</green>"
+    error-max-tier: "<red>¡Este generador ya está en el tier máximo!</red>"
+    pickup-success: "<green>¡Recogiste tu bloque generador!</green>"
+
+  hoe:
+    title: "<gradient:light_purple:aqua><b>Encantamiento de Azada</b></gradient>"
+    body: "Sostén tu Azada Sprout y mejora sus encantamientos personalizados con Esencia de cultivo."
+    max: "MÁX"
+    unlocked: "Desbloqueado"
+    locked: "Bloqueado"
+    stat-essence: "<gray>Esencia: <light_purple><essence></light_purple></gray>"
+    stat-xp-booster: "<gray>Potenciador de XP: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-essence-finder: "<gray>Buscador de Esencia: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-crop-doubler: "<gray>Duplicador de Cultivos: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-reach: "<gray>Alcance: Nivel <gold><level>/<max_level></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-replenish: "<gray>Resiembra: <gold><status></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-auto-sell: "<gray>Venta automática (solo cultivos): <gold><status></gold> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area: "<gray>Área de Cosecha: Nivel <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Costo: <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area-max: "<gray>Área de Cosecha: Nivel <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Costo: <light_purple>MÁX</light_purple>)</gray>"
+    no-hoe-title: "<light_purple>Tienda de Azada Sprout</light_purple>"
+    no-hoe-body: "<red>¡Debes sostener una Azada Sprout para mejorar encantamientos!</red>\n<gray>¿Comprar una Azada Sprout inicial por <gold><cost></gold>?</gray>"
+    no-hoe-buy: "<green>Comprar Azada Sprout (<cost>)</green>"
+    button-xp-booster: "<yellow>Potenciador de XP</yellow>"
+    button-essence-finder: "<light_purple>Buscador de Esencia</light_purple>"
+    button-crop-doubler: "<green>Duplicador de Cultivos</green>"
+    button-replenish: "<aqua>Resiembra</aqua>"
+    button-harvest-area: "<gold>Área de Cosecha</gold>"
+    button-reach: "<blue>Alcance</blue>"
+    button-auto-sell: "<gold>Venta automática (solo cultivos)</gold>"
+    buy-success: "<green>¡Compraste una Azada Sprout!</green>"
+    initialized: "<green>¡Convertiste la azada que sostienes en una Azada Sprout!</green>"
+    error-need-hoe: "<red>¡Sostén una azada para acceder a las mejoras!</red>"
+    error-not-sprout-hoe: "<red>¡Sostén una Azada Sprout para mejorar!</red>"
+    error-no-essence: "<red>¡No tienes suficiente Esencia! Necesitas <light_purple><cost></light_purple>.</red>"
+    error-max-level: "<red>¡Ya está en el nivel máximo!</red>"
+    error-already-unlocked: "<red>¡Ya está desbloqueado!</red>"
+
+  prestige:
+    title: "<gradient:yellow:gold><b>Menú de Prestigio</b></gradient>"
+    body: "Reinicia tu nivel de cultivo para ganar Puntos de Prestigio y desbloquear multiplicadores permanentes."
+    stat-prestige: "<gray>Nivel de Prestigio: <gold><prestige></gold></gray>"
+    stat-req-level: "<gray>Nivel para el próximo prestigio: <gold><level>/<req_level></gold></gray>"
+    stat-points: "<gray>Puntos de Prestigio: <yellow><points></yellow></gray>"
+    stat-xp-mult: "<gray>Multiplicador de XP: <gold>+<percent>%</gold> (Nvl <level>)</gray>"
+    stat-money-mult: "<gray>Multiplicador de Dinero: <gold>+<percent>%</gold> (Nvl <level>)</gray>"
+    stat-essence-mult: "<gray>Multiplicador de Esencia: <gold>+<percent>%</gold> (Nvl <level>)</gray>"
+    button-prestige: "<yellow>Hacer Prestigio (Req. Nvl <req_level>)</yellow>"
+    button-buy-xp-mult: "<aqua>Comprar Mult. XP (+5%) [1 Punto]</aqua>"
+    button-buy-money-mult: "<green>Comprar Mult. Dinero (+5%) [1 Punto]</green>"
+    button-buy-essence-mult: "<light_purple>Comprar Mult. Esencia (+5%) [1 Punto]</light_purple>"
+    success: "<green><b>¡PRESTIGIO!</b> Volviste al Nivel 1. ¡Ganaste una ranura y un punto de prestigio!</green>"
+    error-level: "<red>¡Debes alcanzar el Nivel de cultivo <gold><req_level></gold> para hacer prestigio!</red>"
+    error-no-points: "<red>¡No tienes puntos de prestigio disponibles!</red>"
+
+  supplies:
+    title: "<gradient:#4ea8de:#48bfe3><b>Tienda de Materiales</b></gradient>"
+    body: "Elige una categoría para ver materiales de construcción para generadores."
+    cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
+    cat-body: "<gray>Elige un artículo para comprar:</gray>"
+    item-title: "<gradient:#4ea8de:#48bfe3><b>Comprar Artículo</b></gradient>"
+    item-button: "<item_name> <gray>(<unit_price> c/u)</gray>"
+    buy-item-line: "<gray>Artículo: <item_name></gray>"
+    buy-body: "<gray>Precio unitario: <gold><unit_price></gold></gray>"
+    qty-select: "Cantidad (1-64)"
+    buy-button: "<green>Comprar Selección</green>"
+    check-price-button: "<aqua>Ver Precio Total</aqua>"
+    total-price: "<yellow>Precio total por <amount>x: </yellow><green><total_price></green>"
+    buy-success: "<green>¡Compraste <gold><amount>x <item></gold> por <gold><cost></gold>!</green>"
+    button-back-categories: "<gray>⬅ Volver a Categorías</gray>"
+    button-back-items: "<gray>⬅ Volver a Artículos</gray>"
+    disabled: "<red>¡La Tienda de Materiales está desactivada!</red>"
+    no-categories: "<red>¡No hay categorías de materiales configuradas!</red>"
+    no-items: "<red>¡No se encontraron artículos en esta categoría!</red>"
+    categories:
+      stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Piedra y Estructura</bold></gradient>"
+      concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Hormigón y Colores</bold></gradient>"
+      quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Cuarzo, Nether y End</bold></gradient>"
+      wood_planks: "<sprite:block/oak_planks> <gradient:gold:yellow><bold>Madera y Tablones</bold></gradient>"
+      glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Cristal e Iluminación</bold></gradient>"
+      storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Almacenamiento y Utilidades</bold></gradient>'
+    items:
+      cobblestone: "<sprite:block/cobblestone> <gray>Adoquín</gray>"
+      smooth_stone: "<sprite:block/smooth_stone> <gray>Piedra Lisa</gray>"
+      stone_bricks: "<sprite:block/stone_bricks> <gray>Ladrillos de Piedra</gray>"
+      mossy_stone_bricks: "<sprite:block/mossy_stone_bricks> <dark_green>Ladrillos de Piedra Musgosa</dark_green>"
+      polished_andesite: "<sprite:block/polished_andesite> <gray>Andesita Pulida</gray>"
+      polished_diorite: "<sprite:block/polished_diorite> <white>Diorita Pulida</white>"
+      polished_granite: "<sprite:block/polished_granite> <red>Granito Pulido</red>"
+      polished_deepslate: "<sprite:block/polished_deepslate> <dark_gray>Pizarra Profunda Pulida</dark_gray>"
+      deepslate_bricks: "<sprite:block/deepslate_bricks> <dark_gray>Ladrillos de Pizarra Profunda</dark_gray>"
+      deepslate_tiles: "<sprite:block/deepslate_tiles> <dark_gray>Azulejos de Pizarra Profunda</dark_gray>"
+      white_concrete: "<sprite:block/white_concrete> <white>Hormigón Blanco</white>"
+      gray_concrete: "<sprite:block/gray_concrete> <gray>Hormigón Gris</gray>"
+      black_concrete: "<sprite:block/black_concrete> <dark_gray>Hormigón Negro</dark_gray>"
+      cyan_concrete: "<sprite:block/cyan_concrete> <dark_aqua>Hormigón Cían</dark_aqua>"
+      blue_concrete: "<sprite:block/blue_concrete> <blue>Hormigón Azul</blue>"
+      red_concrete: "<sprite:block/red_concrete> <red>Hormigón Rojo</red>"
+      green_concrete: "<sprite:block/green_concrete> <green>Hormigón Verde</green>"
+      yellow_concrete: "<sprite:block/yellow_concrete> <yellow>Hormigón Amarillo</yellow>"
+      purple_concrete: "<sprite:block/purple_concrete> <dark_purple>Hormigón Morado</dark_purple>"
+      terracotta: "<sprite:block/terracotta> <gold>Terracota</gold>"
+      quartz_block: "<sprite:block/quartz_block_side> <white>Bloque de Cuarzo</white>"
+      smooth_quartz: "<sprite:block/quartz_block_bottom> <white>Cuarzo Liso</white>"
+      quartz_bricks: "<sprite:block/quartz_bricks> <white>Ladrillos de Cuarzo</white>"
+      nether_bricks: "<sprite:block/nether_bricks> <red>Ladrillos del Nether</red>"
+      red_nether_bricks: "<sprite:block/red_nether_bricks> <dark_red>Ladrillos Rojos del Nether</dark_red>"
+      end_stone_bricks: "<sprite:block/end_stone_bricks> <yellow>Ladrillos de Piedra del End</yellow>"
+      purpur_block: "<sprite:block/purpur_block> <light_purple>Bloque de Púrpur</light_purple>"
+      prismarine_bricks: "<sprite:block/prismarine_bricks> <dark_aqua>Ladrillos de Prismarina</dark_aqua>"
+      oak_planks: "<sprite:block/oak_planks> <gold>Tablones de Roble</gold>"
+      spruce_planks: "<sprite:block/spruce_planks> <gold>Tablones de Abeto</gold>"
+      birch_planks: "<sprite:block/birch_planks> <yellow>Tablones de Abedul</yellow>"
+      dark_oak_planks: "<sprite:block/dark_oak_planks> <dark_gray>Tablones de Roble Oscuro</dark_gray>"
+      mangrove_planks: "<sprite:block/mangrove_planks> <red>Tablones de Mangle</red>"
+      cherry_planks: "<sprite:block/cherry_planks> <light_purple>Tablones de Cerezo</light_purple>"
+      glass: "<sprite:block/glass> <white>Cristal</white>"
+      tinted_glass: "<sprite:block/tinted_glass> <dark_gray>Cristal Tintado</dark_gray>"
+      sea_lantern: "<sprite:block/sea_lantern> <aqua>Linterna Marina</aqua>"
+      glowstone: "<sprite:block/glowstone> <yellow>Piedra Luminosa</yellow>"
+      ochre_froglight: "<sprite:block/ochre_froglight_side> <gold>Ranaluz Ocre</gold>"
+      chest: "<sprite:block/barrel_top> <gold>Cofre</gold>"
+      barrel: "<sprite:block/barrel_side> <gold>Barril</gold>"
+      hopper: '<sprite:"minecraft:items":item/hopper> <gray>Tolva</gray>'
+      water_bucket: '<sprite:"minecraft:items":item/water_bucket> <blue>Cubo de Agua</blue>'
+      lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Cubo de Lava</red>'
+
+  tutorial:
+    title: "<white><b>Guía Inicial de {servername}</b></white>"
+    welcome: "<gray>¡Bienvenido a {servername}, <gold><player></gold>! Escribe <yellow>/gensprout</yellow> para empezar.</gray>"
+    lines:
+      - "<gray>Rompe trigo en la región de granja para ganar XP de cultivo y Esencia.</gray>"
+      - "<gray>Gasta Esencia en encantamientos de la <light_purple>Azada Sprout</light_purple>.</gray>"
+      - "<gray>Coloca generadores para ganar ingresos pasivos, incluso desconectado.</gray>"
+      - "<gray>Haz prestigio en niveles altos para obtener multiplicadores permanentes.</gray>"
+    next: "Siguiente"
+    close: "<green>¡Entendido! A jugar</green>"
+
+scoreboard:
+  title: "<gradient:green:aqua><b>{servername}</b></gradient>"
+  lines:
+    - "<gray>-------------------</gray>"
+    - "<gray>Jugador: <yellow>{player}</yellow></gray>"
+    - "<gray>Nivel: <gold>{level}</gold></gray>"
+    - "<gray>XP: <gold>{xp}</gold></gray>"
+    - "<gray>Prestigio: <gold>{prestige}</gold></gray>"
+    - "<gray>Esencia: <light_purple>{essence}</light_purple></gray>"
+    - "<gray>Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
+    - "<gray>Saldo: <green>{balance}</green></gray>"
+    - "<gray>-------------------</gray>"
+    - "<yellow>{server_ip}</yellow>"
+  tablist:
+    header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Jugadores en línea: <gold>{online}</gold></gray>"
+    footer: "<gray>Usa <gold>/gensprout</gold> para abrir el menú</gray>"
+
+actionbar:
+  xp-gain: "<green>+<xp> XP de cultivo</green> <gray>(<current>/<next>)</gray>"
+  xp-progress: "<gold>Nv.<level></gold> <gray>[</gray><white><filled></white><gray><empty></gray><gray>]</gray> <yellow><percent>%</yellow>"
+  level-up: "<green><b>¡SUBISTE DE NIVEL!</b> ¡Ahora eres Nivel <gold><level></gold>!</green>"
+  essence-found: "<light_purple>+<amount> Esencia</light_purple>"
+  autosell: "<green>Vendido automáticamente <gold><amount>x</gold> por <gold><total></gold></green>"
+  gen-limit: "<red>¡Alcanzaste tu límite de <gold><max></gold> generadores colocados! Compra más ranuras en la Tienda de Generadores.</red>"
+  gen-placed: "<green>¡Colocaste un Generador de Tier <gold><tier></gold>! (<used>/<max> activos)</green>"
+  gen-removed: "<green>Recogiste tu Generador de Tier <gold><tier></gold>.</green>"
+  hoe-required: "<red>¡Necesitas una Azada Sprout para cosechar aquí!</red>"
+
+economy:
+  sell-success: "<green>¡Vendiste <gold><amount></gold> objeto(s) por <gold><total></gold>!</green>"
+  nothing-sellable-container: "<red>¡Ahí no hay nada que se pueda vender!</red>"
+  nothing-sellable-inventory: "<red>¡No tienes cultivos ni drops de generador para vender!</red>"
+  sellwand-needs-container: "<red>¡Haz clic derecho en un cofre, barril u otro contenedor para usar la Vara de venta!</red>"
+  offline-earnings: "<green>¡Bienvenido de vuelta! Tus generadores produjeron unos <gold><estimated></gold> mientras no estabas, y recibiste <gold><payout></gold> (<percent>%) de esa cantidad.</green>"
+
+generator:
+  place-failed: "<red>¡No se pudo colocar el generador!</red>"
+  not-owner: "<red>¡Este generador es de otro jugador!</red>"
+  not-owner-named: "<red>Este generador le pertenece a <gold><player></gold>.</red>"
+  upgrade-success: "<green>¡Mejoraste tu generador al Tier <gold><tier></gold>!</green>"
+  insufficient-funds-upgrade: "<red>¡Fondos insuficientes! Necesitas <gold><cost></gold> para mejorar al Tier <tier>.</red>"
+
+title:
+  prestige-available: "<gradient:gold:yellow><b>PRESTIGIO DISPONIBLE</b></gradient>"
+  prestige-available-subtitle: "<gray>¡Usa <gold>/prestige</gold> para hacer prestigio ahora!</gray>"
+
+items:
+  hoe:
+    name: "<gradient:green:aqua><b>Azada Sprout</b></gradient>"
+    lore-description: "<gray>Una azada de cultivo especializada, mejorada con esencia.</gray>"
+    lore-enchants-header: "<dark_aqua><b>Encantamientos personalizados:</b></dark_aqua>"
+    lore-enchant-entry: " <gray>•</gray> <name> <gold><level></gold>"
+    lore-no-enchants: " <gray><i>Ninguno (clic derecho para encantar)</i></gray>"
+    lore-hint: "<gray>Haz clic derecho al aire para abrir la tienda de mejoras.</gray>"
+    enchant:
+      xp_booster: "<yellow>Potenciador de XP</yellow>"
+      essence_finder: "<light_purple>Buscador de Esencia</light_purple>"
+      crop_doubler: "<green>Duplicador de Cultivos</green>"
+      replenish: "<aqua>Resiembra</aqua>"
+      harvest_area: "<gold>Área de Cosecha <dimension></gold>"
+      reach: "<blue>Alcance</blue>"
+      auto_sell: "<gold>Venta automática (solo cultivos)</gold>"
+  sellwand:
+    lore-multiplier: "<gray>Multiplicador de venta: <gold><multiplier>x</gold></gray>"
+  selector:
+    name: "<gradient:green:aqua><b>Vara Selectora de Granja</b></gradient>"
+    lore:
+      - "<gray>Úsala para seleccionar la región cúbica de la granja.</gray>"
+      - "<gray>Clic izquierdo: fijar Posición 1</gray>"
+      - "<gray>Clic derecho: fijar Posición 2</gray>"
+    lore-savefarm: "<gray>Usa <gold>/<command> savefarm</gold> para definir la región.</gray>"
+  generator:
+    lore-description: "<gray>Coloca este bloque generador para obtener ingresos.</gray>"
+    lore-tier: "<gray>Tier: <gold><tier></gold></gray>"
+    lore-income: "<gray>Ingreso por drop: <green><value></green></gray>"
+  generator-drop:
+    lore-label: "<gray>Drop de generador</gray>"
+    lore-value: "<gray>Valor de venta: <green><value></green></gray>"

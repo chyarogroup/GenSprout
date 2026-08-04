@@ -1,6 +1,7 @@
 package com.github.gensprout.player;
 
 import com.github.gensprout.GenSprout;
+import com.github.gensprout.lang.LanguageManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -25,7 +26,7 @@ public class PlayerManager {
 
     public PlayerManager(GenSprout plugin) {
         this.plugin = plugin;
-        this.dataFile = new File(plugin.getDataFolder(), "data/players.yml");
+        this.dataFile = new File(plugin.getGenSproutDataFolder(), "players.yml");
         loadDataFile();
         startAutoSaveTask();
     }
@@ -166,9 +167,10 @@ public class PlayerManager {
         if (payout <= 0.0) return;
 
         com.github.gensprout.economy.EconomyHook.deposit(player, payout);
-        player.sendMessage(plugin.getMiniMessage().deserialize(
-                "<green>Welcome back! Your generators earned an estimated <gold>" + com.github.gensprout.economy.EconomyHook.format(estimatedEarnings) + "</gold> while you were away, "
-                        + "and you've been paid <gold>" + com.github.gensprout.economy.EconomyHook.format(payout) + "</gold> (" + Math.round(percentage * 100) + "%) of that!</green>"
+        plugin.getLanguageManager().send(player, "economy.offline-earnings", LanguageManager.values(
+                "estimated", com.github.gensprout.economy.EconomyHook.format(estimatedEarnings),
+                "payout", com.github.gensprout.economy.EconomyHook.format(payout),
+                "percent", String.valueOf(Math.round(percentage * 100))
         ));
     }
 
@@ -196,7 +198,7 @@ public class PlayerManager {
             
             // Level up feedback (non-disturbing action bar and chat alert)
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.6f, 1.2f);
-            player.sendMessage(plugin.getMiniMessage().deserialize("<green><bold>LEVEL UP!</bold> You are now Level <gold>" + level + "</gold>!</green>"));
+            plugin.getLanguageManager().send(player, "actionbar.level-up", LanguageManager.values("level", String.valueOf(level)));
 
             // If this level-up just crossed the threshold for their next prestige, announce it
             int requiredPrestigeLevel = getRequiredPrestigeLevel(data);
@@ -207,7 +209,7 @@ public class PlayerManager {
 
         // Show a live progress bar towards the next level in the action bar while farming
         double requiredForCurrentLevel = getRequiredXp(level);
-        player.sendActionBar(plugin.getMiniMessage().deserialize(buildProgressBarMessage(level, currentXp, requiredForCurrentLevel)));
+        sendProgressBarActionBar(player, level, currentXp, requiredForCurrentLevel);
         
         savePlayer(player.getUniqueId());
     }
@@ -226,8 +228,8 @@ public class PlayerManager {
      */
     private void showPrestigeAvailableTitle(Player player) {
         net.kyori.adventure.title.Title title = net.kyori.adventure.title.Title.title(
-                plugin.getMiniMessage().deserialize("<gradient:gold:yellow><bold>PRESTIGE AVAILABLE</bold></gradient>"),
-                plugin.getMiniMessage().deserialize("<gray>Use <gold>/prestige</gold> to prestige now!</gray>"),
+                plugin.getLanguageManager().getComponent("title.prestige-available", player),
+                plugin.getLanguageManager().getComponent("title.prestige-available-subtitle", player),
                 net.kyori.adventure.title.Title.Times.times(
                         java.time.Duration.ofMillis(500),
                         java.time.Duration.ofSeconds(3),
@@ -268,25 +270,23 @@ public class PlayerManager {
     }
 
     /**
-     * Builds a MiniMessage progress bar string like: Lv.5 [||||||||||||||||||||] 63%
-     * where completed segments are white and remaining segments are gray.
+     * Sends an action bar progress bar using actionbar.xp-progress translation key.
      */
-    private String buildProgressBarMessage(int level, double currentXp, double requiredXp) {
+    private void sendProgressBarActionBar(Player player, int level, double currentXp, double requiredXp) {
         int segments = 20;
         int filled = requiredXp <= 0 ? segments : (int) Math.round((currentXp / requiredXp) * segments);
         filled = Math.max(0, Math.min(segments, filled));
         int percent = requiredXp <= 0 ? 100 : (int) Math.round((currentXp / requiredXp) * 100);
         percent = Math.max(0, Math.min(100, percent));
 
-        StringBuilder bar = new StringBuilder();
-        bar.append("<gold>Lv.").append(level).append("</gold> <gray>[</gray>");
-        if (filled > 0) {
-            bar.append("<white>").append("|".repeat(filled)).append("</white>");
-        }
-        if (segments - filled > 0) {
-            bar.append("<gray>").append("|".repeat(segments - filled)).append("</gray>");
-        }
-        bar.append("<gray>]</gray> <yellow>").append(percent).append("%</yellow>");
-        return bar.toString();
+        String filledStr = "|".repeat(filled);
+        String emptyStr = "|".repeat(segments - filled);
+
+        plugin.getLanguageManager().sendActionBar(player, "actionbar.xp-progress", LanguageManager.values(
+                "level", String.valueOf(level),
+                "filled", filledStr,
+                "empty", emptyStr,
+                "percent", String.valueOf(percent)
+        ));
     }
 }

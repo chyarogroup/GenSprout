@@ -1,0 +1,365 @@
+# GenSprout - Pack de traduction française
+#
+# Les placeholders fonctionnent dans les deux styles : <placeholder> ou {placeholder}. Les deux
+# renvoient la même valeur, utilisez donc celui qui vous semble le plus lisible.
+#
+# Toujours disponibles : {servername}, {servername_styled}, {server_ip}, {tagline}, {online},
+# {max_players}, {prefix}. Les messages destinés aux joueurs disposent aussi de {player}, {ping} et {lang}.
+#
+# {servername} est le nom du serveur sans mise en forme, vous pouvez donc l'entourer de vos propres
+# couleurs et dégradés. {servername_styled} conserve exactement le balisage défini dans config.yml.
+#
+# Les montants incluent déjà le symbole monétaire : écrivez <cost> et non $<cost>.
+#
+# file-version sert à détecter les fichiers obsolètes après une mise à jour du plugin. Ne le supprimez
+# pas. Lorsque le plugin fournit une version plus récente, votre ancien fichier est renommé en .old et
+# le nouveau est écrit à sa place : conservez une copie des modifications que vous souhaitez reporter.
+file-version: 4
+
+prefix: "<gradient:green:aqua><b>{servername}</b></gradient> <dark_gray>»</dark_gray> "
+
+system:
+  no-permission: "<red>Vous n'avez pas la permission d'exécuter cette commande !</red>"
+  player-only: "<red>Seuls les joueurs peuvent exécuter cette commande !</red>"
+  player-only-action: "<red>Seuls les joueurs peuvent <action> !</red>"
+  player-not-found: "<red>Aucun joueur trouvé correspondant à '<player>'.</red>"
+  reload-success: "<green>Configuration et fichiers de langue de {servername} rechargés avec succès !</green>"
+  unknown-subcommand: "<red>Sous-commande inconnue. Tapez <gold>/<command> help</gold> pour obtenir de l'aide.</red>"
+  economy-disabled: "<red>L'économie Vault n'est pas activée sur ce serveur.</red>"
+  invalid-number: "<red><input> n'est pas un nombre valide !</red>"
+
+command:
+  usage: "<red>Utilisation : <gold>/<command> <help|start|givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige|givehoe|givesellwand|clearstats|reload></gold></red>"
+  admin-usage: "<red>Utilisation : <gold>/<command> <subcommand> <player> <amount></gold></red>"
+  opened:
+    main: "<green>Menu principal ouvert pour <gold><player></gold>.</green>"
+    genshop: "<green>Boutique de générateurs ouverte pour <gold><player></gold>.</green>"
+    prestige: "<green>Menu de prestige ouvert pour <gold><player></gold>.</green>"
+    supplies: "<green>Boutique de matériaux ouverte pour <gold><player></gold>.</green>"
+  executed:
+    sellall: "<green>Action de vente exécutée pour <gold><player></gold>.</green>"
+    start: "<green>Tutoriel démarré pour <gold><player></gold>.</green>"
+  start:
+    already-completed: "<red>Vous avez déjà terminé le tutoriel et récupéré vos objets de départ !</red>"
+    success: "<green>Tutoriel démarré ! Vous avez reçu une <gradient:green:aqua>Houe Sprout</gradient> et <gold><amount></gold> générateurs de palier 1 pour bien commencer !</green>"
+  givegen:
+    usage: "<red>Utilisation : <gold>/<command> givegen <player> <tier> [amount]</gold></red>"
+    invalid-tier: "<red>Palier de générateur invalide ! Choisissez entre 1 et <max_tier>.</red>"
+    error-not-number: "<red>Le palier et la quantité doivent être des nombres !</red>"
+    success-sender: "<green><gold><amount>x générateur(s) de palier <tier></gold> donné(s) à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu <gold><amount>x générateur(s) de palier <tier></gold> !</green>"
+  givegenslots:
+    error-not-number: "<red>Le nombre d'emplacements doit être un nombre !</red>"
+    success-sender: "<green><gold><amount></gold> emplacement(s) de générateur supplémentaire(s) donné(s) à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu <gold><amount></gold> emplacement(s) de générateur supplémentaire(s) d'un administrateur.</green>"
+  givehoe:
+    usage: "<red>Utilisation : <gold>/<command> givehoe <player></gold></red>"
+    success-sender: "<green>Houe Sprout donnée à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu une Houe Sprout d'un administrateur.</green>"
+  givesellwand:
+    usage: "<red>Utilisation : <gold>/<command> givesellwand <player> [tier]</gold></red>"
+    error-not-number: "<red>Le palier doit être un nombre !</red>"
+    success-sender: "<green>Baguette de vente (palier <gold><tier></gold>) donnée à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu une Baguette de vente d'un administrateur.</green>"
+  addxp:
+    error-not-number: "<red>La quantité d'XP doit être un nombre !</red>"
+    success-sender: "<green><gold><amount></gold> XP d'agriculture ajoutés à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu <gold><amount></gold> XP d'agriculture d'un administrateur.</green>"
+  addessence:
+    error-not-number: "<red>La quantité d'Essence doit être un nombre !</red>"
+    success-sender: "<green><gold><amount></gold> Essence ajoutée à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu <gold><amount></gold> Essence d'un administrateur.</green>"
+  removeessence:
+    success-sender: "<green><gold><amount></gold> Essence retirée à <gold><player></gold>. Nouveau total : <gold><total></gold>.</green>"
+    success-target: "<red>Un administrateur a retiré <gold><amount></gold> Essence de votre solde.</red>"
+  setessence:
+    success-sender: "<green>Solde d'Essence de <gold><player></gold> défini à <gold><amount></gold>.</green>"
+    success-target: "<green>Votre solde d'Essence a été défini à <gold><amount></gold> par un administrateur.</green>"
+  addmoney:
+    error-not-number: "<red>Le montant doit être un nombre !</red>"
+    success-sender: "<green><gold><amount></gold> donné(s) à <gold><player></gold>.</green>"
+    success-target: "<green>Vous avez reçu <gold><amount></gold> d'un administrateur.</green>"
+  setlevel:
+    error-not-number: "<red>Le niveau doit être un nombre !</red>"
+    success-sender: "<green>Niveau d'agriculture de <gold><player></gold> défini à <gold><level></gold>.</green>"
+    success-target: "<green>Votre niveau d'agriculture a été défini à <gold><level></gold> par un administrateur.</green>"
+  setprestige:
+    error-not-number: "<red>Le prestige doit être un nombre !</red>"
+    success-sender: "<green>Prestige de <gold><player></gold> défini à <gold><prestige></gold>.</green>"
+    success-target: "<green>Votre prestige a été défini à <gold><prestige></gold> par un administrateur.</green>"
+  clearstats:
+    usage: "<red>Utilisation : <gold>/<command> clearstats <player></gold></red>"
+    success-sender: "<green>Toutes les statistiques (niveau, XP, prestige, Essence, argent) de <gold><player></gold> ont été effacées.</green>"
+    success-target: "<red>Toutes vos statistiques (niveau, XP, prestige, Essence, argent) ont été effacées par un administrateur.</red>"
+    success-offline: "<green>Toutes les statistiques du joueur hors ligne <gold><player></gold> ont été effacées.</green>"
+  farm:
+    selector-given: "<green>Vous avez reçu le Bâton de sélection de ferme. Faites un clic gauche et un clic droit pour définir les deux coins, puis lancez <gold>/<command> savefarm</gold> pour définir la région.</green>"
+    no-selection: "<red>Vous n'avez pas sélectionné les deux positions ! Faites d'abord un clic gauche et un clic droit avec le Bâton de sélection de ferme.</red>"
+    different-world: "<red>Les deux positions doivent être dans le même monde !</red>"
+    pos1: "<green>Coin de ferme n°1 défini à <gold><x>, <y>, <z></gold> dans <gold><world></gold>.</green>"
+    pos2: "<green>Coin de ferme n°2 défini à <gold><x>, <y>, <z></gold> dans <gold><world></gold>.</green>"
+    saved: "<green>Région de ferme définie et sauvegardée avec succès !</green>"
+    populated: "<green>Région de ferme remplie de terre labourée et de blé !</green>"
+
+dialog:
+  common:
+    button-back: "<gray>⬅ Retour au menu principal</gray>"
+    button-close: "<red>❌ Fermer le menu</red>"
+    insufficient-funds: "<red>Fonds insuffisants ! Il vous faut <cost>.</red>"
+    invalid-selection: "<red>Sélection invalide !</red>"
+
+  main:
+    title: "<gradient:green:aqua><b>Menu principal de {servername}</b></gradient>"
+    body: "Bienvenue sur <b>{servername}</b> ! Choisissez une action ci-dessous pour gérer vos générateurs, améliorer vos outils ou passer au prestige."
+    stat-level: "<gray>Niveau : <gold><level></gold></gray>"
+    stat-xp: "<gray>XP : <gold><xp></gold></gray>"
+    stat-prestige: "<gray>Prestige : <gold><prestige></gold> (<yellow><points> points</yellow>)</gray>"
+    stat-slots: "<gray>Emplacements de générateur : <gold><used>/<max></gold></gray>"
+    stat-essence: "<gray>Essence d'agriculture : <light_purple><essence></light_purple></gray>"
+    stat-balance: "<gray>Solde : <green><balance></green></gray>"
+    button-genshop: "<green>Boutique de générateurs</green>"
+    button-hoe: "<green>Améliorations de la Houe Sprout</green>"
+    button-prestige: "<yellow>Menu de prestige</yellow>"
+    button-supplies: "<blue>Boutique de matériaux</blue>"
+    button-close: "<red>❌ Fermer le menu</red>"
+
+  genshop:
+    title: "<gradient:green:aqua><b>Boutique de générateurs</b></gradient>"
+    body: "Achetez des générateurs et augmentez votre limite d'emplacements."
+    tier-select: "Choisir le palier du générateur (1 - <max_tier>) :"
+    qty-select: "Choisir la quantité (1 - 64) :"
+    buy-button: "<green>Acheter les générateurs sélectionnés</green>"
+    buy-slot-button: "<gold>Acheter +1 emplacement (<cost>)</gold>"
+    buy-sellwand-button: "<gold>Acheter une Baguette de vente (<price>)</gold>"
+    check-price-button: "<aqua>Voir le prix total</aqua>"
+    buy-success: "<green>Achat de <gold><amount>x générateur(s) de palier <tier></gold> pour <gold><cost></gold> !</green>"
+    buy-sellwand-success: "<green>Baguette de vente achetée !</green>"
+
+  gencontrol:
+    title: "<gradient:gold:yellow><b>Contrôle du générateur</b></gradient>"
+    tier: "<gray>Palier du générateur : <gold><tier>/<max_tier></gold></gray>"
+    drop-value: "<gray>Valeur du butin : <green><value></green></gray>"
+    upgrade-cost: "<gray>Coût du palier suivant : <gold><cost></gold></gray>"
+    max-tier: "<red>PALIER MAXIMUM ATTEINT</red>"
+    button-upgrade: "<yellow>Améliorer le palier</yellow>"
+    button-pickup: "<gold>Ramasser le générateur</gold>"
+    upgrade-success: "<green>Générateur amélioré au palier <gold><tier></gold> !</green>"
+    error-max-tier: "<red>Ce générateur est déjà au palier maximum !</red>"
+    pickup-success: "<green>Bloc générateur ramassé !</green>"
+
+  hoe:
+    title: "<gradient:light_purple:aqua><b>Enchantement de houe</b></gradient>"
+    body: "Tenez votre Houe Sprout et améliorez ses enchantements personnalisés avec l'Essence d'agriculture."
+    max: "MAX"
+    unlocked: "Débloqué"
+    locked: "Verrouillé"
+    stat-essence: "<gray>Essence : <light_purple><essence></light_purple></gray>"
+    stat-xp-booster: "<gray>Boost d'XP : niveau <gold><level>/<max_level></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-essence-finder: "<gray>Détecteur d'Essence : niveau <gold><level>/<max_level></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-crop-doubler: "<gray>Doubleur de récolte : niveau <gold><level>/<max_level></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-reach: "<gray>Portée : niveau <gold><level>/<max_level></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-replenish: "<gray>Replantation : <gold><status></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-auto-sell: "<gray>Auto-Sell (cultures uniquement) : <gold><status></gold> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area: "<gray>Zone de récolte : niveau <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Coût : <light_purple><cost></light_purple>)</gray>"
+    stat-harvest-area-max: "<gray>Zone de récolte : niveau <gold><level>/<max_level></gold> <dark_gray>(<dimension>)</dark_gray> (Coût : <light_purple>MAX</light_purple>)</gray>"
+    no-hoe-title: "<light_purple>Boutique de la Houe Sprout</light_purple>"
+    no-hoe-body: "<red>Vous devez tenir une Houe Sprout pour améliorer les enchantements !</red>\n<gray>Acheter une Houe Sprout de départ pour <gold><cost></gold> ?</gray>"
+    no-hoe-buy: "<green>Acheter la Houe Sprout (<cost>)</green>"
+    button-xp-booster: "<yellow>Boost d'XP</yellow>"
+    button-essence-finder: "<light_purple>Détecteur d'Essence</light_purple>"
+    button-crop-doubler: "<green>Doubleur de récolte</green>"
+    button-replenish: "<aqua>Replantation</aqua>"
+    button-harvest-area: "<gold>Zone de récolte</gold>"
+    button-reach: "<blue>Portée</blue>"
+    button-auto-sell: "<gold>Auto-Sell (cultures uniquement)</gold>"
+    buy-success: "<green>Houe Sprout achetée !</green>"
+    initialized: "<green>La houe que vous tenez est devenue une Houe Sprout !</green>"
+    error-need-hoe: "<red>Tenez une houe pour accéder aux améliorations !</red>"
+    error-not-sprout-hoe: "<red>Tenez une Houe Sprout pour l'améliorer !</red>"
+    error-no-essence: "<red>Essence insuffisante ! Il vous faut <light_purple><cost></light_purple>.</red>"
+    error-max-level: "<red>Déjà au niveau maximum !</red>"
+    error-already-unlocked: "<red>Déjà débloqué !</red>"
+
+  prestige:
+    title: "<gradient:yellow:gold><b>Menu de prestige</b></gradient>"
+    body: "Réinitialisez votre niveau d'agriculture pour gagner des points de prestige et débloquer des multiplicateurs permanents."
+    stat-prestige: "<gray>Niveau de prestige : <gold><prestige></gold></gray>"
+    stat-req-level: "<gray>Niveau requis pour le prestige suivant : <gold><level>/<req_level></gold></gray>"
+    stat-points: "<gray>Points de prestige : <yellow><points></yellow></gray>"
+    stat-xp-mult: "<gray>Multiplicateur d'XP : <gold>+<percent>%</gold> (Niv. <level>)</gray>"
+    stat-money-mult: "<gray>Multiplicateur d'argent : <gold>+<percent>%</gold> (Niv. <level>)</gray>"
+    stat-essence-mult: "<gray>Multiplicateur d'Essence : <gold>+<percent>%</gold> (Niv. <level>)</gray>"
+    button-prestige: "<yellow>Passer au prestige (niv. <req_level> requis)</yellow>"
+    button-buy-xp-mult: "<aqua>Acheter mult. XP (+5%) [1 point]</aqua>"
+    button-buy-money-mult: "<green>Acheter mult. argent (+5%) [1 point]</green>"
+    button-buy-essence-mult: "<light_purple>Acheter mult. Essence (+5%) [1 point]</light_purple>"
+    success: "<green><b>PRESTIGE EFFECTUÉ !</b> Retour au niveau 1. Emplacements et point de prestige augmentés !</green>"
+    error-level: "<red>Vous devez atteindre le niveau d'agriculture <gold><req_level></gold> pour passer au prestige !</red>"
+    error-no-points: "<red>Aucun point de prestige disponible !</red>"
+
+  supplies:
+    title: "<gradient:#4ea8de:#48bfe3><b>Boutique de matériaux</b></gradient>"
+    body: "Sélectionnez une catégorie pour parcourir les matériaux de construction pour générateurs."
+    cat-title: "<gradient:#4ea8de:#48bfe3><b><category></b></gradient>"
+    cat-body: "<gray>Sélectionnez un objet à acheter :</gray>"
+    item-title: "<gradient:#4ea8de:#48bfe3><b>Acheter un objet</b></gradient>"
+    item-button: "<item_name> <gray>(<unit_price> l'unité)</gray>"
+    buy-item-line: "<gray>Objet : <item_name></gray>"
+    buy-body: "<gray>Prix unitaire : <gold><unit_price></gold></gray>"
+    qty-select: "Quantité (1-64)"
+    buy-button: "<green>Acheter la sélection</green>"
+    check-price-button: "<aqua>Voir le prix total</aqua>"
+    total-price: "<yellow>Prix total pour <amount>x : </yellow><green><total_price></green>"
+    buy-success: "<green>Achat de <gold><amount>x <item></gold> pour <gold><cost></gold> !</green>"
+    button-back-categories: "<gray>⬅ Retour aux catégories</gray>"
+    button-back-items: "<gray>⬅ Retour aux objets</gray>"
+    disabled: "<red>La boutique de matériaux est actuellement désactivée !</red>"
+    no-categories: "<red>Aucune catégorie de matériaux n'est configurée !</red>"
+    no-items: "<red>Aucun objet trouvé dans cette catégorie !</red>"
+    categories:
+      stone_structural: "<sprite:block/stone_bricks> <gradient:gray:white><bold>Pierre et Structure</bold></gradient>"
+      concrete_colors: "<sprite:block/cyan_concrete> <gradient:red:blue><bold>Béton et Couleurs</bold></gradient>"
+      quartz_nether_end: "<sprite:block/quartz_block_side> <gradient:gold:light_purple><bold>Quartz, Nether et End</bold></gradient>"
+      wood_planks: "<sprite:block/oak_planks> <gradient:gold:yellow><bold>Bois et Planches</bold></gradient>"
+      glass_lighting: "<sprite:block/glass> <gradient:aqua:white><bold>Verre et Éclairage</bold></gradient>"
+      storage_liquids: '<sprite:"minecraft:items":item/hopper> <gradient:blue:gold><bold>Stockage et Utilitaires</bold></gradient>'
+    items:
+      cobblestone: "<sprite:block/cobblestone> <gray>Pierre taillée</gray>"
+      smooth_stone: "<sprite:block/smooth_stone> <gray>Roche lisse</gray>"
+      stone_bricks: "<sprite:block/stone_bricks> <gray>Briques de pierre</gray>"
+      mossy_stone_bricks: "<sprite:block/mossy_stone_bricks> <dark_green>Briques de pierre moussues</dark_green>"
+      polished_andesite: "<sprite:block/polished_andesite> <gray>Andésite polie</gray>"
+      polished_diorite: "<sprite:block/polished_diorite> <white>Diorite polie</white>"
+      polished_granite: "<sprite:block/polished_granite> <red>Granite poli</red>"
+      polished_deepslate: "<sprite:block/polished_deepslate> <dark_gray>Abîme poli</dark_gray>"
+      deepslate_bricks: "<sprite:block/deepslate_bricks> <dark_gray>Briques d'abîme</dark_gray>"
+      deepslate_tiles: "<sprite:block/deepslate_tiles> <dark_gray>Tuiles d'abîme</dark_gray>"
+      white_concrete: "<sprite:block/white_concrete> <white>Béton blanc</white>"
+      gray_concrete: "<sprite:block/gray_concrete> <gray>Béton gris</gray>"
+      black_concrete: "<sprite:block/black_concrete> <dark_gray>Béton noir</dark_gray>"
+      cyan_concrete: "<sprite:block/cyan_concrete> <dark_aqua>Béton cyan</dark_aqua>"
+      blue_concrete: "<sprite:block/blue_concrete> <blue>Béton bleu</blue>"
+      red_concrete: "<sprite:block/red_concrete> <red>Béton rouge</red>"
+      green_concrete: "<sprite:block/green_concrete> <green>Béton vert</green>"
+      yellow_concrete: "<sprite:block/yellow_concrete> <yellow>Béton jaune</yellow>"
+      purple_concrete: "<sprite:block/purple_concrete> <dark_purple>Béton violet</dark_purple>"
+      terracotta: "<sprite:block/terracotta> <gold>Terre cuite</gold>"
+      quartz_block: "<sprite:block/quartz_block_side> <white>Bloc de quartz</white>"
+      smooth_quartz: "<sprite:block/quartz_block_bottom> <white>Quartz lisse</white>"
+      quartz_bricks: "<sprite:block/quartz_bricks> <white>Briques de quartz</white>"
+      nether_bricks: "<sprite:block/nether_bricks> <red>Briques du Nether</red>"
+      red_nether_bricks: "<sprite:block/red_nether_bricks> <dark_red>Briques rouges du Nether</dark_red>"
+      end_stone_bricks: "<sprite:block/end_stone_bricks> <yellow>Briques de pierre de l'End</yellow>"
+      purpur_block: "<sprite:block/purpur_block> <light_purple>Bloc de Purpur</light_purple>"
+      prismarine_bricks: "<sprite:block/prismarine_bricks> <dark_aqua>Briques de prismariz</dark_aqua>"
+      oak_planks: "<sprite:block/oak_planks> <gold>Planches de chêne</gold>"
+      spruce_planks: "<sprite:block/spruce_planks> <gold>Planches de sapin</gold>"
+      birch_planks: "<sprite:block/birch_planks> <yellow>Planches de bouleau</yellow>"
+      dark_oak_planks: "<sprite:block/dark_oak_planks> <dark_gray>Planches de chêne noir</dark_gray>"
+      mangrove_planks: "<sprite:block/mangrove_planks> <red>Planches de palétuvier</red>"
+      cherry_planks: "<sprite:block/cherry_planks> <light_purple>Planches de cerisier</light_purple>"
+      glass: "<sprite:block/glass> <white>Verre</white>"
+      tinted_glass: "<sprite:block/tinted_glass> <dark_gray>Verre teinté</dark_gray>"
+      sea_lantern: "<sprite:block/sea_lantern> <aqua>Lanterne aquatique</aqua>"
+      glowstone: "<sprite:block/glowstone> <yellow>Pierre lumineuse</yellow>"
+      ochre_froglight: "<sprite:block/ochre_froglight_side> <gold>Feu grenouille ocre</gold>"
+      chest: "<sprite:block/barrel_top> <gold>Coffre</gold>"
+      barrel: "<sprite:block/barrel_side> <gold>Tonneau</gold>"
+      hopper: '<sprite:"minecraft:items":item/hopper> <gray>Entonnoir</gray>'
+      water_bucket: '<sprite:"minecraft:items":item/water_bucket> <blue>Seau d''eau</blue>'
+      lava_bucket: '<sprite:"minecraft:items":item/lava_bucket> <red>Seau de lave</red>'
+
+  tutorial:
+    title: "<white><b>Guide de démarrage de {servername}</b></white>"
+    welcome: "<gray>Bienvenue sur {servername}, <gold><player></gold> ! Tapez <yellow>/gensprout</yellow> pour commencer.</gray>"
+    lines:
+      - "<gray>Cassez du blé dans la région de ferme pour gagner de l'XP d'agriculture et de l'Essence.</gray>"
+      - "<gray>Dépensez votre Essence en enchantements pour la <light_purple>Houe Sprout</light_purple>.</gray>"
+      - "<gray>Placez des générateurs pour gagner des revenus passifs, même hors ligne.</gray>"
+      - "<gray>Passez au prestige à haut niveau pour des multiplicateurs permanents.</gray>"
+    next: "Étape suivante"
+    close: "<green>Compris ! Jouer maintenant</green>"
+
+scoreboard:
+  title: "<gradient:green:aqua><b>{servername}</b></gradient>"
+  lines:
+    - "<gray>-------------------</gray>"
+    - "<gray>Joueur : <yellow>{player}</yellow></gray>"
+    - "<gray>Niveau : <gold>{level}</gold></gray>"
+    - "<gray>XP : <gold>{xp}</gold></gray>"
+    - "<gray>Prestige : <gold>{prestige}</gold></gray>"
+    - "<gray>Essence : <light_purple>{essence}</light_purple></gray>"
+    - "<gray>Gén. placés : <gold>{placed_gens}/{max_gens}</gold></gray>"
+    - "<gray>Solde : <green>{balance}</green></gray>"
+    - "<gray>-------------------</gray>"
+    - "<yellow>{server_ip}</yellow>"
+  tablist:
+    header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Joueurs en ligne : <gold>{online}</gold></gray>"
+    footer: "<gray>Tapez <gold>/gensprout</gold> pour ouvrir le menu</gray>"
+
+actionbar:
+  xp-gain: "<green>+<xp> XP d'agriculture</green> <gray>(<current>/<next>)</gray>"
+  xp-progress: "<gold>Niv.<level></gold> <gray>[</gray><white><filled></white><gray><empty></gray><gray>]</gray> <yellow><percent>%</yellow>"
+  level-up: "<green><b>NIVEAU SUPÉRIEUR !</b> Vous êtes maintenant niveau <gold><level></gold> !</green>"
+  essence-found: "<light_purple>+<amount> Essence</light_purple>"
+  autosell: "<green>Vente auto de <gold><amount>x</gold> pour <gold><total></gold></green>"
+  gen-limit: "<red>Vous avez atteint votre limite de <gold><max></gold> générateurs placés ! Achetez des emplacements dans la boutique de générateurs.</red>"
+  gen-placed: "<green>Générateur de palier <gold><tier></gold> placé ! (<used>/<max> actifs)</green>"
+  gen-removed: "<green>Générateur de palier <gold><tier></gold> ramassé.</green>"
+  hoe-required: "<red>Une Houe Sprout est nécessaire pour récolter ici !</red>"
+
+economy:
+  sell-success: "<green><gold><amount></gold> objet(s) vendu(s) pour <gold><total></gold> !</green>"
+  nothing-sellable-container: "<red>Il n'y a rien de vendable là-dedans !</red>"
+  nothing-sellable-inventory: "<red>Vous n'avez aucune culture ni butin de générateur à vendre !</red>"
+  sellwand-needs-container: "<red>Faites un clic droit sur un coffre, un tonneau ou un autre conteneur pour utiliser la Baguette de vente !</red>"
+  offline-earnings: "<green>Bon retour ! Vos générateurs ont rapporté environ <gold><estimated></gold> pendant votre absence, et vous avez été payé <gold><payout></gold> (<percent>%) de ce montant !</green>"
+
+generator:
+  place-failed: "<red>Impossible de placer le générateur !</red>"
+  not-owner: "<red>Ce générateur appartient à quelqu'un d'autre !</red>"
+  not-owner-named: "<red>Ce générateur appartient à <gold><player></gold>.</red>"
+  upgrade-success: "<green>Générateur amélioré au palier <gold><tier></gold> !</green>"
+  insufficient-funds-upgrade: "<red>Fonds insuffisants ! Il vous faut <gold><cost></gold> pour passer au palier <tier>.</red>"
+
+title:
+  prestige-available: "<gradient:gold:yellow><b>PRESTIGE DISPONIBLE</b></gradient>"
+  prestige-available-subtitle: "<gray>Tapez <gold>/prestige</gold> pour passer au prestige !</gray>"
+
+items:
+  hoe:
+    name: "<gradient:green:aqua><b>Houe Sprout</b></gradient>"
+    lore-description: "<gray>Une houe spécialisée améliorée grâce à l'Essence.</gray>"
+    lore-enchants-header: "<dark_aqua><b>Enchantements personnalisés :</b></dark_aqua>"
+    lore-enchant-entry: " <gray>•</gray> <name> <gold><level></gold>"
+    lore-no-enchants: " <gray><i>Aucun (clic droit pour enchanter)</i></gray>"
+    lore-hint: "<gray>Clic droit dans le vide pour ouvrir la boutique d'améliorations.</gray>"
+    enchant:
+      xp_booster: "<yellow>Boost d'XP</yellow>"
+      essence_finder: "<light_purple>Détecteur d'Essence</light_purple>"
+      crop_doubler: "<green>Doubleur de récolte</green>"
+      replenish: "<aqua>Replantation</aqua>"
+      harvest_area: "<gold>Zone de récolte <dimension></gold>"
+      reach: "<blue>Portée</blue>"
+      auto_sell: "<gold>Auto-Sell (cultures uniquement)</gold>"
+  sellwand:
+    lore-line1: "<gray>Clic droit pour vendre instantanément tous</gray>"
+    lore-line2: "<gray>les objets vendables de votre inventaire.</gray>"
+    lore-line3: "<gray>Clic droit sur un coffre ou tonneau</gray>"
+    lore-line4: "<gray>pour vendre tout ce qu'il contient</gray>"
+    lore-line5: "<gray>de vendable à l'intérieur !</gray>"
+    lore-multiplier: "<gray>Multiplicateur de vente : <gold><multiplier>x</gold></gray>"
+  selector:
+    name: "<gradient:green:aqua><b>Bâton de sélection de ferme</b></gradient>"
+    lore:
+      - "<gray>Sert à sélectionner la région cuboïde de la ferme.</gray>"
+      - "<gray>Clic gauche : définir la position 1</gray>"
+      - "<gray>Clic droit : définir la position 2</gray>"
+    lore-savefarm: "<gray>Lancez <gold>/<command> savefarm</gold> pour définir la région.</gray>"
+  generator:
+    lore-description: "<gray>Placez ce bloc générateur pour gagner des revenus.</gray>"
+    lore-tier: "<gray>Palier : <gold><tier></gold></gray>"
+    lore-income: "<gray>Revenu par butin : <green><value></green></gray>"
+  generator-drop:
+    lore-label: "<gray>Butin de générateur</gray>"
+    lore-value: "<gray>Valeur de vente : <green><value></green></gray>"

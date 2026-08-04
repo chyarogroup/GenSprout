@@ -1,18 +1,19 @@
 package com.github.gensprout.farming;
 
 import com.github.gensprout.GenSprout;
+import com.github.gensprout.lang.LanguageManager;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public enum HoeEnchant {
     XP_BOOSTER("xp_booster", "<yellow>XP Booster</yellow>", 5),
@@ -60,9 +61,38 @@ public enum HoeEnchant {
     }
 
     /**
-     * Set the level of this enchant on the given item. Removes it if level is 0.
+     * The translated name of this enchant as raw MiniMessage, so it can be embedded into the lore
+     * entry line with its colours intact.
+     *
+     * @param viewer the player the item is being built for, or null to use the server default
+     * @param level  used only by {@link #HARVEST_AREA} to fill in the area dimensions
      */
-    public void setLevel(ItemStack item, int level, GenSprout plugin) {
+    public String getDisplayName(GenSprout plugin, Player viewer, int level) {
+        String raw = plugin.getLanguageManager().getMessageString("items.hoe.enchant." + configKey, viewer);
+        if (raw == null) {
+            raw = rawDisplayName;
+        }
+        String dimension = this == HARVEST_AREA ? "(" + getAreaDimension(level) + ")" : "";
+        return raw.replace("<dimension>", dimension).replace("{dimension}", dimension);
+    }
+
+    /** The harvested block area unlocked at the given Harvest Area level. */
+    public static String getAreaDimension(int level) {
+        return switch (level) {
+            case 1 -> "1x2";
+            case 2 -> "2x2";
+            case 3 -> "3x2";
+            case 0 -> "1x1";
+            default -> "3x3";
+        };
+    }
+
+    /**
+     * Set the level of this enchant on the given item. Removes it if level is 0.
+     *
+     * @param viewer the player whose language the rebuilt lore is written in, may be null
+     */
+    public void setLevel(ItemStack item, int level, GenSprout plugin, Player viewer) {
         if (item == null) return;
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer pdc = meta.getPersistentDataContainer();
@@ -89,7 +119,7 @@ public enum HoeEnchant {
         }
 
         item.setItemMeta(meta);
-        rebuildLore(item, plugin);
+        rebuildLore(item, plugin, viewer);
     }
 
     /**
@@ -108,57 +138,67 @@ public enum HoeEnchant {
 
     /**
      * Reads all enchants from the PDC, and updates the lore of the hoe.
+     *
+     * @param viewer the player who owns the hoe, whose language the name and lore are written in.
+     *               May be null, in which case the server default language is used. Item text is
+     *               baked in at write time, so a hoe reads in whichever language it was last
+     *               rebuilt in until the owner next upgrades it.
      */
-    public static void rebuildLore(ItemStack item, GenSprout plugin) {
+    public static void rebuildLore(ItemStack item, GenSprout plugin, Player viewer) {
         if (item == null) return;
         ItemMeta meta = item.getItemMeta();
-        
+        LanguageManager lang = plugin.getLanguageManager();
+
         // Mark this as a custom hoe
         NamespacedKey mainHoeKey = new NamespacedKey(plugin, "sprout_hoe");
         meta.getPersistentDataContainer().set(mainHoeKey, PersistentDataType.BYTE, (byte) 1);
-        
-        meta.displayName(plugin.getMiniMessage().deserialize("<gradient:green:aqua><bold>Sprout Hoe</bold></gradient>"));
+
+        meta.displayName(noItalic(lang.getComponent("items.hoe.name", viewer)));
 
         List<Component> lore = new ArrayList<>();
-        lore.add(plugin.getMiniMessage().deserialize("<gray>A specialized farming hoe upgraded with essence.</gray>"));
+        lore.add(noItalic(lang.getComponent("items.hoe.lore-description", viewer)));
         lore.add(Component.empty());
-        lore.add(plugin.getMiniMessage().deserialize("<dark_aqua><bold>Custom Enchantments:</bold></dark_aqua>"));
+        lore.add(noItalic(lang.getComponent("items.hoe.lore-enchants-header", viewer)));
 
         boolean hasEnchants = false;
         for (HoeEnchant enchant : HoeEnchant.values()) {
             int lvl = enchant.getLevel(item, plugin);
             if (lvl > 0) {
-                String displayName = enchant.getRawDisplayName();
-                if (enchant == HARVEST_AREA) {
-                    String dim = switch (lvl) {
-                        case 1 -> " (1x2)";
-                        case 2 -> " (2x2)";
-                        case 3 -> " (3x2)";
-                        default -> " (3x3)";
-                    };
-                    displayName = "<gold>Harvest Area" + dim + "</gold>";
-                }
-                lore.add(plugin.getMiniMessage().deserialize(" <gray>•</gray> " + displayName + " <gold>" + getRomanNumeral(lvl) + "</gold>"));
+                // The enchant name carries its own colours, so it is inserted as markup, not text.
+                lore.add(noItalic(lang.getComponent("items.hoe.lore-enchant-entry", viewer,
+                        LanguageManager.values(
+                                "name", enchant.getDisplayName(plugin, viewer, lvl),
+                                "level", getRomanNumeral(lvl)))));
                 hasEnchants = true;
             }
         }
         if (!hasEnchants) {
-            lore.add(plugin.getMiniMessage().deserialize(" <gray><i>None (Right click to enchant)</i></gray>"));
+            lore.add(noItalic(lang.getComponent("items.hoe.lore-no-enchants", viewer)));
         }
 
         lore.add(Component.empty());
-        lore.add(plugin.getMiniMessage().deserialize("<gray>Right click in the air to open the upgrade shop.</gray>"));
+        lore.add(noItalic(lang.getComponent("items.hoe.lore-hint", viewer)));
 
         meta.lore(lore);
         item.setItemMeta(meta);
     }
 
     /**
-     * Creates a fresh Sprout Hoe item (used for the starter kit and the in-shop purchase).
+     * Item names and lore are rendered in italics by the client unless italics are explicitly
+     * turned off, which would fight the colours defined in the language files.
      */
-    public static ItemStack createBaseHoe(GenSprout plugin) {
+    private static Component noItalic(Component component) {
+        return component.decoration(TextDecoration.ITALIC, false);
+    }
+
+    /**
+     * Creates a fresh Sprout Hoe item (used for the starter kit and the in-shop purchase).
+     *
+     * @param viewer the player receiving the hoe, whose language the item text uses
+     */
+    public static ItemStack createBaseHoe(GenSprout plugin, Player viewer) {
         ItemStack hoe = new ItemStack(Material.NETHERITE_HOE);
-        rebuildLore(hoe, plugin);
+        rebuildLore(hoe, plugin, viewer);
         return hoe;
     }
 

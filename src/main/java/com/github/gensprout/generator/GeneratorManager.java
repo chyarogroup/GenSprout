@@ -1,8 +1,10 @@
 package com.github.gensprout.generator;
 
 import com.github.gensprout.GenSprout;
+import com.github.gensprout.lang.LanguageManager;
 import com.github.gensprout.util.BlockPos;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,7 +44,7 @@ public class GeneratorManager {
         this.plugin = plugin;
         this.tierKey = new NamespacedKey(plugin, "generator_tier");
         this.dropValueKey = new NamespacedKey(plugin, "drop_value");
-        this.dataFile = new File(plugin.getDataFolder(), "data/generators.yml");
+        this.dataFile = new File(plugin.getGenSproutDataFolder(), "generators.yml");
         
         loadConfigTiers();
         loadGenerators();
@@ -127,8 +129,7 @@ public class GeneratorManager {
         }
         return Math.min(value, cap);
     }
-
-    private void loadGenerators() {
+    public void loadGenerators() {
         if (!dataFile.exists()) {
             dataFile.getParentFile().mkdirs();
             try {
@@ -287,13 +288,16 @@ public class GeneratorManager {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String priceLabel = com.github.gensprout.economy.EconomyHook.format(type.getDropValue());
+            // Drop items exist in the world for all players to see, so they render in default language (null viewer).
             Component name = plugin.getMiniMessage().deserialize("<white>" + type.getDropName() + "</white> <green>" + priceLabel + "</green>")
-                    .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false);
+                    .decoration(TextDecoration.ITALIC, false);
             meta.displayName(name);
 
             List<Component> lore = new ArrayList<>();
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Generator Drop</gray>").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Sell Value: <green>" + priceLabel + "</green></gray>").decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+            lore.add(plugin.getLanguageManager().getComponent("items.generator-drop.lore-label", null)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(plugin.getLanguageManager().getComponent("items.generator-drop.lore-value", null, LanguageManager.values("value", priceLabel))
+                    .decoration(TextDecoration.ITALIC, false));
             meta.lore(lore);
 
             meta.setEnchantmentGlintOverride(true);
@@ -381,32 +385,62 @@ public class GeneratorManager {
     }
 
     public void giveGenerator(Player player, int tier, int amount) {
-        ItemStack genItem = createGeneratorItem(tier, amount);
+        ItemStack genItem = createGeneratorItem(tier, amount, player);
         player.getInventory().addItem(genItem).forEach((index, item) -> {
             player.getWorld().dropItemNaturally(player.getLocation(), item);
         });
     }
 
+    public boolean isGeneratorItem(ItemStack item) {
+        return getGeneratorTierFromItem(item) != null;
+    }
+
+    public void rebuildGeneratorLore(ItemStack item, Player viewer) {
+        if (!isGeneratorItem(item)) return;
+        Integer tier = getGeneratorTierFromItem(item);
+        if (tier == null) return;
+        GeneratorType type = getTierConfig(tier);
+        if (type == null) return;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            Component nameComp = plugin.getLanguageManager().renderRaw(type.getDisplayName(), viewer, null)
+                    .decoration(TextDecoration.ITALIC, false);
+            meta.displayName(nameComp);
+
+            String formattedVal = com.github.gensprout.economy.EconomyHook.format(type.getDropValue());
+
+            List<Component> lore = new ArrayList<>();
+            lore.add(plugin.getLanguageManager().getComponent("items.generator.lore-description", viewer)
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(plugin.getLanguageManager().getComponent("items.generator.lore-tier", viewer,
+                    LanguageManager.values("tier", String.valueOf(tier)))
+                    .decoration(TextDecoration.ITALIC, false));
+            lore.add(plugin.getLanguageManager().getComponent("items.generator.lore-income", viewer,
+                    LanguageManager.values("value", formattedVal))
+                    .decoration(TextDecoration.ITALIC, false));
+            meta.lore(lore);
+
+            item.setItemMeta(meta);
+        }
+    }
+
     public ItemStack createGeneratorItem(int tier, int amount) {
+        return createGeneratorItem(tier, amount, null);
+    }
+
+    public ItemStack createGeneratorItem(int tier, int amount, Player viewer) {
         GeneratorType type = getTierConfig(tier);
         if (type == null) return null;
 
         ItemStack item = new ItemStack(type.getBlockType(), amount);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(plugin.getMiniMessage().deserialize(type.getDisplayName()));
-            
-            List<Component> lore = new ArrayList<>();
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Place this generator block to earn income.</gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Tier: <gold>" + tier + "</gold></gray>"));
-            lore.add(plugin.getMiniMessage().deserialize("<gray>Income per drop: <green>" + com.github.gensprout.economy.EconomyHook.format(type.getDropValue()) + "</green></gray>"));
-            meta.lore(lore);
-
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(tierKey, PersistentDataType.INTEGER, tier);
-            
             item.setItemMeta(meta);
         }
+        rebuildGeneratorLore(item, viewer);
         return item;
     }
 

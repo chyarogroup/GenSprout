@@ -77,31 +77,49 @@ public class SellWand {
         return plugin.getConfig().getString("sellwand.multipliers." + tier + ".display-name", "<green>Sell Wand</green>");
     }
 
-    public static ItemStack createSellWand(GenSprout plugin, int tier) {
+    public static void rebuildLore(ItemStack item, GenSprout plugin, org.bukkit.entity.Player viewer) {
+        if (!isSellWand(item, plugin)) return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        int tier = pdc.getOrDefault(tierKey(plugin), PersistentDataType.INTEGER, 1);
         double multiplier = getMultiplierForTier(plugin, tier);
         String rawName = getDisplayNameForTier(plugin, tier);
+
+        meta.displayName(plugin.getLanguageManager().renderRaw(rawName, viewer, null).decoration(TextDecoration.ITALIC, false));
+
+        List<Component> lore = new ArrayList<>();
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-line1", viewer).decoration(TextDecoration.ITALIC, false));
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-line2", viewer).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.empty());
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-line3", viewer).decoration(TextDecoration.ITALIC, false));
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-line4", viewer).decoration(TextDecoration.ITALIC, false));
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-line5", viewer).decoration(TextDecoration.ITALIC, false));
+        lore.add(Component.empty());
+        lore.add(plugin.getLanguageManager().getComponent("items.sellwand.lore-multiplier", viewer,
+                com.github.gensprout.lang.LanguageManager.values("multiplier", String.format("%.1f", multiplier)))
+                .decoration(TextDecoration.ITALIC, false));
+        meta.lore(lore);
+        item.setItemMeta(meta);
+    }
+
+    public static ItemStack createSellWand(GenSprout plugin, int tier) {
+        return createSellWand(plugin, tier, null);
+    }
+
+    public static ItemStack createSellWand(GenSprout plugin, int tier, org.bukkit.entity.Player viewer) {
+        double multiplier = getMultiplierForTier(plugin, tier);
 
         ItemStack item = new ItemStack(Material.BLAZE_ROD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(plugin.getMiniMessage().deserialize(rawName).decoration(TextDecoration.ITALIC, false));
-
-            List<Component> lore = new ArrayList<>();
-            lore.add(plainLore(plugin, "<gray>Right-click to instantly sell all</gray>"));
-            lore.add(plainLore(plugin, "<gray>sellable items in your inventory.</gray>"));
-            lore.add(Component.empty());
-            lore.add(plainLore(plugin, "<gray>Right-click a chest, barrel, or</gray>"));
-            lore.add(plainLore(plugin, "<gray>other container to instead sell</gray>"));
-            lore.add(plainLore(plugin, "<gray>everything sellable inside it!</gray>"));
-            lore.add(Component.empty());
-            lore.add(plainLore(plugin, "<gray>Sell Multiplier: <gold>" + String.format("%.1f", multiplier) + "x</gold></gray>"));
-            meta.lore(lore);
-
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             pdc.set(tierKey(plugin), PersistentDataType.INTEGER, tier);
             pdc.set(multiplierKey(plugin), PersistentDataType.DOUBLE, multiplier);
             item.setItemMeta(meta);
         }
+        rebuildLore(item, plugin, viewer);
         return item;
     }
 

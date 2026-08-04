@@ -13,12 +13,16 @@ import com.github.gensprout.listener.FarmSelectorListener;
 import com.github.gensprout.ui.DialogManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.util.logging.Level;
 
 public class GenSprout extends JavaPlugin implements Listener {
@@ -30,6 +34,7 @@ public class GenSprout extends JavaPlugin implements Listener {
     private FarmManager farmManager;
     private ScoreboardManager scoreboardManager;
     private FarmingListener farmingListener;
+    private com.github.gensprout.lang.LanguageManager languageManager;
 
     @Override
     public void onEnable() {
@@ -50,15 +55,23 @@ public class GenSprout extends JavaPlugin implements Listener {
         // Save default config
         saveDefaultConfig();
 
-        // Initialize MiniMessage
+        // Migrate legacy data folder plugins/GenSprout/data/ -> plugins/GenSproutData/ if present
+        migrateLegacyDataFolder();
+
+        // Initialize MiniMessage & LanguageManager
         this.miniMessage = MiniMessage.miniMessage();
+        this.languageManager = new com.github.gensprout.lang.LanguageManager(this);
 
         // Initialize Managers
         this.playerManager = new PlayerManager(this);
         this.generatorManager = new GeneratorManager(this);
 
         // Hook Vault Economy (only requires Vault)
-        EconomyHook.setupEconomy(this);
+        try {
+            EconomyHook.setupEconomy(this);
+        } catch (Throwable t) {
+            getLogger().warning("Vault plugin was not found! Economy operations will be unavailable until Vault is installed.");
+        }
 
         this.dialogManager = new DialogManager(this);
         this.farmManager = new FarmManager(this);
@@ -126,13 +139,9 @@ public class GenSprout extends JavaPlugin implements Listener {
         if (getConfig().getBoolean("first-join-tutorial.use-dialog", true)) {
             dialogManager.openFirstJoinTutorialDialog(player);
         } else {
-            String serverName = getConfig().getString("server.name", "GenSprout");
             java.util.List<String> tutorialLines = getConfig().getStringList("first-join-tutorial.messages");
             for (String line : tutorialLines) {
-                String formatted = line.replace("{servername}", serverName)
-                                       .replace("{server_name}", serverName)
-                                       .replace("{player}", player.getName());
-                player.sendMessage(miniMessage.deserialize(formatted));
+                player.sendMessage(languageManager.renderRaw(line, player, null));
             }
         }
     }
@@ -166,13 +175,9 @@ public class GenSprout extends JavaPlugin implements Listener {
             long delay = getConfig().getLong("motd.delay-ticks", 15L);
             Bukkit.getScheduler().runTaskLater(this, () -> {
                 if (event.getPlayer().isOnline()) {
-                    String serverName = getConfig().getString("server.name", "GenSprout");
                     java.util.List<String> motdLines = getConfig().getStringList("motd.messages");
                     for (String line : motdLines) {
-                        String formatted = line.replace("{servername}", serverName)
-                                               .replace("{server_name}", serverName)
-                                               .replace("{player}", event.getPlayer().getName());
-                        event.getPlayer().sendMessage(miniMessage.deserialize(formatted));
+                        event.getPlayer().sendMessage(languageManager.renderRaw(line, event.getPlayer(), null));
                     }
                 }
             }, delay);
@@ -201,58 +206,14 @@ public class GenSprout extends JavaPlugin implements Listener {
                 com.github.gensprout.farming.FarmCropView.refreshRegionForPlayer(this, event.getPlayer(), farmManager.getActiveRegion());
             }
         }, 40L);
-
-        // Setup Pause Menu Links (Minecraft 1.21+ ServerLinks API)
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            if (event.getPlayer().isOnline()) {
-                setupServerLinks(event.getPlayer());
-            }
-        }, 10L);
-    }
-
-    public void setupServerLinks(org.bukkit.entity.Player player) {
-        if (!getConfig().getBoolean("pause-menu-links.enabled", true)) return;
-
-        try {
-            Class<?> linksClass = Class.forName("org.bukkit.ServerLinks");
-            Object links = Bukkit.getServer().getClass().getMethod("getServerLinks").invoke(Bukkit.getServer());
-            if (links != null) {
-                java.lang.reflect.Method copyMethod = links.getClass().getMethod("copy");
-                Object newLinks = copyMethod.invoke(links);
-
-                java.util.List<java.util.Map<?, ?>> rawLinks = getConfig().getMapList("pause-menu-links.links");
-                for (java.util.Map<?, ?> entry : rawLinks) {
-                    Object labelObj = entry.get("label");
-                    Object urlObj = entry.get("url");
-                    if (labelObj != null && urlObj != null) {
-                        String labelStr = String.valueOf(labelObj);
-                        String urlStr = String.valueOf(urlObj);
-                        try {
-                            java.net.URI uri = java.net.URI.create(urlStr);
-                            net.kyori.adventure.text.Component labelComp = miniMessage.deserialize(labelStr);
-
-                            try {
-                                java.lang.reflect.Method addLink = newLinks.getClass().getMethod("addLink", net.kyori.adventure.text.Component.class, java.net.URI.class);
-                                addLink.invoke(newLinks, labelComp, uri);
-                            } catch (NoSuchMethodException e) {
-                                java.lang.reflect.Method addLink = newLinks.getClass().getMethod("addLink", String.class, java.net.URI.class);
-                                addLink.invoke(newLinks, labelStr, uri);
-                            }
-                        } catch (Throwable ignored) {
-                        }
-                    }
-                }
-
-                java.lang.reflect.Method setLinks = player.getClass().getMethod("setServerLinks", linksClass);
-                setLinks.invoke(player, newLinks);
-            }
-        } catch (Throwable ignored) {
-        }
     }
 
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
+        if (languageManager != null) {
+            languageManager.invalidateLocale(event.getPlayer().getUniqueId());
+        }
         // Record the moment they went offline (used to calculate offline-generation earnings)
         PlayerData data = playerManager.getCachedData(event.getPlayer().getUniqueId());
         if (data != null) {
@@ -261,6 +222,40 @@ public class GenSprout extends JavaPlugin implements Listener {
 
         // Save and unload from memory
         playerManager.unloadPlayer(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onPlayerLocaleChange(org.bukkit.event.player.PlayerLocaleChangeEvent event) {
+        Player player = event.getPlayer();
+        if (player.isOnline()) {
+            if (languageManager != null) {
+                languageManager.invalidateLocale(player.getUniqueId());
+            }
+            if (scoreboardManager != null) {
+                scoreboardManager.updateScoreboard(player);
+                scoreboardManager.updateTabList(player);
+            }
+            refreshPlayerItemLocales(player);
+        }
+    }
+
+    public void refreshPlayerItemLocales(Player player) {
+        if (player == null || !player.isOnline()) return;
+        org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+        for (int i = 0; i < inv.getSize(); i++) {
+            ItemStack item = inv.getItem(i);
+            if (item == null || item.getType() == Material.AIR) continue;
+
+            if (com.github.gensprout.farming.HoeEnchant.isSproutHoe(item, this)) {
+                com.github.gensprout.farming.HoeEnchant.rebuildLore(item, this, player);
+            } else if (generatorManager != null && generatorManager.isGeneratorItem(item)) {
+                generatorManager.rebuildGeneratorLore(item, player);
+            } else if (com.github.gensprout.economy.SellWand.isSellWand(item, this)) {
+                com.github.gensprout.economy.SellWand.rebuildLore(item, this, player);
+            } else if (farmManager != null && farmManager.isSelectorStick(item)) {
+                farmManager.rebuildSelectorStickLore(item, player);
+            }
+        }
     }
 
     public PlayerManager getPlayerManager() {
@@ -287,8 +282,57 @@ public class GenSprout extends JavaPlugin implements Listener {
         return farmingListener;
     }
 
+    public com.github.gensprout.lang.LanguageManager getLanguageManager() {
+        return languageManager;
+    }
+
     public MiniMessage getMiniMessage() {
         return miniMessage;
+    }
+
+    public void reloadPlugin() {
+        reloadConfig();
+        if (languageManager != null) {
+            languageManager.loadLanguages();
+        }
+        if (generatorManager != null) {
+            generatorManager.loadGenerators();
+        }
+        if (farmManager != null) {
+            farmManager.loadFarmRegion();
+        }
+        if (scoreboardManager != null) {
+            scoreboardManager.reload();
+        }
+    }
+
+    public File getGenSproutDataFolder() {
+        File dataFolder = new File(getDataFolder().getParentFile(), "GenSproutData");
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs();
+        }
+        return dataFolder;
+    }
+
+    private void migrateLegacyDataFolder() {
+        File oldDataFolder = new File(getDataFolder(), "data");
+        File newDataFolder = getGenSproutDataFolder();
+        if (oldDataFolder.exists() && oldDataFolder.isDirectory()) {
+            File[] oldFiles = oldDataFolder.listFiles();
+            if (oldFiles != null) {
+                for (File oldFile : oldFiles) {
+                    File newFile = new File(newDataFolder, oldFile.getName());
+                    if (!newFile.exists()) {
+                        try {
+                            java.nio.file.Files.move(oldFile.toPath(), newFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                            getLogger().info("Migrated legacy data file " + oldFile.getName() + " to " + newDataFolder.getPath());
+                        } catch (java.io.IOException e) {
+                            getLogger().warning("Could not migrate legacy data file " + oldFile.getName() + ": " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        }
     }
 
     public EconomyHook getEconomyHook() {

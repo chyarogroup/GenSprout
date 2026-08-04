@@ -1,4 +1,8 @@
-# GenSprout - Configuration File
+# Language Configuration
+# Set userLanguages to 'true' to dynamically match each player's Minecraft client language.
+# Set userLanguages to a specific language code (e.g., "en", "es", "fr", "de") to force all players to use that language.
+language: "en"
+userLanguages: true
 
 # Generator Settings
 generators:
@@ -706,19 +710,6 @@ start-command:
   # Placeholders: {player}
   console-commands: []
 
-# ==========================================
-# Pause Menu Links Customization (Minecraft 1.21+ Server Links)
-# ==========================================
-# Configures custom links displayed inside the Minecraft Pause Menu (Esc menu).
-pause-menu-links:
-  enabled: true
-  links:
-    - label: "<gradient:green:aqua>GenSprout Web Shop</gradient>"
-      url: "https://gensprout.org/shop"
-    - label: "<gold>Community Discord</gold>"
-      url: "https://discord.gg/gensprout"
-    - label: "<yellow>Server Rules</yellow>"
-      url: "https://gensprout.org/rules"
 
 
 

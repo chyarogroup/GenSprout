@@ -2,6 +2,7 @@ package com.github.gensprout.command;
 
 import com.github.gensprout.GenSprout;
 import com.github.gensprout.economy.EconomyHook;
+import com.github.gensprout.lang.LanguageManager;
 import com.github.gensprout.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -189,13 +190,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("prestige")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can open the Prestige Menu!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "open the Prestige Menu"));
                 return true;
             }
             for (Player target : targets) {
                 plugin.getDialogManager().openPrestigeShop(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Opened Prestige Menu for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.opened.prestige", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -204,13 +205,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("genshop")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can use the generator shop!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "use the generator shop"));
                 return true;
             }
             for (Player target : targets) {
                 plugin.getDialogManager().openGeneratorShop(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Opened Generator Shop for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.opened.genshop", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -219,13 +220,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("sellall") || command.getName().equalsIgnoreCase("sell")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can sell crops!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "sell crops"));
                 return true;
             }
             for (Player target : targets) {
                 handleSellAll(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Executed sell action for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.executed.sellall", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -234,13 +235,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("shop") || command.getName().equalsIgnoreCase("supplies") || command.getName().equalsIgnoreCase("bshop") || command.getName().equalsIgnoreCase("buildshop")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can open the Generator Building Supplies Shop!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "open the Generator Building Supplies Shop"));
                 return true;
             }
             for (Player target : targets) {
                 plugin.getDialogManager().openSuppliesShopCategoryMenu(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Opened Building Supplies Shop for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.opened.supplies", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -249,7 +250,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("help") || command.getName().equalsIgnoreCase("gensprouthelp") || command.getName().equalsIgnoreCase("sprouthelp")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can view the tutorial guide!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "view the tutorial guide"));
                 return true;
             }
             for (Player target : targets) {
@@ -261,13 +262,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("start") || command.getName().equalsIgnoreCase("sproutstart") || command.getName().equalsIgnoreCase("tutorial")) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
-                sender.sendMessage("Only players can start the tutorial!");
+                plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "start the tutorial"));
                 return true;
             }
             for (Player target : targets) {
                 handleStartCommand(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Executed start tutorial for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.executed.start", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -281,7 +282,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 if (sub.equals("help")) {
                     List<Player> targets = resolveTargets(sender, args, 1);
                     if (targets.isEmpty()) {
-                        sender.sendMessage("Only players can view the tutorial guide!");
+                        plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "view the tutorial guide"));
                         return true;
                     }
                     for (Player target : targets) {
@@ -292,13 +293,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 if (sub.equals("start") || sub.equals("tutorial")) {
                     List<Player> targets = resolveTargets(sender, args, 1);
                     if (targets.isEmpty()) {
-                        sender.sendMessage("No players found to start tutorial!");
+                        plugin.getLanguageManager().send(sender, "system.player-not-found", LanguageManager.values("player", args.length > 1 ? args[1] : "target"));
                         return true;
                     }
                     for (Player target : targets) {
                         handleStartCommand(target);
                         if (!sender.equals(target)) {
-                            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Executed start tutorial for <gold>" + target.getName() + "</gold>.</green>"));
+                            plugin.getLanguageManager().send(sender, "command.executed.start", LanguageManager.values("player", target.getName()));
                         }
                     }
                     return true;
@@ -306,13 +307,13 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 if (sub.equals("shop") || sub.equals("supplies") || sub.equals("bshop") || sub.equals("buildshop")) {
                     List<Player> targets = resolveTargets(sender, args, 1);
                     if (targets.isEmpty()) {
-                        sender.sendMessage("Only players can open the Generator Building Supplies Shop!");
+                        plugin.getLanguageManager().send(sender, "system.player-only-action", LanguageManager.values("action", "open the Generator Building Supplies Shop"));
                         return true;
                     }
                     for (Player target : targets) {
                         plugin.getDialogManager().openSuppliesShopCategoryMenu(target);
                         if (!sender.equals(target)) {
-                            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Opened Building Supplies Shop for <gold>" + target.getName() + "</gold>.</green>"));
+                            plugin.getLanguageManager().send(sender, "command.opened.supplies", LanguageManager.values("player", target.getName()));
                         }
                     }
                     return true;
@@ -320,7 +321,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 if (sub.equals("givegen") || sub.equals("addxp") || sub.equals("addessence") || sub.equals("removeessence") || sub.equals("setessence") || sub.equals("reload") || sub.equals("definefarm") || sub.equals("savefarm")
                         || sub.equals("givegenslots") || sub.equals("setlevel") || sub.equals("setprestige") || sub.equals("addmoney") || sub.equals("givehoe") || sub.equals("givesellwand") || sub.equals("clearstats")) {
                     if (!sender.hasPermission("gensprout.admin")) {
-                        sender.sendMessage(plugin.getMiniMessage().deserialize("<red>No permission for admin commands!</red>"));
+                        plugin.getLanguageManager().send(sender, "system.no-permission");
                         return true;
                     }
                     handleAdminCommands(sender, args);
@@ -330,7 +331,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
 
             List<Player> targets = resolveTargets(sender, args, -1);
             if (targets.isEmpty()) {
-                sender.sendMessage("Use /" + mainCmd + " <help|start|givegen|givegenslots|addxp|addessence|addmoney|setlevel|setprestige|givehoe|givesellwand|clearstats|reload>");
+                plugin.getLanguageManager().send(sender, "command.usage", LanguageManager.values("command", mainCmd));
                 return true;
             }
 
@@ -338,7 +339,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             for (Player target : targets) {
                 plugin.getDialogManager().openMainMenu(target);
                 if (!sender.equals(target)) {
-                    sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Opened Main Menu for <gold>" + target.getName() + "</gold>.</green>"));
+                    plugin.getLanguageManager().send(sender, "command.opened.main", LanguageManager.values("player", target.getName()));
                 }
             }
             return true;
@@ -355,11 +356,8 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         String sub = args[0].toLowerCase();
         
         if (sub.equals("reload")) {
-            plugin.reloadConfig();
-            plugin.getGeneratorManager().reload();
-            plugin.getScoreboardManager().reload();
-            String serverName = plugin.getConfig().getString("server.name", "GenSprout");
-            sender.sendMessage(plugin.getMiniMessage().deserialize("<green>" + serverName + " configuration reloaded!</green>"));
+            plugin.reloadPlugin();
+            plugin.getLanguageManager().send(sender, "system.reload-success");
             return;
         }
 
@@ -418,7 +416,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             for (Player target : targets) {
-                ItemStack hoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin);
+                ItemStack hoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin, target);
                 target.getInventory().addItem(hoe).forEach((index, item) -> target.getWorld().dropItemNaturally(target.getLocation(), item));
                 sender.sendMessage(plugin.getMiniMessage().deserialize("<green>Gave a Sprout Hoe to " + target.getName() + ".</green>"));
                 target.sendMessage(plugin.getMiniMessage().deserialize("<green>You received a Sprout Hoe from an admin.</green>"));
@@ -657,7 +655,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
         boolean isTester = player.hasPermission("gensprout.tester");
         if (!isTester && data.hasCompletedTutorial()) {
-            player.sendMessage(plugin.getMiniMessage().deserialize("<red>You have already completed the tutorial and claimed your starter items!</red>"));
+            plugin.getLanguageManager().send(player, "command.start.already-completed");
             return;
         }
 
@@ -665,14 +663,14 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         plugin.getPlayerManager().savePlayer(player.getUniqueId());
 
         // Starter items: 1x Sprout Hoe + default max generators (20)
-        ItemStack sproutHoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin);
+        ItemStack sproutHoe = com.github.gensprout.farming.HoeEnchant.createBaseHoe(plugin, player);
         player.getInventory().addItem(sproutHoe).forEach((index, item) -> player.getWorld().dropItemNaturally(player.getLocation(), item));
 
         int defaultSlots = plugin.getGeneratorManager().getDefaultSlots();
         plugin.getGeneratorManager().giveGenerator(player, 1, defaultSlots);
 
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
-        player.sendMessage(plugin.getMiniMessage().deserialize("<green>Tutorial started! You've received a <gradient:green:aqua>Sprout Hoe</gradient> and " + defaultSlots + " Tier 1 Generators to get started!</green>"));
+        plugin.getLanguageManager().send(player, "command.start.success", LanguageManager.values("amount", String.valueOf(defaultSlots)));
 
         executeStartCommands(player);
     }
@@ -733,15 +731,17 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                 ));
             }
             org.bukkit.util.StringUtil.copyPartialMatches(args[0], options, list);
-        } else if (args.length == 2 && sender.hasPermission("gensprout.admin")) {
+        } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
-            if (sub.equals("givegen") || sub.equals("givegenslots") || sub.equals("addxp")
-                    || sub.equals("addessence") || sub.equals("removeessence") || sub.equals("setessence")
-                    || sub.equals("addmoney") || sub.equals("setlevel") || sub.equals("setprestige")
-                    || sub.equals("givehoe") || sub.equals("givesellwand") || sub.equals("clearstats")) {
-                List<String> targets = new ArrayList<>(Arrays.asList("@p", "@a", "@r", "@s"));
-                targets.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
-                org.bukkit.util.StringUtil.copyPartialMatches(args[1], targets, list);
+            if (sender.hasPermission("gensprout.admin")) {
+                if (sub.equals("givegen") || sub.equals("givegenslots") || sub.equals("addxp")
+                        || sub.equals("addessence") || sub.equals("removeessence") || sub.equals("setessence")
+                        || sub.equals("addmoney") || sub.equals("setlevel") || sub.equals("setprestige")
+                        || sub.equals("givehoe") || sub.equals("givesellwand") || sub.equals("clearstats")) {
+                    List<String> targets = new ArrayList<>(Arrays.asList("@p", "@a", "@r", "@s"));
+                    targets.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                    org.bukkit.util.StringUtil.copyPartialMatches(args[1], targets, list);
+                }
             }
         } else if (args.length == 3 && sender.hasPermission("gensprout.admin")) {
             String sub = args[0].toLowerCase();

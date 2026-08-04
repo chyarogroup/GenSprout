@@ -156,7 +156,7 @@ public class FarmingListener implements Listener {
         }
 
         if (!HoeEnchant.isSproutHoe(hoe, plugin)) {
-            player.sendActionBar(plugin.getMiniMessage().deserialize("<red>Sprout Hoe required!</red>"));
+            plugin.getLanguageManager().sendActionBar(player, "actionbar.hoe-required");
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, 0.5f);
             return;
         }
@@ -216,7 +216,7 @@ public class FarmingListener implements Listener {
 
             if (!HoeEnchant.isSproutHoe(hoe, plugin)) {
                 event.setCancelled(true);
-                player.sendActionBar(plugin.getMiniMessage().deserialize("<red>Sprout Hoe required!</red>"));
+                plugin.getLanguageManager().sendActionBar(player, "actionbar.hoe-required");
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.5f, 0.5f);
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (player.isOnline()) {
@@ -423,7 +423,7 @@ public class FarmingListener implements Listener {
 
             if (totalEssenceGained > 0) {
                 data.addEssence(totalEssenceGained);
-                player.sendMessage(plugin.getMiniMessage().deserialize("<light_purple>+ " + totalEssenceGained + " Essence</light_purple>"));
+                plugin.getLanguageManager().sendActionBar(player, "actionbar.essence-found", com.github.gensprout.lang.LanguageManager.values("amount", String.valueOf(totalEssenceGained)));
             }
 
             boolean shouldAutoSell = globalAutoSell && (autoSellLvl > 0);
@@ -450,8 +450,9 @@ public class FarmingListener implements Listener {
 
             if (totalAutoSoldQuantity > 0) {
                 com.github.gensprout.economy.EconomyHook.deposit(player, totalAutoSellEarnings);
-                player.sendActionBar(plugin.getMiniMessage().deserialize(
-                        "<green>Auto-Sold <gold>" + totalAutoSoldQuantity + "x</gold> for <gold>" + com.github.gensprout.economy.EconomyHook.format(totalAutoSellEarnings) + "</gold></green>"
+                plugin.getLanguageManager().sendActionBar(player, "actionbar.autosell", com.github.gensprout.lang.LanguageManager.values(
+                        "amount", String.valueOf(totalAutoSoldQuantity),
+                        "total", com.github.gensprout.economy.EconomyHook.format(totalAutoSellEarnings)
                 ));
             }
 
