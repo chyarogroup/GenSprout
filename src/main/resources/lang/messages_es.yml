@@ -132,6 +132,7 @@ dialog:
     buy-slot-button: "<gold>Comprar +1 Ranura (<cost>)</gold>"
     buy-essence-slot-button: "<light_purple>Comprar +1 Ranura (<cost> Esencia) [<current>/<max>]</light_purple>"
     buy-sellwand-button: "<gold>Comprar Vara de venta (1.5x) [<cost> Esencia]</gold>"
+    buy-master-sellwand-button: "<gradient:gold:light_purple>Comprar Vara de venta Maestra (2.5x) [<cost> Esencia]</gradient>"
     check-price-button: "<aqua>Ver Precio Total</aqua>"
     buy-success: "<green>¡Compraste <gold><amount>x Generador(es) de Tier <tier></gold> por <gold><cost></gold>!</green>"
     buy-slot-success: "<green>¡+1 Ranura de generador desbloqueada! (Ranuras de Esencia totales: <slots>)</green>"

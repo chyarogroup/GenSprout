@@ -73,6 +73,10 @@ public class SellWand {
         return plugin.getConfig().getDouble("sellwand.multipliers." + tier + ".price", 2500.0);
     }
 
+    public static int getEssenceCostForTier(GenSprout plugin, int tier) {
+        return plugin.getConfig().getInt("sellwand.multipliers." + tier + ".essence-cost", 2500 * tier);
+    }
+
     public static String getDisplayNameForTier(GenSprout plugin, int tier) {
         return plugin.getConfig().getString("sellwand.multipliers." + tier + ".display-name", "<green>Sell Wand</green>");
     }

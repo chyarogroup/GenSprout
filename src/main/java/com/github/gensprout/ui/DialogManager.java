@@ -202,11 +202,14 @@ public class DialogManager {
                 ))
                 .build();
 
-        int slotCost = plugin.getConfig().getInt("essence-slots.cost-per-slot", 500);
+        int baseSlotCost = plugin.getConfig().getInt("essence-slots.base-cost", 500);
+        int slotScalingFactor = plugin.getConfig().getInt("essence-slots.scaling-factor", 250);
         int maxEssenceSlots = plugin.getConfig().getInt("essence-slots.max-slots", 25);
         int currentEssenceSlots = data.getEssenceSlots();
+        int slotCost = baseSlotCost + (currentEssenceSlots * slotScalingFactor);
 
-        int sellWandCost = plugin.getConfig().getInt("sellwand.essence-cost", 1000);
+        int wand1Cost = SellWand.getEssenceCostForTier(plugin, 1);
+        int wand2Cost = SellWand.getEssenceCostForTier(plugin, 2);
 
         List<ActionButton> buttons = List.of(
                 ActionButton.builder(lang().getComponent("dialog.genshop.buy-button", player))
@@ -244,10 +247,13 @@ public class DialogManager {
                         .action(action((view, p) -> {
                             PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
                             int maxEssence = plugin.getConfig().getInt("essence-slots.max-slots", 25);
-                            int cost = plugin.getConfig().getInt("essence-slots.cost-per-slot", 500);
+                            int baseCost = plugin.getConfig().getInt("essence-slots.base-cost", 500);
+                            int scaling = plugin.getConfig().getInt("essence-slots.scaling-factor", 250);
+                            int currentCost = baseCost + (pd.getEssenceSlots() * scaling);
+
                             if (pd.getEssenceSlots() >= maxEssence) {
                                 lang().send(p, "dialog.genshop.error-max-essence-slots");
-                            } else if (pd.removeEssence(cost)) {
+                            } else if (pd.removeEssence(currentCost)) {
                                 pd.setEssenceSlots(pd.getEssenceSlots() + 1);
                                 plugin.getPlayerManager().savePlayer(p.getUniqueId());
                                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
@@ -255,21 +261,41 @@ public class DialogManager {
                                         "slots", String.valueOf(pd.getEssenceSlots())));
                             } else {
                                 lang().send(p, "dialog.hoe.error-no-essence",
-                                        LanguageManager.values("cost", String.valueOf(cost)));
+                                        LanguageManager.values("cost", String.valueOf(currentCost)));
                             }
                             openGeneratorShop(p, null, null, view.getFloat("tier").intValue(), view.getFloat("qty").intValue());
                         }))
                         .build(),
                 ActionButton.builder(lang().getComponent("dialog.genshop.buy-sellwand-button", player,
                                 LanguageManager.values(
-                                        "cost", String.valueOf(sellWandCost),
-                                        "price", String.valueOf(sellWandCost))))
+                                        "cost", String.valueOf(wand1Cost),
+                                        "price", String.valueOf(wand1Cost))))
                         .action(action((view, p) -> {
                             PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
-                            int cost = plugin.getConfig().getInt("sellwand.essence-cost", 1000);
+                            int cost = SellWand.getEssenceCostForTier(plugin, 1);
                             if (pd.removeEssence(cost)) {
                                 plugin.getPlayerManager().savePlayer(p.getUniqueId());
-                                ItemStack wand = SellWand.createSellWand(plugin, 1);
+                                ItemStack wand = SellWand.createSellWand(plugin, 1, p);
+                                p.getInventory().addItem(wand).forEach((index, it) -> p.getWorld().dropItemNaturally(p.getLocation(), it));
+                                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
+                                lang().send(p, "dialog.genshop.buy-sellwand-success");
+                            } else {
+                                lang().send(p, "dialog.hoe.error-no-essence",
+                                        LanguageManager.values("cost", String.valueOf(cost)));
+                            }
+                            openGeneratorShop(p, null, null, view.getFloat("tier").intValue(), view.getFloat("qty").intValue());
+                        }))
+                        .build(),
+                ActionButton.builder(lang().getComponent("dialog.genshop.buy-master-sellwand-button", player,
+                                LanguageManager.values(
+                                        "cost", String.valueOf(wand2Cost),
+                                        "price", String.valueOf(wand2Cost))))
+                        .action(action((view, p) -> {
+                            PlayerData pd = plugin.getPlayerManager().getPlayerData(p.getUniqueId());
+                            int cost = SellWand.getEssenceCostForTier(plugin, 2);
+                            if (pd.removeEssence(cost)) {
+                                plugin.getPlayerManager().savePlayer(p.getUniqueId());
+                                ItemStack wand = SellWand.createSellWand(plugin, 2, p);
                                 p.getInventory().addItem(wand).forEach((index, it) -> p.getWorld().dropItemNaturally(p.getLocation(), it));
                                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.2f);
                                 lang().send(p, "dialog.genshop.buy-sellwand-success");

@@ -90,9 +90,9 @@ public class GeneratorManager {
         double base = config.getDouble("generators.tier-economy.base-buy-price", 250.0);
         int earlyTiers = Math.max(1, config.getInt("generators.tier-economy.early-tiers", 5));
         double earlyStep = config.getDouble("generators.tier-economy.early-step", 250.0);
-        int midThreshold = Math.max(earlyTiers, config.getInt("generators.tier-economy.mid-tier-threshold", 18));
-        double midGrowth = config.getDouble("generators.tier-economy.mid-growth-rate", 1.75);
-        double lateGrowth = config.getDouble("generators.tier-economy.late-growth-rate", 1.45);
+        int midThreshold = Math.max(earlyTiers, config.getInt("generators.tier-economy.mid-tier-threshold", 25));
+        double midGrowth = config.getDouble("generators.tier-economy.mid-growth-rate", 1.28);
+        double lateGrowth = config.getDouble("generators.tier-economy.late-growth-rate", 1.32);
 
         if (tier <= earlyTiers) {
             return base + ((tier - 1) * earlyStep);
@@ -112,10 +112,10 @@ public class GeneratorManager {
         double base = config.getDouble("generators.drop-value-economy.base-drop-value", 2.0);
         int earlyTiers = Math.max(1, config.getInt("generators.drop-value-economy.early-tiers", 5));
         double earlyStep = config.getDouble("generators.drop-value-economy.early-step", 2.0);
-        int midThreshold = Math.max(earlyTiers, config.getInt("generators.drop-value-economy.mid-tier-threshold", 20));
-        double midGrowth = config.getDouble("generators.drop-value-economy.mid-growth-rate", 1.5);
-        double lateGrowth = config.getDouble("generators.drop-value-economy.late-growth-rate", 1.18);
-        double cap = config.getDouble("generators.drop-value-economy.max-drop-value-cap", 10000.0);
+        int midThreshold = Math.max(earlyTiers, config.getInt("generators.drop-value-economy.mid-tier-threshold", 25));
+        double midGrowth = config.getDouble("generators.drop-value-economy.mid-growth-rate", 1.18);
+        double lateGrowth = config.getDouble("generators.drop-value-economy.late-growth-rate", 1.20);
+        double cap = config.getDouble("generators.drop-value-economy.max-drop-value-cap", 30000.0);
 
         double value;
         if (tier <= earlyTiers) {
@@ -245,10 +245,21 @@ public class GeneratorManager {
                 }
 
                 GeneratorType type = getTierConfig(gen.getTier());
-                if (type == null || loc.getBlock().getType() != type.getBlockType()) {
+                if (type == null) {
                     iterator.remove();
                     saveGenerators();
                     continue;
+                }
+
+                if (loc.getBlock().getType() != type.getBlockType()) {
+                    if (loc.getBlock().getType() != Material.AIR) {
+                        // Seamlessly migrate physical block to the updated tier block type
+                        loc.getBlock().setType(type.getBlockType());
+                    } else {
+                        iterator.remove();
+                        saveGenerators();
+                        continue;
+                    }
                 }
 
                 if (!isBelowItemCap(world, loc)) {
@@ -327,6 +338,7 @@ public class GeneratorManager {
             meta.setEnchantmentGlintOverride(true);
 
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            pdc.set(tierKey, PersistentDataType.INTEGER, tier);
             pdc.set(dropValueKey, PersistentDataType.DOUBLE, type.getDropValue());
             if (ownerUuid != null) {
                 pdc.set(dropOwnerKey, PersistentDataType.STRING, ownerUuid.toString());
@@ -339,8 +351,18 @@ public class GeneratorManager {
     public Double getDropValueFromItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        if (isGeneratorItem(item)) {
+            return null; // Placeable generator blocks cannot be sold
+        }
         if (pdc.has(dropValueKey, PersistentDataType.DOUBLE)) {
             return pdc.get(dropValueKey, PersistentDataType.DOUBLE);
+        }
+        if (pdc.has(tierKey, PersistentDataType.INTEGER)) {
+            int tier = pdc.get(tierKey, PersistentDataType.INTEGER);
+            GeneratorType type = getTierConfig(tier);
+            if (type != null) {
+                return type.getDropValue();
+            }
         }
         return null;
     }
@@ -419,7 +441,15 @@ public class GeneratorManager {
     }
 
     public boolean isGeneratorItem(ItemStack item) {
-        return getGeneratorTierFromItem(item) != null;
+        if (item == null || !item.hasItemMeta()) return false;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(tierKey, PersistentDataType.INTEGER) && !pdc.has(dropValueKey, PersistentDataType.DOUBLE);
+    }
+
+    public boolean isGeneratorDrop(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        return pdc.has(dropValueKey, PersistentDataType.DOUBLE);
     }
 
     public void rebuildGeneratorLore(ItemStack item, Player viewer) {
@@ -474,7 +504,7 @@ public class GeneratorManager {
     public Integer getGeneratorTierFromItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
-        if (pdc.has(tierKey, PersistentDataType.INTEGER)) {
+        if (pdc.has(tierKey, PersistentDataType.INTEGER) && !pdc.has(dropValueKey, PersistentDataType.DOUBLE)) {
             return pdc.get(tierKey, PersistentDataType.INTEGER);
         }
         return null;

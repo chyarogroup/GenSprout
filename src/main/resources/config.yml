@@ -32,37 +32,33 @@ generators:
   item-check-radius: 12
 
   # Generator tier cost curve
-  # Same "fast start, steady middle, tapered end" economy philosophy used for leveling and hoe
-  # enchants: tiers 1..early-tiers are cheap flat increments (quick to grab early on and get
-  # hooked), tiers up to mid-tier-threshold grow at a steady compounding rate (mid-growth-rate),
-  # and tiers beyond that taper to a gentler compounding rate (late-growth-rate) so the top tier
-  # stays a reachable long-term goal instead of spiraling into an ever-worse cost.
+  # Generator tier cost curve
+  # 3-phase economy curve tuned for a ~25 hour total playtime progression to max tier 50:
+  # Tiers 1..early-tiers (1..5): starter linear steps ($250 per step)
+  # Tiers 6..mid-tier-threshold (6..25): compounding growth rate (mid-growth-rate: 1.28)
+  # Tiers 26..50: compounding growth rate (late-growth-rate: 1.32)
   # upgrade-price is always buy-price * upgrade-price-ratio.
   tier-economy:
     base-buy-price: 250.0
-    early-tiers: 10
+    early-tiers: 5
     early-step: 250.0
-    mid-tier-threshold: 20
-    mid-growth-rate: 1.75
-    late-growth-rate: 1.45
-    upgrade-price-ratio: 0.72
+    mid-tier-threshold: 25
+    mid-growth-rate: 1.28
+    late-growth-rate: 1.32
+    upgrade-price-ratio: 0.80
 
   # Generator drop value curve
-  # Same "fast start, steady middle, tapered end" economy philosophy applied to how much each
-  # generator drop actually sells for: tiers 1..early-tiers are cheap flat increments, tiers up to
-  # mid-tier-threshold scale at a steady compounding rate, and tiers beyond that taper to a
-  # gentler compounding rate, hard-capped at max-drop-value-cap.
+  # 3-phase drop value curve tuned for balanced steady income scaling across 25 hours.
   drop-value-economy:
     base-drop-value: 2.0
     early-tiers: 5
     early-step: 2.0
-    mid-tier-threshold: 20
-    mid-growth-rate: 1.5
-    late-growth-rate: 1.18
-    max-drop-value-cap: 10000.0
+    mid-tier-threshold: 25
+    mid-growth-rate: 1.18
+    late-growth-rate: 1.20
+    max-drop-value-cap: 30000.0
 
-  # Generator Tiers definition
-  # max-tier (25) must drop items/value worth $10000.0 (enforced by max-drop-value-cap above)
+  # Generator Tiers definition (50 Tiers)
   tiers:
     1:
       display-name: "<gray>Wheat Generator (Tier 1)</gray>"
@@ -120,75 +116,200 @@ generators:
       drop-material: COAL
       drop-name: "<gray>Pressed Coal Chunk</gray>"
     12:
-      display-name: "<gray>Iron Generator (Tier 12)</gray>"
+      display-name: "<gold>Copper Generator (Tier 12)</gold>"
+      block-type: RAW_COPPER_BLOCK
+      drop-material: RAW_COPPER
+      drop-name: "<gold>Raw Copper Ingot</gold>"
+    13:
+      display-name: "<gray>Iron Generator (Tier 13)</gray>"
       block-type: IRON_BLOCK
       drop-material: IRON_INGOT
       drop-name: "<gray>Pure Iron Ingot</gray>"
-    13:
-      display-name: "<aqua>Lapis Generator (Tier 13)</aqua>"
+    14:
+      display-name: "<aqua>Lapis Generator (Tier 14)</aqua>"
       block-type: LAPIS_BLOCK
       drop-material: LAPIS_LAZULI
       drop-name: "<aqua>Indigo Lapis Chunk</aqua>"
-    14:
-      display-name: "<red>Redstone Generator (Tier 14)</red>"
+    15:
+      display-name: "<red>Redstone Generator (Tier 15)</red>"
       block-type: REDSTONE_BLOCK
       drop-material: REDSTONE
       drop-name: "<red>Charged Redstone Ingot</red>"
-    15:
-      display-name: "<gold>Gold Generator (Tier 15)</gold>"
+    16:
+      display-name: "<gold>Gold Generator (Tier 16)</gold>"
       block-type: GOLD_BLOCK
       drop-material: GOLD_INGOT
-      drop-name: "<gold>Refined Gold Nugget</gold>"
-    16:
-      display-name: "<green>Emerald Generator (Tier 16)</green>"
+      drop-name: "<gold>Refined Gold Ingot</gold>"
+    17:
+      display-name: "<green>Emerald Generator (Tier 17)</green>"
       block-type: EMERALD_BLOCK
       drop-material: EMERALD
       drop-name: "<green>Glimmering Emerald Gem</green>"
-    17:
-      display-name: "<aqua>Diamond Generator (Tier 17)</aqua>"
+    18:
+      display-name: "<aqua>Diamond Generator (Tier 18)</aqua>"
       block-type: DIAMOND_BLOCK
       drop-material: DIAMOND
-      drop-name: "<aqua>Flawless Diamond shard</aqua>"
-    18:
-      display-name: "<dark_purple>Obsidian Generator (Tier 18)</dark_purple>"
+      drop-name: "<aqua>Flawless Diamond Shard</aqua>"
+    19:
+      display-name: "<dark_purple>Obsidian Generator (Tier 19)</dark_purple>"
       block-type: OBSIDIAN
       drop-material: AMETHYST_SHARD
       drop-name: "<dark_purple>Crystalline Obsidian</dark_purple>"
-    19:
-      display-name: "<dark_red>Netherite Generator (Tier 19)</dark_red>"
+    20:
+      display-name: "<dark_red>Netherite Generator (Tier 20)</dark_red>"
       block-type: NETHERITE_BLOCK
       drop-material: NETHERITE_INGOT
       drop-name: "<dark_red>Reinforced Netherite Ingot</dark_red>"
-    20:
-      display-name: "<dark_aqua>Prismarine Generator (Tier 20)</dark_aqua>"
+    21:
+      display-name: "<dark_aqua>Prismarine Generator (Tier 21)</dark_aqua>"
       block-type: PRISMARINE
       drop-material: PRISMARINE_CRYSTALS
       drop-name: "<dark_aqua>Ocean Crystal</dark_aqua>"
-    21:
-      display-name: "<light_purple>Amethyst Generator (Tier 21)</light_purple>"
+    22:
+      display-name: "<light_purple>Amethyst Generator (Tier 22)</light_purple>"
       block-type: AMETHYST_BLOCK
       drop-material: AMETHYST_SHARD
       drop-name: "<light_purple>Amethyst Cluster</light_purple>"
-    22:
-      display-name: "<gold>Gilded Generator (Tier 22)</gold>"
+    23:
+      display-name: "<gold>Gilded Generator (Tier 23)</gold>"
       block-type: GILDED_BLACKSTONE
       drop-material: GOLD_NUGGET
       drop-name: "<gold>Gilded Blackstone Pebble</gold>"
-    23:
-      display-name: "<dark_purple>Crying Generator (Tier 23)</dark_purple>"
+    24:
+      display-name: "<dark_purple>Crying Generator (Tier 24)</dark_purple>"
       block-type: CRYING_OBSIDIAN
       drop-material: GHAST_TEAR
       drop-name: "<dark_purple>Weeping Tear</dark_purple>"
-    24:
-      display-name: "<light_purple>End Generator (Tier 24)</light_purple>"
+    25:
+      display-name: "<light_purple><bold>SPROUT MASTER GENERATOR (Tier 25)</bold></light_purple>"
       block-type: PURPUR_BLOCK
       drop-material: ENDER_PEARL
-      drop-name: "<light_purple>Ender Crystal Core</light_purple>"
-    25:
-      display-name: "<dark_purple><bold>SPROUT MASTER GENERATOR (Tier 25)</bold></dark_purple>"
+      drop-name: "<light_purple><bold>Ender Crystal Core</bold></light_purple>"
+    26:
+      display-name: "<aqua>Sea Lantern Generator (Tier 26)</aqua>"
+      block-type: SEA_LANTERN
+      drop-material: PRISMARINE_SHARD
+      drop-name: "<aqua>Luminous Lantern Core</aqua>"
+    27:
+      display-name: "<gold>Magma Generator (Tier 27)</gold>"
+      block-type: MAGMA_BLOCK
+      drop-material: MAGMA_CREAM
+      drop-name: "<gold>Burning Magma Core</gold>"
+    28:
+      display-name: "<yellow>Glowstone Generator (Tier 28)</yellow>"
+      block-type: GLOWSTONE
+      drop-material: GLOWSTONE_DUST
+      drop-name: "<yellow>Radiant Glow Dust</yellow>"
+    29:
+      display-name: "<light_purple>Shulker Generator (Tier 29)</light_purple>"
+      block-type: PURPUR_PILLAR
+      drop-material: SHULKER_SHELL
+      drop-name: "<light_purple>Shulker Shell Fragment</light_purple>"
+    30:
+      display-name: "<yellow>Void Generator (Tier 30)</yellow>"
+      block-type: END_STONE_BRICKS
+      drop-material: CHORUS_FRUIT
+      drop-name: "<yellow>Void Chorus Blossom</yellow>"
+    31:
+      display-name: "<dark_red>Debris Generator (Tier 31)</dark_red>"
+      block-type: ANCIENT_DEBRIS
+      drop-material: NETHERITE_SCRAP
+      drop-name: "<dark_red>Ancient Scrap Metal</dark_red>"
+    32:
+      display-name: "<gold>Ochre Generator (Tier 32)</gold>"
+      block-type: OCHRE_FROGLIGHT
+      drop-material: HONEYCOMB
+      drop-name: "<gold>Golden Honeycomb Gem</gold>"
+    33:
+      display-name: "<green>Verdant Generator (Tier 33)</green>"
+      block-type: VERDANT_FROGLIGHT
+      drop-material: SLIME_BALL
+      drop-name: "<green>Verdant Slime Core</green>"
+    34:
+      display-name: "<light_purple>Pearlescent Generator (Tier 34)</light_purple>"
+      block-type: PEARLESCENT_FROGLIGHT
+      drop-material: ECHO_SHARD
+      drop-name: "<light_purple>Pearlescent Echo Shard</light_purple>"
+    35:
+      display-name: "<dark_blue>Sculk Catalyst Generator (Tier 35)</dark_blue>"
+      block-type: SCULK_CATALYST
+      drop-material: SCULK_VEIN
+      drop-name: "<dark_blue>Deep Dark Catalyst</dark_blue>"
+    36:
+      display-name: "<dark_aqua>Sculk Shrieker Generator (Tier 36)</dark_aqua>"
+      block-type: SCULK_SHRIEKER
+      drop-material: ECHO_SHARD
+      drop-name: "<dark_aqua>Resonance Shrieker Soul</dark_aqua>"
+    37:
+      display-name: "<yellow>Sponge Generator (Tier 37)</yellow>"
+      block-type: SPONGE
+      drop-material: WET_SPONGE
+      drop-name: "<yellow>Abyssal Ocean Sponge</yellow>"
+    38:
+      display-name: "<white>Quartz Generator (Tier 38)</white>"
+      block-type: SMOOTH_QUARTZ
+      drop-material: QUARTZ
+      drop-name: "<white>Celestial Quartz Crystal</white>"
+    39:
+      display-name: "<red>Target Generator (Tier 39)</red>"
+      block-type: TARGET
+      drop-material: ARROW
+      drop-name: "<red>Bullseye Target Core</red>"
+    40:
+      display-name: "<dark_purple>Lodestone Generator (Tier 40)</dark_purple>"
+      block-type: LODESTONE
+      drop-material: COMPASS
+      drop-name: "<dark_purple>Magnetic Lodestone Core</dark_purple>"
+    41:
+      display-name: "<red>Anchor Generator (Tier 41)</red>"
+      block-type: RESPAWN_ANCHOR
+      drop-material: GLOW_BERRIES
+      drop-name: "<red>Nether Core Anchor</red>"
+    42:
+      display-name: "<gray>Heavy Core Generator (Tier 42)</gray>"
+      block-type: HEAVY_CORE
+      drop-material: BREEZE_ROD
+      drop-name: "<gray>Dense Breeze Rod Core</gray>"
+    43:
+      display-name: "<gold>Vault Generator (Tier 43)</gold>"
+      block-type: VAULT
+      drop-material: TRIAL_KEY
+      drop-name: "<gold>Ominous Trial Core</gold>"
+    44:
+      display-name: "<dark_green>Spawner Generator (Tier 44)</dark_green>"
+      block-type: SPAWNER
+      drop-material: DISC_FRAGMENT_5
+      drop-name: "<dark_green>Awakened Spawner Essence</dark_green>"
+    45:
+      display-name: "<dark_aqua>Dimension Generator (Tier 45)</dark_aqua>"
+      block-type: END_PORTAL_FRAME
+      drop-material: ENDER_EYE
+      drop-name: "<dark_aqua>Dimensional Eye Core</dark_aqua>"
+    46:
+      display-name: "<aqua>Conduit Generator (Tier 46)</aqua>"
+      block-type: CONDUIT
+      drop-material: HEART_OF_THE_SEA
+      drop-name: "<aqua>Heart of the Sea Core</aqua>"
+    47:
+      display-name: "<light_purple>Enchantment Generator (Tier 47)</light_purple>"
+      block-type: ENCHANTING_TABLE
+      drop-material: EXPERIENCE_BOTTLE
+      drop-name: "<light_purple>Arcane Experience Bottle</light_purple>"
+    48:
+      display-name: "<dark_purple>Dragon Generator (Tier 48)</dark_purple>"
+      block-type: DRAGON_EGG
+      drop-material: DRAGON_BREATH
+      drop-name: "<dark_purple>Essence of the Dragon</dark_purple>"
+    49:
+      display-name: "<aqua><bold>Beacon Generator (Tier 49)</bold></aqua>"
       block-type: BEACON
       drop-material: NETHER_STAR
-      drop-name: "<dark_purple><bold>Eternal Sprout Core</bold></dark_purple>"
+      drop-name: "<aqua><bold>Luminous Beacon Prism</bold></aqua>"
+    50:
+      display-name: "<gradient:gold:light_purple><bold>SPROUT COSMIC MASTER GENERATOR (Tier 50)</bold></gradient>"
+      block-type: CHISELED_BOOKSHELF
+      drop-material: NETHER_STAR
+      drop-name: "<gradient:gold:light_purple><bold>Eternal Cosmic Sprout Core</bold></gradient>"
 
 # Level & Prestige Settings
 leveling:
@@ -286,8 +407,12 @@ crop-progression:
 
 # Essence & Generator Slot Upgrade Settings
 essence-slots:
-  # Cost in Essence to purchase 1 extra generator slot in /genshop
-  cost-per-slot: 500
+  # Base cost in Essence to purchase the first extra generator slot in /genshop
+  base-cost: 300
+  # Cost increase per slot currently owned (cost = base-cost + (current_essence_slots * scaling-factor))
+  scaling-factor: 150
+  # Legacy fallback cost per slot
+  cost-per-slot: 300
   # Maximum number of extra generator slots buyable with Essence
   max-slots: 25
 
@@ -299,21 +424,21 @@ hoe-enchants:
     max-level: 500
     base-cost: 10
     cost-multiplier: 2.0
-    cost-exponent: 1.0
+    cost-exponent: 1.15
     effect-per-level: 0.005 # +0.5% farming XP per level (+250% at lv 500)
   essence_finder:
     display-name: "<light_purple>Essence Finder</light_purple>"
     max-level: 500
     base-cost: 10
     cost-multiplier: 2.0
-    cost-exponent: 1.0
+    cost-exponent: 1.15
     effect-per-level: 0.001 # +0.1% essence chance per level
   crop_doubler:
     display-name: "<green>Crop Doubler</green>"
     max-level: 500
     base-cost: 15
     cost-multiplier: 3.0
-    cost-exponent: 1.0
+    cost-exponent: 1.15
     effect-per-level: 0.002 # +0.2% chance to double crop drops per level (100% at lv 500)
   replenish:
     display-name: "<aqua>Replenish</aqua>"
@@ -373,13 +498,17 @@ auto-sell:
 sellwand:
   # Multiplier applied to item sell values when using Sell Wand (1.5 = 1.5x)
   multiplier: 1.5
-  # Cost in Essence to purchase a Sell Wand
-  essence-cost: 1000
+  # Base cost in Essence to purchase a Tier 1 Sell Wand
+  essence-cost: 1500
   multipliers:
     1:
       display-name: "<gold><b>Sell Wand (1.5x)</b></gold>"
       multiplier: 1.5
-      essence-cost: 1000
+      essence-cost: 1500
+    2:
+      display-name: "<gradient:gold:light_purple><b>Master Sell Wand (2.5x)</b></gradient>"
+      multiplier: 2.5
+      essence-cost: 15000
 
 # ==========================================
 # Server Customization Settings (IP, Name, etc.)

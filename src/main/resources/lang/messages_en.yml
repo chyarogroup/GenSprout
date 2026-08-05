@@ -132,6 +132,7 @@ dialog:
     buy-slot-button: "<gold>Buy +1 Slot (<cost>)</gold>"
     buy-essence-slot-button: "<light_purple>Buy +1 Slot (<cost> Essence) [<current>/<max>]</light_purple>"
     buy-sellwand-button: "<gold>Buy Sell Wand (1.5x) [<cost> Essence]</gold>"
+    buy-master-sellwand-button: "<gradient:gold:light_purple>Buy Master Sell Wand (2.5x) [<cost> Essence]</gradient>"
     check-price-button: "<aqua>Check Total Price</aqua>"
     buy-success: "<green>Bought <gold><amount>x Tier <tier> Generator(s)</gold> for <gold><cost></gold>!</green>"
     buy-slot-success: "<green>Unlocked +1 Generator Slot! (Total Essence Slots: <slots>)</green>"

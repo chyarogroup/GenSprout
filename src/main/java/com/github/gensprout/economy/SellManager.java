@@ -31,6 +31,8 @@ public class SellManager {
     public static double getUnitPrice(GenSprout plugin, ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return 0.0;
 
+        if (plugin.getGeneratorManager().isGeneratorItem(item)) return 0.0;
+
         Double dropVal = plugin.getGeneratorManager().getDropValueFromItem(item);
         if (dropVal != null) return dropVal;
 
