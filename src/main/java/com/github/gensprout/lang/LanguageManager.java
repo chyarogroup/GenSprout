@@ -33,12 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LanguageManager {
 
-    /**
-     * Increment when bundled YAML resources in the JAR change schema or default text. Outdated files
-     * in {@code plugins/GenSprout/lang/} are automatically renamed to {@code .old} and replaced.
-     */
-    public static final int BUNDLED_FILE_VERSION = 4;
-
     private static final List<String> BUNDLED_LANGUAGES = List.of("en", "es", "de", "fr", "zh");
 
     private final GenSprout plugin;
@@ -64,7 +58,9 @@ public class LanguageManager {
             String resourcePath = "lang/messages_" + lang + ".yml";
             File file = new File(langFolder, "messages_" + lang + ".yml");
 
-            refreshBundledFileIfOutdated(file, resourcePath);
+            if (!file.exists()) {
+                plugin.saveResource(resourcePath, false);
+            }
 
             FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             applyJarDefaults(config, resourcePath);
@@ -79,8 +75,6 @@ public class LanguageManager {
                 String code = name.substring("messages_".length(), name.length() - ".yml".length()).toLowerCase(Locale.ROOT);
                 if (!langConfigs.containsKey(code)) {
                     FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-                    // Custom bundles inherit English defaults so a partial translation never renders
-                    // a missing-key marker.
                     applyJarDefaults(config, "lang/messages_en.yml");
                     langConfigs.put(code, config);
                 }
@@ -96,34 +90,6 @@ public class LanguageManager {
 
         plugin.getLogger().info("Loaded " + langConfigs.size() + " language bundle(s) "
                 + langConfigs.keySet() + ". Default language: " + defaultLanguage);
-    }
-
-    /**
-     * Writes the JAR copy of a bundled language file to disk when the file is absent, or when the
-     * file on disk carries an older {@code file-version} than the JAR. The superseded file is kept
-     * alongside as {@code <name>.old} so operator edits are never silently destroyed.
-     */
-    private void refreshBundledFileIfOutdated(File file, String resourcePath) {
-        if (!file.exists()) {
-            plugin.saveResource(resourcePath, false);
-            return;
-        }
-
-        int onDiskVersion = YamlConfiguration.loadConfiguration(file).getInt("file-version", 1);
-        if (onDiskVersion >= BUNDLED_FILE_VERSION) {
-            return;
-        }
-
-        File backup = new File(file.getParentFile(), file.getName() + ".old");
-        try {
-            java.nio.file.Files.move(file.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            plugin.saveResource(resourcePath, false);
-            plugin.getLogger().info("Updated " + file.getName() + " from file-version " + onDiskVersion
-                    + " to " + BUNDLED_FILE_VERSION + ". Your previous copy was kept as " + backup.getName() + ".");
-        } catch (java.io.IOException e) {
-            plugin.getLogger().warning("Could not update outdated " + file.getName() + ": " + e.getMessage()
-                    + ". Delete the file manually to get the current translations.");
-        }
     }
 
     private void applyJarDefaults(FileConfiguration config, String resourcePath) {

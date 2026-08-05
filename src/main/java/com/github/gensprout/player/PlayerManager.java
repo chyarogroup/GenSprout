@@ -18,6 +18,16 @@ import java.util.logging.Level;
 
 public class PlayerManager {
 
+    private static final String[] FILLED_BAR_SEGMENTS = new String[21];
+    private static final String[] EMPTY_BAR_SEGMENTS = new String[21];
+
+    static {
+        for (int i = 0; i <= 20; i++) {
+            FILLED_BAR_SEGMENTS[i] = "|".repeat(i);
+            EMPTY_BAR_SEGMENTS[i] = "|".repeat(20 - i);
+        }
+    }
+
     private final GenSprout plugin;
     private final Map<UUID, PlayerData> dataCache = new ConcurrentHashMap<>();
     private final Set<UUID> dirtyPlayers = ConcurrentHashMap.newKeySet();
@@ -281,8 +291,8 @@ public class PlayerManager {
         int percent = requiredXp <= 0 ? 100 : (int) Math.round((currentXp / requiredXp) * 100);
         percent = Math.max(0, Math.min(100, percent));
 
-        String filledStr = "|".repeat(filled);
-        String emptyStr = "|".repeat(segments - filled);
+        String filledStr = FILLED_BAR_SEGMENTS[filled];
+        String emptyStr = EMPTY_BAR_SEGMENTS[filled];
 
         plugin.getLanguageManager().sendActionBar(player, "actionbar.xp-progress", LanguageManager.values(
                 "level", String.valueOf(level),

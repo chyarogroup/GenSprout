@@ -208,6 +208,7 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
         List<String> sellCmds = plugin.getCommandConfig("sell", List.of("sell", "sellall"));
         List<String> shopCmds = plugin.getCommandConfig("shop", List.of("shop", "supplies", "bshop", "buildshop"));
         List<String> helpCmds = plugin.getCommandConfig("help", List.of("help", "gensprouthelp", "sprouthelp"));
+        List<String> discordCmds = plugin.getCommandConfig("discord", List.of("discord", "dc"));
         List<String> startCmds = plugin.getCommandConfig("start", List.of("start", "sproutstart", "tutorial"));
 
         if (genshopCmds.contains(cmdName)) {
@@ -267,6 +268,22 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (discordCmds.contains(cmdName)) {
+            List<Player> targets = resolveTargets(sender, args, 0);
+            if (targets.isEmpty()) {
+                if (sender instanceof Player p) {
+                    plugin.sendDiscordLink(p);
+                } else {
+                    sender.sendMessage("Discord: " + plugin.getConfig().getString("server.discord", "https://discord.gg/bJjyy8q9wb"));
+                }
+                return true;
+            }
+            for (Player target : targets) {
+                plugin.sendDiscordLink(target);
+            }
+            return true;
+        }
+
         if (startCmds.contains(cmdName)) {
             List<Player> targets = resolveTargets(sender, args, 0);
             if (targets.isEmpty()) {
@@ -294,6 +311,21 @@ public class GenSproutCommand implements CommandExecutor, TabCompleter {
                     }
                     for (Player target : targets) {
                         plugin.openTutorialOrHelp(target);
+                    }
+                    return true;
+                }
+                if (sub.equals("discord") || sub.equals("dc")) {
+                    List<Player> targets = resolveTargets(sender, args, 1);
+                    if (targets.isEmpty()) {
+                        if (sender instanceof Player p) {
+                            plugin.sendDiscordLink(p);
+                        } else {
+                            sender.sendMessage("Discord: " + plugin.getConfig().getString("server.discord", "https://discord.gg/bJjyy8q9wb"));
+                        }
+                        return true;
+                    }
+                    for (Player target : targets) {
+                        plugin.sendDiscordLink(target);
                     }
                     return true;
                 }

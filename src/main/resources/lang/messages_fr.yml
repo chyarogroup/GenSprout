@@ -11,10 +11,7 @@
 #
 # Les montants incluent déjà le symbole monétaire : écrivez <cost> et non $<cost>.
 #
-# file-version sert à détecter les fichiers obsolètes après une mise à jour du plugin. Ne le supprimez
-# pas. Lorsque le plugin fournit une version plus récente, votre ancien fichier est renommé en .old et
-# le nouveau est écrit à sa place : conservez une copie des modifications que vous souhaitez reporter.
-file-version: 4
+
 
 prefix: "<gradient:green:aqua><b>{servername}</b></gradient> <dark_gray>»</dark_gray> "
 
@@ -315,19 +312,21 @@ dialog:
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
   lines:
-    - "<gray>-------------------</gray>"
-    - "<gray>Joueur : <yellow>{player}</yellow></gray>"
-    - "<gray>Niveau : <gold>{level}</gold></gray>"
-    - "<gray>Prestige : <gold>{prestige}</gold></gray>"
-    - "<gray>Essence : <light_purple>{essence}</light_purple></gray>"
-    - "<gray>Gén. placés : <gold>{placed_gens}/{max_gens}</gold></gray>"
-    - "<gray>Solde : <green>{balance}</green></gray>"
-    - "<gray>-------------------</gray>"
+    - "<dark_aqua><b>JOUEUR</b></dark_aqua>"
+    - " <gray>Nom :</gray> <white>{player}</white>"
+    - " <gray>Niveau :</gray> <gold>{level}</gold>"
+    - " <gray>Prestige :</gray> <light_purple>Prestige {prestige}</light_purple>"
+    - ""
+    - "<dark_aqua><b>ÉCONOMIE</b></dark_aqua>"
+    - " <gray>Essence :</gray> <light_purple>{essence}</light_purple>"
+    - " <gray>Générateurs :</gray> <aqua>{placed_gens}</aqua><gray>/</gray><blue>{max_gens}</blue>"
+    - " <gray>Solde :</gray> <green>{balance}</green>"
+    - ""
     - "<yellow>{server_ip}</yellow>"
   tablist:
-    header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>Joueurs en ligne : <gold>{online}</gold></gray>"
-    footer: "<gray>Tapez <gold>/gensprout</gold> pour ouvrir le menu</gray>"
-    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
+    header: "\n<gradient:green:aqua><b>Réseau {servername}</b></gradient>\n<gray>IP : <yellow>{server_ip}</yellow>  <dark_gray>•</dark_gray>  En ligne : <gold>{online}</gold></gray>\n"
+    footer: "\n<gray>Besoin d'aide ? Utilisez <gold>/help</gold> ou <gold>/discord</gold></gray>\n"
+    player-name: "{player_prefix}<white>{player}</white> <gray>(<gold>Niv.{level}</gold> <dark_gray>•</dark_gray> <light_purple>Prestige {prestige}</light_purple>)</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> XP d'agriculture</green> <gray>(<current>/<next>)</gray>"

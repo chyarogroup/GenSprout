@@ -61,11 +61,21 @@ public class GeneratorManager {
                 try {
                     int tier = Integer.parseInt(key);
                     String name = sec.getString(key + ".display-name");
-                    Material blockType = Material.valueOf(sec.getString(key + ".block-type").toUpperCase());
+                    String blockMatStr = sec.getString(key + ".block-type");
+                    Material blockType = blockMatStr != null ? Material.matchMaterial(blockMatStr) : null;
+                    if (blockType == null && blockMatStr != null) {
+                        blockType = Material.valueOf(blockMatStr.toUpperCase());
+                    }
+                    if (blockType == null) {
+                        throw new IllegalArgumentException("Unknown Bukkit Material: " + blockMatStr);
+                    }
                     String dropMatStr = sec.getString(key + ".drop-material");
-                    Material dropMaterial;
+                    Material dropMaterial = null;
                     if (dropMatStr != null && !dropMatStr.isEmpty()) {
-                        dropMaterial = Material.valueOf(dropMatStr.toUpperCase());
+                        dropMaterial = Material.matchMaterial(dropMatStr);
+                        if (dropMaterial == null) {
+                            dropMaterial = Material.valueOf(dropMatStr.toUpperCase());
+                        }
                     } else {
                         dropMaterial = blockType;
                     }

@@ -236,10 +236,10 @@ generators:
       drop-material: SCULK_VEIN
       drop-name: "<dark_blue>Deep Dark Catalyst</dark_blue>"
     36:
-      display-name: "<dark_aqua>Sculk Shrieker Generator (Tier 36)</dark_aqua>"
-      block-type: SCULK_SHRIEKER
+      display-name: "<dark_aqua>Sculk Generator (Tier 36)</dark_aqua>"
+      block-type: SCULK
       drop-material: ECHO_SHARD
-      drop-name: "<dark_aqua>Resonance Shrieker Soul</dark_aqua>"
+      drop-name: "<dark_aqua>Resonance Echo Soul</dark_aqua>"
     37:
       display-name: "<yellow>Sponge Generator (Tier 37)</yellow>"
       block-type: SPONGE
@@ -266,13 +266,13 @@ generators:
       drop-material: GLOW_BERRIES
       drop-name: "<red>Nether Core Anchor</red>"
     42:
-      display-name: "<gray>Heavy Core Generator (Tier 42)</gray>"
-      block-type: HEAVY_CORE
+      display-name: "<gray>Polished Tuff Generator (Tier 42)</gray>"
+      block-type: POLISHED_TUFF
       drop-material: BREEZE_ROD
       drop-name: "<gray>Dense Breeze Rod Core</gray>"
     43:
-      display-name: "<gold>Vault Generator (Tier 43)</gold>"
-      block-type: VAULT
+      display-name: "<gold>Tuff Brick Generator (Tier 43)</gold>"
+      block-type: CHISELED_TUFF_BRICKS
       drop-material: TRIAL_KEY
       drop-name: "<gold>Ominous Trial Core</gold>"
     44:
@@ -281,30 +281,30 @@ generators:
       drop-material: DISC_FRAGMENT_5
       drop-name: "<dark_green>Awakened Spawner Essence</dark_green>"
     45:
-      display-name: "<dark_aqua>Dimension Generator (Tier 45)</dark_aqua>"
-      block-type: END_PORTAL_FRAME
+      display-name: "<dark_aqua>End Stone Generator (Tier 45)</dark_aqua>"
+      block-type: END_STONE
       drop-material: ENDER_EYE
       drop-name: "<dark_aqua>Dimensional Eye Core</dark_aqua>"
     46:
-      display-name: "<aqua>Conduit Generator (Tier 46)</aqua>"
-      block-type: CONDUIT
+      display-name: "<aqua>Dark Prismarine Generator (Tier 46)</aqua>"
+      block-type: DARK_PRISMARINE
       drop-material: HEART_OF_THE_SEA
       drop-name: "<aqua>Heart of the Sea Core</aqua>"
     47:
-      display-name: "<light_purple>Enchantment Generator (Tier 47)</light_purple>"
-      block-type: ENCHANTING_TABLE
+      display-name: "<light_purple>Arcane Bookshelf Generator (Tier 47)</light_purple>"
+      block-type: BOOKSHELF
       drop-material: EXPERIENCE_BOTTLE
       drop-name: "<light_purple>Arcane Experience Bottle</light_purple>"
     48:
-      display-name: "<dark_purple>Dragon Generator (Tier 48)</dark_purple>"
-      block-type: DRAGON_EGG
+      display-name: "<dark_purple>Black Concrete Generator (Tier 48)</dark_purple>"
+      block-type: BLACK_CONCRETE
       drop-material: DRAGON_BREATH
       drop-name: "<dark_purple>Essence of the Dragon</dark_purple>"
     49:
-      display-name: "<aqua><bold>Beacon Generator (Tier 49)</bold></aqua>"
-      block-type: BEACON
+      display-name: "<cyan><bold>Cyan Concrete Generator (Tier 49)</bold></cyan>"
+      block-type: CYAN_CONCRETE
       drop-material: NETHER_STAR
-      drop-name: "<aqua><bold>Luminous Beacon Prism</bold></aqua>"
+      drop-name: "<cyan><bold>Luminous Prism Core</bold></cyan>"
     50:
       display-name: "<gradient:gold:light_purple><bold>SPROUT COSMIC MASTER GENERATOR (Tier 50)</bold></gradient>"
       block-type: CHISELED_BOOKSHELF
@@ -520,6 +520,8 @@ server:
   name: "<gradient:green:aqua><bold>GenSprout</bold></gradient>"
   # A short description tagline for the server
   tagline: "<gray>The ultimate farming server</gray>"
+  discord: "https://discord.gg/bJjyy8q9wb"
+
 
 # ==========================================
 # Scoreboard Customization
@@ -546,15 +548,17 @@ scoreboard:
   #   {online}       - Total online players on the server
   #   {ping}         - Current player's ping in ms
   lines:
-    - "<gray>-------------------</gray>"
-    - "<gray>Player: <yellow>{player}</yellow></gray>"
-    - "<gray>Level: <gold>{level}</gold></gray>"
-    - "<gray>Prestige: <gold>{prestige}</gold></gray>"
-    - "<gray>Essence: <light_purple>{essence}</light_purple></gray>"
-    - "<gray>Placed Gens: <gold>{placed_gens}/{max_gens}</gold></gray>"
-    - "<gray>Balance: <green>{balance}</green></gray>"
-    - "<gray>-------------------</gray>"
-    - "{server_ip}"
+    - "<dark_aqua><b>PLAYER</b></dark_aqua>"
+    - " <gray>Name:</gray> <white>{player}</white>"
+    - " <gray>Level:</gray> <gold>{level}</gold>"
+    - " <gray>Prestige:</gray> <light_purple>Prestige {prestige}</light_purple>"
+    - ""
+    - "<dark_aqua><b>ECONOMY</b></dark_aqua>"
+    - " <gray>Essence:</gray> <light_purple>{essence}</light_purple>"
+    - " <gray>Generators:</gray> <aqua>{placed_gens}</aqua><gray>/</gray><blue>{max_gens}</blue>"
+    - " <gray>Balance:</gray> <green>{balance}</green>"
+    - ""
+    - "<yellow>{server_ip}</yellow>"
 
 # ==========================================
 # Tab List (Header & Footer) Customization
@@ -562,12 +566,12 @@ scoreboard:
 tablist:
   # Enable/disable custom tab list headers and footers
   enabled: true
-  # Format displayed for player names in the tab list ({player}, {prestige}, {level}, etc.)
-  player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
+  # Format displayed for player names in the tab list ({player_prefix}, {player}, {prestige}, {level}, etc.)
+  player-name: "{player_prefix}<white>{player}</white> <gray>(<gold>Lvl {level}</gold> <dark_gray>•</dark_gray> <light_purple>Prestige {prestige}</light_purple>)</gray>"
   # Top message inside the tab menu (supports MiniMessage color formatting & placeholders)
-  header: "\n{server_name}\n{tagline}\n"
+  header: "\n{server_name}\n<gray>IP: <yellow>{server_ip}</yellow>  <dark_gray>•</dark_gray>  Online: <gold>{online}</gold></gray>\n"
   # Bottom message inside the tab menu (supports MiniMessage color formatting & placeholders)
-  footer: "\n<gray>Online Players: <gold>{online}</gold> | Ping: <gold>{ping}ms</gold></gray>\n{server_ip}\n"
+  footer: "\n<gray>Need help? Type <gold>/help</gold> or <gold>/discord</gold></gray>\n"
 
 # ==========================================
 # Menu Customization

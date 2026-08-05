@@ -11,9 +11,7 @@
 #
 # 金额数值已经包含货币符号，所以请写 <cost> 而不是 $<cost>。
 #
-# file-version 用于在插件更新后检测过期文件，请勿删除。当插件附带更新的版本时，
-# 你的旧文件会被重命名为 .old，新文件写入原位置，因此请自行备份想要保留的修改。
-file-version: 4
+
 
 prefix: "<gradient:green:aqua><b>{servername}</b></gradient> <dark_gray>»</dark_gray> "
 
@@ -314,19 +312,21 @@ dialog:
 scoreboard:
   title: "<gradient:green:aqua><b>{servername}</b></gradient>"
   lines:
-    - "<gray>-------------------</gray>"
-    - "<gray>玩家：<yellow>{player}</yellow></gray>"
-    - "<gray>等级：<gold>{level}</gold></gray>"
-    - "<gray>转生：<gold>{prestige}</gold></gray>"
-    - "<gray>精华：<light_purple>{essence}</light_purple></gray>"
-    - "<gray>已放置生成器：<gold>{placed_gens}/{max_gens}</gold></gray>"
-    - "<gray>余额：<green>{balance}</green></gray>"
-    - "<gray>-------------------</gray>"
+    - "<dark_aqua><b>玩家信息</b></dark_aqua>"
+    - " <gray>玩家：</gray> <white>{player}</white>"
+    - " <gray>等级：</gray> <gold>{level}</gold>"
+    - " <gray>转生：</gray> <light_purple>转生 {prestige}</light_purple>"
+    - ""
+    - "<dark_aqua><b>经济发展</b></dark_aqua>"
+    - " <gray>精华：</gray> <light_purple>{essence}</light_purple>"
+    - " <gray>生成器：</gray> <aqua>{placed_gens}</aqua><gray>/</gray><blue>{max_gens}</blue>"
+    - " <gray>余额：</gray> <green>{balance}</green>"
+    - ""
     - "<yellow>{server_ip}</yellow>"
   tablist:
-    header: "<gradient:green:aqua><b>{servername}</b></gradient>\n<gray>在线玩家：<gold>{online}</gold></gray>"
-    footer: "<gray>使用 <gold>/gensprout</gold> 打开菜单</gray>"
-    player-name: "<white>{player}</white> <gray>[P{prestige}]</gray>"
+    header: "\n<gradient:green:aqua><b>{servername} 网络</b></gradient>\n<gray>IP：<yellow>{server_ip}</yellow>  <dark_gray>•</dark_gray>  在线：<gold>{online}</gold></gray>\n"
+    footer: "\n<gray>需要帮助？使用 <gold>/help</gold> 或 <gold>/discord</gold></gray>\n"
+    player-name: "{player_prefix}<white>{player}</white> <gray>(<gold>Lv.{level}</gold> <dark_gray>•</dark_gray> <light_purple>转生 {prestige}</light_purple>)</gray>"
 
 actionbar:
   xp-gain: "<green>+<xp> 耕种经验</green> <gray>(<current>/<next>)</gray>"

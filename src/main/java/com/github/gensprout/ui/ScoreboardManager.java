@@ -83,9 +83,12 @@ public class ScoreboardManager {
         PlayerData data = plugin.getPlayerManager().getPlayerData(player.getUniqueId());
         int activeGens = plugin.getGeneratorManager().getActiveCount(player.getUniqueId());
         int maxSlots = data.getMaxSlots(plugin.getGeneratorManager().getDefaultSlots());
+        String playerPrefix = getPlayerPrefix(player);
 
         return LanguageManager.values(
                 "player", player.getName(),
+                "player_prefix", playerPrefix,
+                "vault_prefix", playerPrefix,
                 "level", String.valueOf(data.getLevel()),
                 "xp", String.format("%.1f", data.getFarmingXp()),
                 "prestige", String.valueOf(data.getPrestige()),
@@ -95,6 +98,47 @@ public class ScoreboardManager {
                 "max_gens", String.valueOf(maxSlots),
                 "balance", EconomyHook.format(EconomyHook.getBalance(player))
         );
+    }
+
+    private String getPlayerPrefix(Player player) {
+        String rawPrefix = "";
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+            try {
+                org.bukkit.plugin.RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp =
+                        Bukkit.getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+                if (rsp != null && rsp.getProvider() != null) {
+                    net.milkbowl.vault.chat.Chat vaultChat = rsp.getProvider();
+                    rawPrefix = vaultChat.getPlayerPrefix(player);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (rawPrefix == null || rawPrefix.isEmpty()) {
+            try {
+                Team team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(player.getName());
+                if (team == null && player.getScoreboard() != null) {
+                    team = player.getScoreboard().getEntryTeam(player.getName());
+                }
+                if (team != null) {
+                    Component teamPrefix = team.prefix();
+                    rawPrefix = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().serialize(teamPrefix);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (rawPrefix == null || rawPrefix.isEmpty()) {
+            return "";
+        }
+
+        try {
+            Component prefixComp = net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand()
+                    .deserialize(rawPrefix.replace('§', '&'));
+            return plugin.getMiniMessage().serialize(prefixComp);
+        } catch (Throwable t) {
+            return rawPrefix;
+        }
     }
 
     public void updateScoreboard(Player player) {

@@ -11,6 +11,7 @@ import com.github.gensprout.farming.FarmManager;
 import com.github.gensprout.ui.ScoreboardManager;
 import com.github.gensprout.listener.FarmSelectorListener;
 import com.github.gensprout.ui.DialogManager;
+import com.github.gensprout.lang.LanguageManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -127,7 +128,13 @@ public class GenSprout extends JavaPlugin implements Listener {
         DynamicCommand helpCmd = new DynamicCommand(helpCmdName, "View GenSprout starting guide & help tutorial", "/" + helpCmdName, helpAliases, cmd, cmd);
         commandMap.register(mainCmd, helpCmd);
 
-        // Override existing help commands in Bukkit CommandMap
+        java.util.List<String> discordCmdList = getCommandConfig("discord", java.util.List.of("discord", "dc"));
+        String discordCmdName = discordCmdList.get(0);
+        java.util.List<String> discordAliases = discordCmdList.size() > 1 ? discordCmdList.subList(1, discordCmdList.size()) : java.util.List.of();
+        DynamicCommand discordCmd = new DynamicCommand(discordCmdName, "View the server Discord link", "/" + discordCmdName, discordAliases, cmd, cmd);
+        commandMap.register(mainCmd, discordCmd);
+
+        // Override existing help & discord commands in Bukkit CommandMap
         try {
             java.util.Map<String, org.bukkit.command.Command> knownCommands = commandMap.getKnownCommands();
             for (String alias : helpCmdList) {
@@ -136,6 +143,10 @@ public class GenSprout extends JavaPlugin implements Listener {
             knownCommands.put(mainCmd + ":" + helpCmdName, helpCmd);
             knownCommands.put("minecraft:help", helpCmd);
             knownCommands.put("bukkit:help", helpCmd);
+            for (String alias : discordCmdList) {
+                knownCommands.put(alias.toLowerCase(), discordCmd);
+            }
+            knownCommands.put(mainCmd + ":" + discordCmdName, discordCmd);
         } catch (Throwable t) {
             getLogger().warning("Could not override help command in command map: " + t.getMessage());
         }
@@ -175,6 +186,17 @@ public class GenSprout extends JavaPlugin implements Listener {
         }
     }
 
+    public void sendDiscordLink(org.bukkit.entity.Player player) {
+        if (player == null || !player.isOnline()) return;
+        String link = getConfig().getString("server.discord", "https://discord.gg/bJjyy8q9wb");
+        if (languageManager.hasKey("system.discord-link", player)) {
+            languageManager.send(player, "system.discord-link", LanguageManager.values("link", link));
+        } else {
+            String raw = "<gradient:green:aqua><b>Discord:</b></gradient> <click:open_url:'" + link + "'><gold><u>" + link + "</u></gold></click>";
+            player.sendMessage(languageManager.renderRaw(raw, player, null));
+        }
+    }
+
     @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = false)
     public void onPlayerCommandPreprocess(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
         String message = event.getMessage();
@@ -189,6 +211,9 @@ public class GenSprout extends JavaPlugin implements Listener {
                 || label.equals("gensprout:help") || label.equals("minecraft:help") || label.equals("bukkit:help")) {
             event.setCancelled(true);
             openTutorialOrHelp(event.getPlayer());
+        } else if (label.equals("discord") || label.equals("dc") || label.equals("gensprout:discord")) {
+            event.setCancelled(true);
+            sendDiscordLink(event.getPlayer());
         }
     }
 
